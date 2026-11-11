@@ -2,129 +2,333 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/*
+ * ZUVIO design tokens.
+ *
+ * One light theme. Dark navy "bands" (hero, footer) are created with the
+ * `.band-dark` class below, which re-points the semantic variables locally so
+ * every primitive placed inside a band stays on-brand and AA-compliant.
+ *
+ * The `dark:` variant is kept only because the shadcn primitives reference it;
+ * nothing ever adds the `.dark` class.
+ */
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Fonts (variables are set by next/font in src/app/layout.tsx) */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-bricolage), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-heading);
+
+  /* Fluid display scale (min at 375 px, max at ~1280 px) */
+  --text-display-xl: clamp(2.5rem, 1.55rem + 4.1vw, 4.75rem);
+  --text-display-xl--line-height: 1.02;
+  --text-display-xl--letter-spacing: -0.035em;
+  --text-display-lg: clamp(2.125rem, 1.6rem + 2.3vw, 3.5rem);
+  --text-display-lg--line-height: 1.06;
+  --text-display-lg--letter-spacing: -0.03em;
+  --text-display-md: clamp(1.75rem, 1.45rem + 1.3vw, 2.5rem);
+  --text-display-md--line-height: 1.12;
+  --text-display-md--letter-spacing: -0.025em;
+  --text-display-sm: clamp(1.375rem, 1.25rem + 0.55vw, 1.75rem);
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: -0.02em;
+  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+
+  /* Brand palette (raw) */
+  --color-ink: var(--ink);
+  --color-charcoal: var(--charcoal);
+  --color-violet: var(--violet);
+  --color-violet-strong: var(--violet-strong);
+  --color-violet-soft: var(--violet-soft);
+  --color-blue: var(--blue);
+  --color-lavender: var(--lavender);
+  --color-paper: var(--paper);
+  --color-green: var(--green);
+
+  /* Semantic status colours: each has a tinted surface and an AA text colour */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-surface: var(--success-surface);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-surface: var(--warning-surface);
+  --color-danger: var(--destructive);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-surface: var(--danger-surface);
+  --color-info: var(--blue);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-surface: var(--info-surface);
+
+  /* shadcn semantic colours */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Radius scale: inputs xl, cards 2xl, feature panels 3xl, pills full */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+  --radius-4xl: 2.25rem;
+
+  /* Soft layered shadows, tinted with ink instead of pure black */
+  --shadow-xs: 0 1px 2px rgb(11 16 38 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(11 16 38 / 0.05), 0 2px 6px rgb(11 16 38 / 0.04);
+  --shadow-md: 0 1px 2px rgb(11 16 38 / 0.04), 0 6px 16px -4px rgb(11 16 38 / 0.08);
+  --shadow-lg: 0 2px 4px rgb(11 16 38 / 0.04), 0 16px 32px -8px rgb(11 16 38 / 0.12);
+  --shadow-xl: 0 4px 8px rgb(11 16 38 / 0.04), 0 28px 56px -12px rgb(11 16 38 / 0.18);
+  --shadow-glow: 0 8px 24px -6px rgb(109 74 255 / 0.45);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-page-in: page-in 220ms var(--ease-out-soft) both;
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Brand */
+  --ink: #0b1026;
+  --charcoal: #14182b;
+  --violet: #6d4aff;
+  /* Violet for text on lavender surfaces (plain violet is 4.38:1 there) */
+  --violet-strong: #5335e0;
+  /* Violet for text and rings on navy bands */
+  --violet-soft: #a99bff;
+  --blue: #4f7cff;
+  /* Gradient end for buttons carrying white text: #4f7cff is only 3.71:1 */
+  --blue-strong: #4468ec;
+  --lavender: #eeeafe;
+  --paper: #fafaf7;
+  --green: #19c37d;
+
+  /* Status */
+  --success: #19c37d;
+  --success-foreground: #0a6b43;
+  --success-surface: #e3f8ee;
+  --warning: #f5a524;
+  --warning-foreground: #8a4b00;
+  --warning-surface: #fff3d6;
+  --danger-foreground: #a81c2b;
+  --danger-surface: #fde8ea;
+  --info-foreground: #2447b8;
+  --info-surface: #e6edff;
+
+  /* shadcn semantic mapping */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: #ffffff;
+  --card-foreground: var(--ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink);
+  --primary: var(--violet);
+  --primary-foreground: #ffffff;
+  --secondary: var(--lavender);
+  --secondary-foreground: #2a1a8a;
+  --muted: #f1f0f7;
+  --muted-foreground: #565b73;
+  --accent: var(--lavender);
+  --accent-foreground: #2a1a8a;
+  --destructive: #d4283a;
+  --border: #e4e2ee;
+  /* Form-control outline: 3:1 against white and paper */
+  --input: #868ba6;
+  --ring: var(--violet);
+  --chart-1: #6d4aff;
+  --chart-2: #4f7cff;
+  --chart-3: #19c37d;
+  --chart-4: #f5a524;
+  --chart-5: #0b1026;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--violet);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--lavender);
+  --sidebar-accent-foreground: #2a1a8a;
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--violet);
+
+  --gradient-brand: linear-gradient(135deg, var(--violet) 0%, var(--blue-strong) 100%);
+  --gradient-brand-vivid: linear-gradient(135deg, var(--violet) 0%, var(--blue) 100%);
+  --header-height: 4rem;
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Deliberately dark navy band: re-point semantic tokens for everything inside. */
+.band-dark {
+  --background: var(--ink);
+  --foreground: #ffffff;
+  --card: var(--charcoal);
+  --card-foreground: #ffffff;
+  --popover: var(--charcoal);
+  --popover-foreground: #ffffff;
+  --secondary: rgb(255 255 255 / 0.1);
+  --secondary-foreground: #ffffff;
+  --muted: rgb(255 255 255 / 0.08);
+  --muted-foreground: #b4b9d4;
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: #ffffff;
+  --border: rgb(255 255 255 / 0.12);
+  --input: #7d84a6;
+  --ring: var(--violet-soft);
+  --violet-strong: var(--violet-soft);
+  background-color: var(--ink);
+  color: #ffffff;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+    scroll-padding-top: calc(var(--header-height) + 1rem);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading text-balance;
+  }
+  p {
+    @apply text-pretty;
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--violet) 28%, transparent);
+  }
+  /* A visible keyboard focus ring on anything that does not define its own. */
+  :where(a, button, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+@layer components {
+  /* Gradient text for one or two words in a display heading (large text only). */
+  .text-gradient {
+    background-image: linear-gradient(100deg, var(--violet-soft) 0%, #7fa0ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand);
+  }
+  .bg-gradient-brand-vivid {
+    background-image: var(--gradient-brand-vivid);
+  }
+  /* Faint dot grid used behind dark bands. */
+  .bg-dot-grid {
+    background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  /* Long-form copy (legal pages, guidelines). */
+  .prose-zuvio {
+    @apply text-[1.0625rem] leading-relaxed text-foreground/85;
+  }
+  .prose-zuvio h2 {
+    @apply mt-12 mb-3 scroll-mt-24 text-display-sm font-semibold text-foreground first:mt-0;
+  }
+  .prose-zuvio h3 {
+    @apply mt-6 mb-2 font-sans text-base font-semibold text-foreground;
+  }
+  .prose-zuvio p {
+    @apply my-3;
+  }
+  .prose-zuvio ul {
+    @apply my-3 list-disc space-y-1.5 pl-5 marker:text-violet;
+  }
+  .prose-zuvio a {
+    @apply font-medium text-violet-strong underline underline-offset-4 hover:text-foreground;
+  }
+  .prose-zuvio strong {
+    @apply font-semibold text-foreground;
+  }
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Everything animated in CSS stops for people who ask for reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

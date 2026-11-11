@@ -26,6 +26,10 @@ max_rows = 1000
 # `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
 # instead. Left unset, a fresh project falls back to `true`.
+# ZUVIO: left unset on purpose. Migration 20261111000100_baseline_hardening.sql sets the default
+# privileges explicitly (anon/authenticated get nothing, service_role keeps tables and sequences),
+# so the result is the same whatever this switch says. Tried `false` on CLI 3.1.0: it also strips
+# service_role's table defaults and does not touch supabase_admin's, so it adds nothing here.
 # auto_expose_new_tables = true
 
 [api.tls]

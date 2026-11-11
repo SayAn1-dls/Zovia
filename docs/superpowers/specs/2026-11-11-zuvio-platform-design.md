@@ -100,7 +100,7 @@ docs/                       architecture, database, API, permission matrix, depl
 
 ## 6. Data model (Postgres, schema `public`)
 
-Conventions: `id uuid primary key default gen_random_uuid()` unless stated; `created_at`/`updated_at timestamptz not null default now()` with a shared `set_updated_at()` trigger; soft delete via `deleted_at` on users, properties, rooms, messages, reviews; enums as Postgres enum types; all foreign keys indexed; every function `set search_path = ''`; RLS enabled and forced on every table; default privileges revoked so nothing is exposed by accident.
+Conventions: `id uuid primary key default gen_random_uuid()` unless stated; `created_at`/`updated_at timestamptz not null default now()` with a shared `set_updated_at()` trigger; soft delete via `deleted_at` on users, properties, rooms, messages, reviews; enums as Postgres enum types; all foreign keys indexed; every function `set search_path = ''`; RLS enabled on every table (not forced, so SECURITY DEFINER functions keep working); default privileges revoked so nothing is exposed by accident.
 
 RPC error contract: functions raise with custom SQLSTATE `ZV400` bad_request, `ZV401` unauthenticated, `ZV403` forbidden, `ZV404` not_found, `ZV409` conflict, `ZV422` validation_failed, `ZV423` restricted, `ZV429` rate_limited and a human message; `server/http/errors.ts` maps them to API errors.
 

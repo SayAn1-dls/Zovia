@@ -180,7 +180,8 @@ pnpm exec supabase db lint --schema public --level warning
 `tests/00000_helpers.test.sql` runs first and is the only file that is not rolled back: it
 creates the `tests` schema with the shared helpers (`tests.create_user`, `tests.user_id`,
 `tests.grant_role`, `tests.set_status`, `tests.act_as`, `tests.act_as_anon`,
-`tests.act_as_service`, `tests.act_as_owner`). That schema exists only where tests have been run;
+`tests.act_as_service`, `tests.act_as_owner`, and the marketplace fixtures `tests.make_owner`,
+`tests.create_property`, `tests.set_listing_status`). That schema exists only where tests have been run;
 PostgREST does not expose it. Every other file is `begin; ... rollback;`.
 
 ## Files in this folder

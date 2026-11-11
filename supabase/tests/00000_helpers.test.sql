@@ -140,6 +140,65 @@ begin
 end
 $$;
 
+-- ── marketplace fixtures (stage 2) ──
+-- Registers a user as an owner the way become_owner() will: property_owners row + owner role.
+create or replace function tests.make_owner(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.property_owners (user_id) values (p_user_id) on conflict do nothing;
+  insert into public.user_roles (user_id, role) values (p_user_id, 'owner') on conflict do nothing;
+end
+$$;
+
+-- Creates a draft listing with an address and a map pin (Koramangala, Bengaluru) and returns its id.
+create or replace function tests.create_property(
+  p_owner_id uuid,
+  p_title    text default 'Sunny PG',
+  p_mode     public.listing_mode default 'per_bed'
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_id uuid;
+begin
+  insert into public.properties (owner_id, title, property_type, listing_mode, address_line, locality, city, state, pincode,
+                                 location, monthly_rent)
+  values (p_owner_id, p_title,
+          case when p_mode = 'per_bed' then 'pg' else 'one_bhk' end::public.property_type, p_mode,
+          '12, 5th Cross', 'Koramangala', 'Bengaluru', 'Karnataka', '560034',
+          extensions.st_setsrid(extensions.st_makepoint(77.6245, 12.9352), 4326)::extensions.geography,
+          case when p_mode = 'entire_unit' then 25000 end)
+  returning id into v_id;
+  return v_id;
+end
+$$;
+
+-- Puts a listing into any status, skipping the lifecycle rules (fixture only: uses the 'system'
+-- actor, which the lifecycle trigger honours only for the table owner).
+create or replace function tests.set_listing_status(p_property_id uuid, p_status public.listing_status)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  perform set_config('zuvio.listing_actor', 'system', true);
+  update public.properties
+  set status = p_status,
+      approved_at = case when p_status in ('published', 'paused') then coalesce(approved_at, now()) else approved_at end,
+      published_at = case when p_status in ('published', 'paused') then coalesce(published_at, now()) else published_at end
+  where id = p_property_id;
+  perform set_config('zuvio.listing_actor', '', true);
+end
+$$;
+
 -- Only the identity switches are callable after a switch; the privileged helpers stay owner-only.
 revoke all on all functions in schema tests from public, anon, authenticated, service_role;
 grant execute on function tests.act_as(uuid) to anon, authenticated, service_role;

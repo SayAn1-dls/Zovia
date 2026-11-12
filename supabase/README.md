@@ -158,8 +158,36 @@ unaccent 1.1, btree_gist 1.7, pg_net 0.20.4, citext 1.6. Apart from pgcrypto the
 installed by default; enable the ones the schema needs in a migration with
 `create extension if not exists ... with schema extensions;`.
 
+## Schema rules in one screen
+
+- Nothing in schema `public` is reachable by `anon` or `authenticated` until a migration GRANTs
+  it: `20261111000100_baseline_hardening.sql` removes the default privileges (its header explains
+  the exact mechanism; check with `\ddp public` in psql). New functions get no `PUBLIC` execute
+  either, so every function needs an explicit `grant execute`, `service_role` included.
+- Every table has RLS enabled (not forced). Privileged work happens in `SECURITY DEFINER`
+  functions with `set search_path = ''` that derive the caller from `auth.uid()`.
+- Function errors use SQLSTATE `ZV400/401/403/404/409/422/423/429` with a user-safe message.
+- Function parameters are named `p_...`; PostgREST passes arguments by name, so they are API.
+
+## Database tests (pgTAP)
+
+```sh
+scripts/heavy.sh pnpm db:reset   # empty database -> all migrations -> seed.sql
+scripts/heavy.sh pnpm db:test    # every supabase/tests/*.test.sql
+pnpm exec supabase db lint --schema public --level warning
+```
+
+`tests/00000_helpers.test.sql` runs first and is the only file that is not rolled back: it
+creates the `tests` schema with the shared helpers (`tests.create_user`, `tests.user_id`,
+`tests.grant_role`, `tests.set_status`, `tests.act_as`, `tests.act_as_anon`,
+`tests.act_as_service`, `tests.act_as_owner`, and the marketplace fixtures `tests.make_owner`,
+`tests.create_property`, `tests.set_listing_status`). That schema exists only where tests have been run;
+PostgREST does not expose it. Every other file is `begin; ... rollback;`.
+
 ## Files in this folder
 
 - `config.toml`: stack configuration, committed.
-- `migrations/`, `seed.sql`: do not exist yet; the schema is added separately.
+- `migrations/`: the schema, applied in file-name order. Reference data lives here too.
+- `seed.sql`: intentionally empty (demo data for local use comes from `scripts/seed-dev.ts`).
+- `tests/`: pgTAP tests.
 - `.temp/`, `.branches/`: CLI working state, git-ignored by `supabase/.gitignore`.

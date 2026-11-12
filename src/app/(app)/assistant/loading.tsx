@@ -1,0 +1,5 @@
+import { LoadingState } from "@/components/feedback/loading-state";
+
+export default function Loading() {
+  return <LoadingState variant="list" count={3} label="Loading the assistant" />;
+}

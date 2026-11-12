@@ -26,6 +26,10 @@ max_rows = 1000
 # `postgres` are reachable through the Data API roles (`anon`, `authenticated`, `service_role`)
 # without explicit GRANTs, matching the cloud default. Set to `false` to require explicit GRANTs
 # instead. Left unset, a fresh project falls back to `true`.
+# ZUVIO: left unset on purpose. Migration 20261111000100_baseline_hardening.sql sets the default
+# privileges explicitly (anon/authenticated get nothing, service_role keeps tables and sequences),
+# so the result is the same whatever this switch says. Tried `false` on CLI 3.1.0: it also strips
+# service_role's table defaults and does not touch supabase_admin's, so it adds nothing here.
 # auto_expose_new_tables = true
 
 [api.tls]
@@ -249,9 +253,10 @@ enabled = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-# Email verification is a ZUVIO product requirement, so it is ON locally too. The confirmation
-# email lands in the local mail catcher (see [local_smtp]); nothing leaves this machine.
-enable_confirmations = true
+# OFF by product-owner decision (2026-11-12): people sign up and are signed in at once. The app
+# handles both settings (src/features/auth/service.ts). Turn it back on here (and in the hosted
+# dashboard) once real e-mail delivery (SMTP, e.g. Resend) is configured.
+enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = true
 # If enabled, users will need to provide their current password to change their password, unless

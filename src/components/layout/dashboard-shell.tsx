@@ -47,7 +47,7 @@ function SidebarNav({ groups, onNavigate }: { groups: readonly NavGroup[]; onNav
                   exact={item.exact}
                   onClick={onNavigate}
                   className="flex h-11 items-center gap-3 rounded-xl px-3 text-[0.9375rem] font-medium text-foreground/80 transition-colors duration-150 hover:bg-muted hover:text-foreground"
-                  activeClassName="bg-secondary font-semibold text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground"
+                  activeClassName="bg-ink font-semibold text-white hover:bg-ink hover:text-white"
                 >
                   <item.icon className="size-[1.125rem] shrink-0" aria-hidden />
                   {item.label}
@@ -88,7 +88,7 @@ export function DashboardShell({ area, children }: DashboardShellProps) {
           <Link href={config.home} aria-label={`${config.label} home`} className="rounded-lg">
             <Logo size="sm" />
           </Link>
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
+          <span className="rounded-full bg-lime px-2.5 py-1 text-xs font-semibold text-ink">
             {config.label}
           </span>
         </div>
@@ -99,7 +99,7 @@ export function DashboardShell({ area, children }: DashboardShellProps) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 flex h-(--header-height) items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-8">
+        <header className="sticky top-0 z-30 flex h-(--header-height) items-center gap-2 border-b border-border bg-background px-4 sm:px-8">
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger
               aria-label="Open menu"

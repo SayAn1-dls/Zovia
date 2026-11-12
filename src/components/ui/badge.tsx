@@ -15,9 +15,10 @@ const badgeVariants = cva(
           "bg-danger-surface text-danger-foreground focus-visible:ring-destructive/20",
         success: "bg-success-surface text-success-foreground",
         warning: "bg-warning-surface text-warning-foreground",
-        info: "bg-info-surface text-info-foreground",
+        // Lime accent badge: for the one thing that matters.
+        accent: "bg-lime text-ink",
         outline:
-          "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
+          "border-foreground/25 bg-card text-foreground [a]:hover:border-foreground",
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",

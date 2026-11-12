@@ -3,25 +3,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
 
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform,filter] duration-200 ease-out-soft outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/30 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-transparent bg-clip-padding text-sm font-semibold whitespace-nowrap transition-[color,background-color,border-color,transform] duration-150 outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/30 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        // Gradient primary. The gradient ends on --blue-strong so white text stays AA.
+        // Solid ink pill (white on ink bands, where --primary flips).
         default:
-          "bg-gradient-brand text-primary-foreground shadow-sm hover:shadow-glow hover:brightness-110",
+          "bg-primary text-primary-foreground hover:bg-primary/85",
         outline:
-          "border-border bg-card text-foreground shadow-xs hover:border-violet/40 hover:bg-secondary hover:text-secondary-foreground aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "border-foreground/25 bg-card text-foreground hover:border-foreground hover:bg-card aria-expanded:border-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--violet)_12%)] aria-expanded:bg-secondary",
+          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_8%)] aria-expanded:bg-secondary",
         ghost:
           "text-foreground hover:bg-muted aria-expanded:bg-muted",
+        // The lime accent: one per view at most.
+        accent: "bg-lime text-ink hover:bg-[#bce63a]",
+        // Coral carries ink text (white on coral fails AA).
         destructive:
-          "bg-destructive text-white shadow-sm hover:brightness-110 focus-visible:ring-destructive",
-        // For use on gradient or navy bands.
+          "bg-destructive text-ink hover:bg-[#f24a26]",
+        // For use on ink sections.
         inverse:
-          "bg-white text-ink shadow-sm hover:bg-lavender focus-visible:ring-white focus-visible:ring-offset-ink",
-        link: "h-auto rounded-sm px-0 text-violet-strong underline-offset-4 hover:underline",
+          "bg-white text-ink hover:bg-paper focus-visible:ring-white focus-visible:ring-offset-ink",
+        link: "h-auto rounded-sm px-0 text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground",
       },
       size: {
         default:

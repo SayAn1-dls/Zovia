@@ -14,7 +14,7 @@ const alertVariants = cva(
           "border-success/30 bg-success-surface text-success-foreground *:data-[slot=alert-description]:text-success-foreground",
         warning:
           "border-warning/40 bg-warning-surface text-warning-foreground *:data-[slot=alert-description]:text-warning-foreground",
-        info: "border-blue/25 bg-info-surface text-info-foreground *:data-[slot=alert-description]:text-info-foreground",
+        info: "border-border bg-muted text-foreground *:data-[slot=alert-description]:text-foreground",
       },
     },
     defaultVariants: {

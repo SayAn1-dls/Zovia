@@ -235,11 +235,11 @@ export function ImageUploader<TResult>({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         className={cn(
-          "flex w-full cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-input/70 bg-card px-6 py-8 text-center transition-colors duration-150 hover:border-violet hover:bg-secondary/50 focus-visible:border-violet focus-visible:ring-3 focus-visible:ring-ring/25 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
-          dragging && "border-violet bg-secondary",
+          "flex w-full cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-foreground/30 bg-card px-6 py-8 text-center transition-colors duration-150 hover:border-foreground focus-visible:border-foreground focus-visible:ring-3 focus-visible:ring-ring/15 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
+          dragging && "border-foreground bg-lime",
         )}
       >
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-violet-strong">
+        <span className="flex size-12 items-center justify-center rounded-full bg-muted text-foreground">
           <ImagePlus className="size-6" aria-hidden />
         </span>
         <span className="text-base font-semibold">{label}</span>
@@ -260,7 +260,7 @@ export function ImageUploader<TResult>({
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex items-center gap-3 rounded-xl bg-card p-2 pr-1 shadow-xs ring-1 ring-border"
+              className="flex items-center gap-3 rounded-xl bg-card p-2 pr-1 ring-1 ring-border"
             >
               <span className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
                 {item.previewUrl ? (
@@ -293,7 +293,7 @@ export function ImageUploader<TResult>({
                     >
                       <div
                         className={cn(
-                          "h-full rounded-full bg-gradient-brand transition-[width] duration-200",
+                          "h-full rounded-full bg-ink transition-[width] duration-200",
                           item.progress === null && "w-1/3 animate-pulse",
                         )}
                         style={

@@ -63,12 +63,12 @@ export function RatingStars({
         </span>
       </span>
       {showValue ? (
-        <span aria-hidden className="font-semibold tabular-nums">
+        <span aria-hidden className="font-semibold">
           {rating.toFixed(1)}
         </span>
       ) : null}
       {typeof count === "number" ? (
-        <span aria-hidden className="text-muted-foreground tabular-nums">
+        <span aria-hidden className="text-muted-foreground">
           ({count})
         </span>
       ) : null}

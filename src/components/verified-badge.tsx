@@ -4,7 +4,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * The three independent trust signals (spec section 6.2). They are never
- * merged into one generic tick: each has its own icon, colour and wording.
+ * merged into one generic tick: each has its own icon, treatment and wording
+ * (green tint, solid ink, outlined).
  */
 export type VerificationKind = "owner" | "authorisation" | "recently_confirmed";
 
@@ -25,16 +26,16 @@ export const verificationSignals: Record<
     description:
       "Our team checked that the lister has the right to let this specific property.",
     icon: FileCheck2,
-    className: "bg-info-surface text-info-foreground",
-    iconWrap: "bg-info-surface text-info-foreground",
+    className: "bg-ink text-white",
+    iconWrap: "bg-ink text-white",
   },
   recently_confirmed: {
     label: "Recently confirmed",
     description:
       "The owner confirmed in the last 30 days that this listing and its availability are still accurate.",
     icon: CalendarCheck,
-    className: "bg-secondary text-secondary-foreground",
-    iconWrap: "bg-secondary text-violet-strong",
+    className: "bg-card text-foreground ring-1 ring-inset ring-foreground/30",
+    iconWrap: "bg-card text-foreground ring-1 ring-inset ring-foreground/30",
   },
 };
 

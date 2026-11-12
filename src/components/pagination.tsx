@@ -42,7 +42,7 @@ export function Pagination({ page, totalPages, hrefForPage, className }: Paginat
   const total = Math.max(1, Math.floor(totalPages));
   if (total <= 1) return null;
   const current = Math.min(total, Math.max(1, Math.floor(page)));
-  const item = cn(buttonVariants({ variant: "ghost", size: "icon-lg" }), "tabular-nums");
+  const item = buttonVariants({ variant: "ghost", size: "icon-lg" });
 
   return (
     <nav aria-label="Pagination" className={cn("flex items-center justify-center gap-1", className)}>
@@ -62,7 +62,7 @@ export function Pagination({ page, totalPages, hrefForPage, className }: Paginat
               …
             </li>
           ) : (
-            <li key={entry} className={cn(Math.abs(entry - current) > 1 && entry !== 1 && entry !== total && "hidden sm:block")}>
+            <li key={entry} className={cn(entry !== current && entry !== 1 && entry !== total && "hidden sm:block")}>
               <Link
                 href={hrefForPage(entry)}
                 aria-label={`Page ${entry}`}

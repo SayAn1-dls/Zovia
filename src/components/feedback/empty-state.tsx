@@ -28,11 +28,11 @@ export function EmptyState({
       className={cn(
         "flex flex-col items-center px-6 py-12 text-center",
         variant === "card" &&
-          "rounded-2xl border border-dashed border-input/60 bg-card/60",
+          "rounded-2xl border border-dashed border-foreground/25",
         className,
       )}
     >
-      <span className="flex size-14 items-center justify-center rounded-2xl bg-secondary text-violet-strong">
+      <span className="flex size-14 items-center justify-center rounded-full bg-muted text-foreground">
         <Icon className="size-6" aria-hidden />
       </span>
       <h2 className="mt-5 text-xl font-semibold tracking-tight">{title}</h2>

@@ -95,8 +95,10 @@ export function FieldError({ id, children }: { id?: string; children: ReactNode 
 type FormFieldProps<
   TValues extends FieldValues,
   TName extends FieldPath<TValues>,
+  TTransformed = TValues,
 > = {
-  control: Control<TValues>;
+  /** Also accepts forms whose schema transforms values (useForm<Input, unknown, Output>). */
+  control: Control<TValues, unknown, TTransformed>;
   name: TName;
   label: ReactNode;
   optional?: boolean;
@@ -110,7 +112,8 @@ type FormFieldProps<
 export function FormField<
   TValues extends FieldValues,
   TName extends FieldPath<TValues> = FieldPath<TValues>,
->({ control, name, label, optional, description, className, children }: FormFieldProps<TValues, TName>) {
+  TTransformed = TValues,
+>({ control, name, label, optional, description, className, children }: FormFieldProps<TValues, TName, TTransformed>) {
   const id = useId();
   const { field, fieldState } = useController({ control, name });
   const error = fieldState.error?.message ?? null;
@@ -155,7 +158,7 @@ export function FormMessage({
     danger: "border-destructive/25 bg-danger-surface text-danger-foreground",
     success: "border-success/30 bg-success-surface text-success-foreground",
     warning: "border-warning/40 bg-warning-surface text-warning-foreground",
-    info: "border-blue/25 bg-info-surface text-info-foreground",
+    info: "border-border bg-muted text-foreground",
   } as const;
   return (
     <div

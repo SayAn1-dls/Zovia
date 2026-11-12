@@ -37,11 +37,11 @@ export function ErrorState({
       className={cn(
         "flex flex-col items-center px-6 py-12 text-center",
         variant === "card" &&
-          "rounded-2xl border border-destructive/20 bg-danger-surface/50",
+          "rounded-2xl border border-danger-foreground/25",
         className,
       )}
     >
-      <span className="flex size-14 items-center justify-center rounded-2xl bg-danger-surface text-danger-foreground">
+      <span className="flex size-14 items-center justify-center rounded-full bg-danger-surface text-danger-foreground">
         <TriangleAlert className="size-6" aria-hidden />
       </span>
       <h2 className="mt-5 text-xl font-semibold tracking-tight">{title}</h2>

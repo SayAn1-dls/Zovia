@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, MapPin, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 
@@ -42,23 +42,19 @@ export function HeroSearch() {
   });
 
   return (
-    <div className="rounded-3xl bg-white p-3 text-ink shadow-xl ring-1 ring-white/20 sm:p-4">
-      <div className="flex flex-col gap-3 sm:flex-row">
+    <div className="rounded-3xl border border-foreground bg-card p-2.5 sm:p-3">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <label htmlFor={cityId} className="sr-only">
             City
           </label>
-          <MapPin
-            aria-hidden
-            className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-violet"
-          />
           <select
             id={cityId}
             value={city}
             onChange={(event) => setCity(event.target.value)}
             className={cn(
-              "h-13 w-full cursor-pointer appearance-none rounded-2xl border border-[#868ba6] bg-white pr-11 pl-12 text-base font-medium outline-none transition-[border-color,box-shadow] duration-150 hover:border-ink/50 focus-visible:border-violet focus-visible:ring-3 focus-visible:ring-violet/25",
-              city === "" && "text-[#565b73]",
+              "h-13 w-full cursor-pointer appearance-none rounded-2xl bg-muted pr-11 pl-4 text-base font-medium outline-none transition-colors duration-150 hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring",
+              city === "" && "text-muted-foreground",
             )}
           >
             <option value="">Any city</option>
@@ -70,21 +66,18 @@ export function HeroSearch() {
           </select>
           <ChevronDown
             aria-hidden
-            className="pointer-events-none absolute top-1/2 right-4 size-5 -translate-y-1/2 text-[#565b73]"
+            className="pointer-events-none absolute top-1/2 right-4 size-5 -translate-y-1/2 text-muted-foreground"
           />
         </div>
-        <Link href={href} className={cn(buttonVariants({ size: "xl" }), "sm:w-auto")}>
+        <Link href={href} className={cn(buttonVariants({ size: "xl" }), "sm:px-8")}>
           <Search aria-hidden />
-          Search homes
+          Search
         </Link>
       </div>
 
-      <fieldset className="mt-3">
+      <fieldset className="mt-2">
         <legend className="sr-only">Monthly budget</legend>
-        <div className="flex flex-wrap items-center gap-2">
-          <span aria-hidden className="mr-1 text-sm font-medium text-[#565b73]">
-            Budget / month
-          </span>
+        <div className="grid grid-cols-4 gap-1.5 sm:flex sm:gap-2">
           {budgetBands.map((entry) => {
             const selected = entry.id === bandId;
             return (
@@ -94,10 +87,10 @@ export function HeroSearch() {
                 aria-pressed={selected}
                 onClick={() => setBandId(selected ? null : entry.id)}
                 className={cn(
-                  "inline-flex h-11 cursor-pointer items-center rounded-full border px-4 text-sm font-semibold tabular-nums transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-violet focus-visible:ring-offset-2 active:scale-[0.97]",
+                  "inline-flex h-11 cursor-pointer items-center justify-center rounded-full border text-[0.8125rem] font-semibold whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active:scale-[0.97] sm:px-4 sm:text-sm",
                   selected
-                    ? "border-ink bg-ink text-white"
-                    : "border-[#e4e2ee] bg-[#f1f0f7] text-ink hover:border-violet/50 hover:bg-lavender",
+                    ? "border-ink bg-lime text-ink"
+                    : "border-border bg-card text-foreground hover:border-foreground",
                 )}
               >
                 {bandLabel(entry)}

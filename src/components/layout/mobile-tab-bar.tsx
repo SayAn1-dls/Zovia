@@ -13,7 +13,7 @@ export function MobileTabBar() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5">
         {mobileTabs.map((tab) => (
@@ -21,9 +21,9 @@ export function MobileTabBar() {
             <NavLink
               href={tab.href}
               className="group flex h-14 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-medium text-muted-foreground transition-colors duration-150 active:scale-95"
-              activeClassName="text-violet-strong"
+              activeClassName="text-foreground"
             >
-              <span className="flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-150 group-data-active:bg-secondary">
+              <span className="flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-150 group-data-active:bg-lime">
                 <tab.icon className="size-5" aria-hidden />
               </span>
               <span aria-hidden>{"shortLabel" in tab ? tab.shortLabel : tab.label}</span>

@@ -36,7 +36,7 @@ export const site = {
   /** Origin without a trailing slash, from NEXT_PUBLIC_SITE_URL. */
   url: normaliseSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_IN",
-  themeColor: "#0b1026",
+  themeColor: "#f6f4ee",
   /** null when NEXT_PUBLIC_SUPPORT_EMAIL is unset: hide the e-mail, never invent one. */
   supportEmail: optional(process.env.NEXT_PUBLIC_SUPPORT_EMAIL),
   /** null when NEXT_PUBLIC_WHATSAPP_NUMBER is unset: the support button is hidden. */

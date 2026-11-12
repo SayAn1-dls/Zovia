@@ -7,8 +7,8 @@ const toneClasses: Record<StatusTone, string> = {
   success: "bg-success-surface text-success-foreground",
   warning: "bg-warning-surface text-warning-foreground",
   danger: "bg-danger-surface text-danger-foreground",
-  info: "bg-info-surface text-info-foreground",
-  brand: "bg-secondary text-secondary-foreground",
+  info: "bg-card text-foreground ring-1 ring-inset ring-foreground/25",
+  brand: "bg-lime text-ink",
 };
 
 const dotClasses: Record<StatusTone, string> = {
@@ -16,8 +16,8 @@ const dotClasses: Record<StatusTone, string> = {
   success: "bg-success-foreground",
   warning: "bg-warning-foreground",
   danger: "bg-danger-foreground",
-  info: "bg-info-foreground",
-  brand: "bg-violet",
+  info: "bg-foreground",
+  brand: "bg-ink",
 };
 
 /**

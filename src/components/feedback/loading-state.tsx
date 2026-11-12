@@ -13,7 +13,7 @@ type LoadingStateProps = {
 
 function CardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border">
+    <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-border">
       <Skeleton className="aspect-[4/3] w-full rounded-none" />
       <div className="space-y-3 p-5">
         <Skeleton className="h-5 w-3/4" />
@@ -41,7 +41,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
 /** Rows with an avatar and two lines (conversations, enquiries, notifications). */
 export function ListSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="divide-y divide-border overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border">
+    <div className="divide-y divide-border overflow-hidden rounded-2xl bg-card ring-1 ring-border">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="flex items-center gap-4 p-4">
           <Skeleton className="size-11 shrink-0 rounded-full" />

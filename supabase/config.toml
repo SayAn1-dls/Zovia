@@ -253,9 +253,10 @@ enabled = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-# Email verification is a ZUVIO product requirement, so it is ON locally too. The confirmation
-# email lands in the local mail catcher (see [local_smtp]); nothing leaves this machine.
-enable_confirmations = true
+# OFF by product-owner decision (2026-11-12): people sign up and are signed in at once. The app
+# handles both settings (src/features/auth/service.ts). Turn it back on here (and in the hosted
+# dashboard) once real e-mail delivery (SMTP, e.g. Resend) is configured.
+enable_confirmations = false
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = true
 # If enabled, users will need to provide their current password to change their password, unless

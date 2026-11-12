@@ -46,7 +46,7 @@ export function UserMenu() {
       >
         <Avatar size="lg">
           {user.avatar_url ? <AvatarImage src={user.avatar_url} alt="" /> : null}
-          <AvatarFallback className="bg-gradient-brand text-sm font-semibold text-white">
+          <AvatarFallback className="bg-lime text-sm font-semibold text-ink">
             {initials(user.display_name)}
           </AvatarFallback>
         </Avatar>

@@ -10,22 +10,21 @@ const linkClass =
   "inline-flex min-h-11 items-center text-[0.9375rem] text-muted-foreground transition-colors duration-150 hover:text-foreground sm:min-h-9";
 
 /**
- * Navy footer band for public pages. Static: it shows no year or other
+ * Solid ink footer for public pages. Static: it shows no year or other
  * request-time value, so it never blocks prerendering. The support e-mail and
  * the WhatsApp button appear only when configured.
  */
 export function SiteFooter() {
   return (
     <footer className="band-dark">
-      <div className="mx-auto w-full max-w-6xl px-5 pt-14 pb-10 sm:px-8 sm:pt-20">
+      <div className="mx-auto w-full max-w-6xl px-5 pt-14 pb-10 sm:px-8 sm:pt-16">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
-            <Link href={routes.home} aria-label="ZUVIO home" className="inline-flex rounded-lg">
+            <Link href={routes.home} aria-label="ZUVIO home" className="inline-flex h-11 items-center rounded-lg">
               <Logo size="md" />
             </Link>
-            <p className="mt-4 max-w-xs text-[0.9375rem] leading-relaxed text-muted-foreground">
-              {site.tagline} Homes and roommates for students and working
-              professionals in India.
+            <p className="mt-3 max-w-xs text-[0.9375rem] leading-relaxed text-muted-foreground">
+              {site.tagline}
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <WhatsAppSupportButton variant="inverse" size="lg" />

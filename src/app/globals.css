@@ -5,9 +5,11 @@
 /*
  * ZUVIO design tokens.
  *
- * One light theme. Dark navy "bands" (hero, footer) are created with the
+ * One light theme: warm paper, white cards, ink text, ink primary buttons and
+ * ONE accent (acid lime, always with ink text). Flat colour only: no
+ * gradients, glows or blurred backdrops. Solid ink sections (footer) use the
  * `.band-dark` class below, which re-points the semantic variables locally so
- * every primitive placed inside a band stays on-brand and AA-compliant.
+ * every primitive placed inside stays on-brand and AA-compliant.
  *
  * The `dark:` variant is kept only because the shadcn primitives reference it;
  * nothing ever adds the `.dark` class.
@@ -16,36 +18,37 @@
 
 @theme inline {
   /* Fonts (variables are set by next/font in src/app/layout.tsx) */
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
-  --font-heading: var(--font-bricolage), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* Unbounded: headlines and the wordmark only, never long text. */
+  --font-heading: var(--font-unbounded), var(--font-onest), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-heading);
 
-  /* Fluid display scale (min at 375 px, max at ~1280 px) */
-  --text-display-xl: clamp(2.5rem, 1.55rem + 4.1vw, 4.75rem);
-  --text-display-xl--line-height: 1.02;
+  /*
+   * Fluid display scale (min at 375 px, max at ~1280 px). Unbounded is a wide
+   * face, so sizes are smaller than a grotesque's would be and tracking is
+   * tight; headlines are written as short lines so they never wrap mid-phrase.
+   */
+  --text-display-xl: clamp(2.375rem, 0.9rem + 6.2vw, 5.25rem);
+  --text-display-xl--line-height: 1.14;
   --text-display-xl--letter-spacing: -0.035em;
-  --text-display-lg: clamp(2.125rem, 1.6rem + 2.3vw, 3.5rem);
-  --text-display-lg--line-height: 1.06;
+  --text-display-lg: clamp(1.875rem, 1.1rem + 3.3vw, 3.5rem);
+  --text-display-lg--line-height: 1.16;
   --text-display-lg--letter-spacing: -0.03em;
-  --text-display-md: clamp(1.75rem, 1.45rem + 1.3vw, 2.5rem);
-  --text-display-md--line-height: 1.12;
+  --text-display-md: clamp(1.375rem, 1.15rem + 0.95vw, 2rem);
+  --text-display-md--line-height: 1.2;
   --text-display-md--letter-spacing: -0.025em;
-  --text-display-sm: clamp(1.375rem, 1.25rem + 0.55vw, 1.75rem);
-  --text-display-sm--line-height: 1.2;
+  --text-display-sm: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-display-sm--line-height: 1.3;
   --text-display-sm--letter-spacing: -0.02em;
   --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
-  --text-lead--line-height: 1.55;
+  --text-lead--line-height: 1.5;
 
-  /* Brand palette (raw) */
+  /* Brand palette (raw): flat colour only, no gradients anywhere */
   --color-ink: var(--ink);
-  --color-charcoal: var(--charcoal);
-  --color-violet: var(--violet);
-  --color-violet-strong: var(--violet-strong);
-  --color-violet-soft: var(--violet-soft);
-  --color-blue: var(--blue);
-  --color-lavender: var(--lavender);
   --color-paper: var(--paper);
+  --color-lime: var(--lime);
+  --color-coral: var(--coral);
   --color-green: var(--green);
 
   /* Semantic status colours: each has a tinted surface and an AA text colour */
@@ -58,9 +61,6 @@
   --color-danger: var(--destructive);
   --color-danger-foreground: var(--danger-foreground);
   --color-danger-surface: var(--danger-surface);
-  --color-info: var(--blue);
-  --color-info-foreground: var(--info-foreground);
-  --color-info-surface: var(--info-surface);
 
   /* shadcn semantic colours */
   --color-background: var(--background);
@@ -104,48 +104,35 @@
   --radius-3xl: 1.75rem;
   --radius-4xl: 2.25rem;
 
-  /* Soft layered shadows, tinted with ink instead of pure black */
-  --shadow-xs: 0 1px 2px rgb(11 16 38 / 0.05);
-  --shadow-sm: 0 1px 2px rgb(11 16 38 / 0.05), 0 2px 6px rgb(11 16 38 / 0.04);
-  --shadow-md: 0 1px 2px rgb(11 16 38 / 0.04), 0 6px 16px -4px rgb(11 16 38 / 0.08);
-  --shadow-lg: 0 2px 4px rgb(11 16 38 / 0.04), 0 16px 32px -8px rgb(11 16 38 / 0.12);
-  --shadow-xl: 0 4px 8px rgb(11 16 38 / 0.04), 0 28px 56px -12px rgb(11 16 38 / 0.18);
-  --shadow-glow: 0 8px 24px -6px rgb(109 74 255 / 0.45);
+  /* Borders do the work; shadows are neutral and only lift overlays (menus, dialogs). */
+  --shadow-xs: 0 1px 0 rgb(17 17 17 / 0.04);
+  --shadow-sm: 0 1px 2px rgb(17 17 17 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(17 17 17 / 0.1);
+  --shadow-lg: 0 12px 28px -6px rgb(17 17 17 / 0.16);
+  --shadow-xl: 0 20px 44px -10px rgb(17 17 17 / 0.22);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
-
-  --animate-shimmer: shimmer 1.6s linear infinite;
-  --animate-float: float 7s ease-in-out infinite;
-  --animate-page-in: page-in 220ms var(--ease-out-soft) both;
 }
 
 :root {
   /* Brand */
-  --ink: #0b1026;
-  --charcoal: #14182b;
-  --violet: #6d4aff;
-  /* Violet for text on lavender surfaces (plain violet is 4.38:1 there) */
-  --violet-strong: #5335e0;
-  /* Violet for text and rings on navy bands */
-  --violet-soft: #a99bff;
-  --blue: #4f7cff;
-  /* Gradient end for buttons carrying white text: #4f7cff is only 3.71:1 */
-  --blue-strong: #4468ec;
-  --lavender: #eeeafe;
-  --paper: #fafaf7;
-  --green: #19c37d;
+  --ink: #111111;
+  --paper: #f6f4ee;
+  /* The one accent. Always carries ink text (14.4:1). Use sparingly. */
+  --lime: #c8f04a;
+  /* Rare emphasis and destructive actions. Carries ink text (6.1:1); white fails. */
+  --coral: #ff5a36;
+  --green: #1f9d55;
 
   /* Status */
-  --success: #19c37d;
-  --success-foreground: #0a6b43;
-  --success-surface: #e3f8ee;
+  --success: #1f9d55;
+  --success-foreground: #136b39;
+  --success-surface: #e2f3e8;
   --warning: #f5a524;
-  --warning-foreground: #8a4b00;
-  --warning-surface: #fff3d6;
-  --danger-foreground: #a81c2b;
-  --danger-surface: #fde8ea;
-  --info-foreground: #2447b8;
-  --info-surface: #e6edff;
+  --warning-foreground: #7a4300;
+  --warning-surface: #ffefc7;
+  --danger-foreground: #b5300f;
+  --danger-surface: #ffe9e3;
 
   /* shadcn semantic mapping */
   --background: var(--paper);
@@ -154,57 +141,56 @@
   --card-foreground: var(--ink);
   --popover: #ffffff;
   --popover-foreground: var(--ink);
-  --primary: var(--violet);
+  --primary: var(--ink);
   --primary-foreground: #ffffff;
-  --secondary: var(--lavender);
-  --secondary-foreground: #2a1a8a;
-  --muted: #f1f0f7;
-  --muted-foreground: #565b73;
-  --accent: var(--lavender);
-  --accent-foreground: #2a1a8a;
-  --destructive: #d4283a;
-  --border: #e4e2ee;
-  /* Form-control outline: 3:1 against white and paper */
-  --input: #868ba6;
-  --ring: var(--violet);
-  --chart-1: #6d4aff;
-  --chart-2: #4f7cff;
-  --chart-3: #19c37d;
-  --chart-4: #f5a524;
-  --chart-5: #0b1026;
+  --secondary: #ece9e0;
+  --secondary-foreground: var(--ink);
+  --muted: #ece9e0;
+  --muted-foreground: #5e5b54;
+  --accent: #ece9e0;
+  --accent-foreground: var(--ink);
+  --destructive: var(--coral);
+  --border: #dad6ca;
+  /* Form-control outline: at least 3:1 against white and paper */
+  --input: #85827a;
+  --ring: var(--ink);
+  --chart-1: #111111;
+  --chart-2: #c8f04a;
+  --chart-3: #1f9d55;
+  --chart-4: #ff5a36;
+  --chart-5: #f5a524;
   --radius: 0.75rem;
   --sidebar: #ffffff;
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: var(--violet);
+  --sidebar-primary: var(--ink);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: var(--lavender);
-  --sidebar-accent-foreground: #2a1a8a;
+  --sidebar-accent: #ece9e0;
+  --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--border);
-  --sidebar-ring: var(--violet);
+  --sidebar-ring: var(--ink);
 
-  --gradient-brand: linear-gradient(135deg, var(--violet) 0%, var(--blue-strong) 100%);
-  --gradient-brand-vivid: linear-gradient(135deg, var(--violet) 0%, var(--blue) 100%);
   --header-height: 4rem;
 }
 
-/* Deliberately dark navy band: re-point semantic tokens for everything inside. */
+/* Solid ink section: re-point semantic tokens for everything inside. */
 .band-dark {
   --background: var(--ink);
   --foreground: #ffffff;
-  --card: var(--charcoal);
+  --card: #1d1d1b;
   --card-foreground: #ffffff;
-  --popover: var(--charcoal);
+  --popover: #1d1d1b;
   --popover-foreground: #ffffff;
-  --secondary: rgb(255 255 255 / 0.1);
+  --primary: #ffffff;
+  --primary-foreground: var(--ink);
+  --secondary: #2a2a27;
   --secondary-foreground: #ffffff;
-  --muted: rgb(255 255 255 / 0.08);
-  --muted-foreground: #b4b9d4;
-  --accent: rgb(255 255 255 / 0.1);
+  --muted: #2a2a27;
+  --muted-foreground: #b9b6ae;
+  --accent: #2a2a27;
   --accent-foreground: #ffffff;
-  --border: rgb(255 255 255 / 0.12);
-  --input: #7d84a6;
-  --ring: var(--violet-soft);
-  --violet-strong: var(--violet-soft);
+  --border: #3a3a36;
+  --input: #8a877f;
+  --ring: var(--lime);
   background-color: var(--ink);
   color: #ffffff;
 }
@@ -221,19 +207,21 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "ss01", "cv11";
   }
   h1,
   h2,
   h3,
   h4 {
     @apply font-heading text-balance;
+    /* Unbounded's word space closes up under tight tracking. */
+    word-spacing: 0.06em;
   }
   p {
     @apply text-pretty;
   }
   ::selection {
-    background-color: color-mix(in oklch, var(--violet) 28%, transparent);
+    background-color: var(--lime);
+    color: var(--ink);
   }
   /* A visible keyboard focus ring on anything that does not define its own. */
   :where(a, button, summary, [role="button"], [tabindex]):focus-visible {
@@ -249,30 +237,22 @@
 }
 
 @layer components {
-  /* Gradient text for one or two words in a display heading (large text only). */
-  .text-gradient {
-    background-image: linear-gradient(100deg, var(--violet-soft) 0%, #7fa0ff 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .bg-gradient-brand {
-    background-image: var(--gradient-brand);
-  }
-  .bg-gradient-brand-vivid {
-    background-image: var(--gradient-brand-vivid);
-  }
-  /* Faint dot grid used behind dark bands. */
-  .bg-dot-grid {
-    background-image: radial-gradient(rgb(255 255 255 / 0.09) 1px, transparent 1px);
-    background-size: 22px 22px;
+  /* Flat lime highlighter behind a word or two in a display heading. */
+  .mark-lime {
+    background-color: var(--lime);
+    color: var(--ink);
+    border-radius: 0.16em;
+    padding: 0.02em 0.14em 0.06em;
+    margin: 0 -0.14em;
+    line-height: 1;
+    display: inline-block;
   }
   /* Long-form copy (legal pages, guidelines). */
   .prose-zuvio {
     @apply text-[1.0625rem] leading-relaxed text-foreground/85;
   }
   .prose-zuvio h2 {
-    @apply mt-12 mb-3 scroll-mt-24 text-display-sm font-semibold text-foreground first:mt-0;
+    @apply mt-12 mb-3 scroll-mt-24 text-display-sm font-bold text-foreground first:mt-0;
   }
   .prose-zuvio h3 {
     @apply mt-6 mb-2 font-sans text-base font-semibold text-foreground;
@@ -280,44 +260,21 @@
   .prose-zuvio p {
     @apply my-3;
   }
+  .prose-zuvio ul,
+  .prose-zuvio ol {
+    @apply my-3 space-y-1.5 pl-5;
+  }
   .prose-zuvio ul {
-    @apply my-3 list-disc space-y-1.5 pl-5 marker:text-violet;
+    @apply list-disc marker:text-foreground/40;
+  }
+  .prose-zuvio ol {
+    @apply list-decimal marker:font-semibold marker:text-foreground;
   }
   .prose-zuvio a {
-    @apply font-medium text-violet-strong underline underline-offset-4 hover:text-foreground;
+    @apply font-medium text-foreground underline decoration-foreground/40 underline-offset-4 hover:decoration-foreground;
   }
   .prose-zuvio strong {
     @apply font-semibold text-foreground;
-  }
-}
-
-@keyframes shimmer {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
   }
 }
 

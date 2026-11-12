@@ -34,7 +34,7 @@ export function PageHeader({ title, description, actions, back, eyebrow, classNa
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-          <h1 className="text-display-sm font-bold sm:text-display-md">{title}</h1>
+          <h1 className="text-display-sm font-extrabold sm:text-display-md">{title}</h1>
           {description ? (
             <p className="mt-2 max-w-2xl text-base text-muted-foreground">{description}</p>
           ) : null}
@@ -53,20 +53,15 @@ type MarketingHeroProps = {
   size?: "narrow" | "default";
 };
 
-/** Compact navy hero band used at the top of marketing and legal pages. */
+/** Page opener for marketing and legal pages: big left-aligned type on paper, ruled off below. */
 export function MarketingHero({ eyebrow, title, description, children, size = "default" }: MarketingHeroProps) {
   return (
-    <div className="band-dark relative isolate overflow-hidden">
-      <div aria-hidden className="bg-dot-grid absolute inset-0 -z-10 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-      <div
-        aria-hidden
-        className="absolute -top-40 right-[-10%] -z-10 size-[32rem] rounded-full bg-violet/35 blur-[110px]"
-      />
-      <Container size={size} className="pt-12 pb-14 sm:pt-20 sm:pb-20">
+    <div className="border-b border-foreground">
+      <Container size={size} className="pt-12 pb-10 sm:pt-20 sm:pb-14">
         {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
-        <h1 className="max-w-3xl text-display-lg font-extrabold">{title}</h1>
+        <h1 className="max-w-4xl text-display-lg font-extrabold">{title}</h1>
         {description ? (
-          <p className="mt-5 max-w-2xl text-lead text-muted-foreground">{description}</p>
+          <p className="mt-5 max-w-xl text-lead text-muted-foreground">{description}</p>
         ) : null}
         {children ? <div className="mt-8">{children}</div> : null}
       </Container>

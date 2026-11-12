@@ -108,7 +108,7 @@ export default function PrivacyPage() {
       <h2 id="cookies">Cookies and analytics</h2>
       <ul>
         <li><strong>Essential:</strong> a session cookie keeps you signed in. Your cookie choice is stored in your browser.</li>
-        <li><strong>Analytics:</strong> off by default. Analytics loads only if you choose &quot;Allow analytics&quot;, and you can change your mind from &quot;Cookie settings&quot; in the footer.</li>
+        <li><strong>Analytics:</strong> off by default. Analytics loads only if you choose &quot;Allow&quot; on the cookie prompt, and you can change your mind from &quot;Cookie settings&quot; in the footer.</li>
       </ul>
 
       <h2 id="service-providers">Service providers</h2>

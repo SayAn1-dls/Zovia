@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -19,12 +19,14 @@ import { accountNav, appNav, marketingNav, type NavItem, routes } from "@/lib/na
 import { cn } from "@/lib/utils";
 
 import { NavLink } from "./nav-link";
+import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
 
 type SiteHeaderProps = {
   /**
-   * "marketing": navy bar for public pages. "app": light bar for the signed-in
-   * product (pair it with <MobileTabBar>, which carries the nav on phones).
+   * "marketing": public pages (marketing links, sign-in actions). "app": the
+   * signed-in product (pair it with <MobileTabBar>, which carries the nav on
+   * phones). Both are the same flat paper bar with a 1px rule.
    */
   variant?: "marketing" | "app";
   className?: string;
@@ -43,21 +45,15 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
 
   const authActions =
     session.status === "loading" ? (
-      <span aria-hidden className="h-10 w-28 rounded-full bg-muted" />
+      <span aria-hidden className="h-11 w-28 rounded-full bg-muted" />
     ) : session.status === "signed_in" ? (
       <>
         {isApp ? (
-          <Link
-            href={routes.notifications}
-            aria-label="Notifications"
-            className={buttonVariants({ variant: "ghost", size: "icon-lg" })}
-          >
-            <Bell aria-hidden />
-          </Link>
+          <NotificationBell userId={session.user.id} />
         ) : (
           <Link
             href={routes.search}
-            className={cn(buttonVariants({ size: "default" }), "hidden sm:inline-flex")}
+            className={cn(buttonVariants({ size: "lg" }), "hidden sm:inline-flex")}
           >
             Open ZUVIO
           </Link>
@@ -68,11 +64,11 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
       <>
         <Link
           href={routes.signIn}
-          className={cn(buttonVariants({ variant: "ghost", size: "default" }), "hidden sm:inline-flex")}
+          className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "hidden sm:inline-flex")}
         >
           Sign in
         </Link>
-        <Link href={routes.signUp} className={buttonVariants({ size: "default" })}>
+        <Link href={routes.signUp} className={buttonVariants({ size: "lg" })}>
           Get started
         </Link>
       </>
@@ -81,10 +77,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 h-(--header-height) border-b",
-        isApp
-          ? "border-border bg-background/85 backdrop-blur-md"
-          : "band-dark border-white/10 bg-ink/85 backdrop-blur-md",
+        "sticky top-0 z-30 h-(--header-height) border-b border-border bg-background",
         className,
       )}
     >
@@ -104,8 +97,8 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
               <li key={item.href}>
                 <NavLink
                   href={item.href}
-                  className="inline-flex h-10 items-center rounded-full px-3.5 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
-                  activeClassName="bg-secondary text-secondary-foreground hover:bg-secondary hover:text-secondary-foreground"
+                  className="inline-flex h-11 items-center rounded-full px-3.5 text-sm font-medium text-foreground/70 transition-colors duration-150 hover:text-foreground"
+                  activeClassName="text-foreground underline decoration-2 underline-offset-8"
                 >
                   {item.label}
                 </NavLink>
@@ -139,9 +132,9 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
                         href={item.href}
                         onClick={closeMenu}
                         className="flex h-12 items-center gap-3 rounded-xl px-3 text-base font-medium text-foreground hover:bg-muted"
-                        activeClassName="bg-secondary text-secondary-foreground"
+                        activeClassName="bg-ink text-white hover:bg-ink"
                       >
-                        <item.icon className="size-5 text-violet-strong" aria-hidden />
+                        <item.icon className="size-5 text-muted-foreground" aria-hidden />
                         {item.label}
                       </NavLink>
                     </li>
@@ -155,7 +148,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
                           href={item.href}
                           onClick={closeMenu}
                           className="flex h-12 items-center gap-3 rounded-xl px-3 text-base font-medium text-foreground hover:bg-muted"
-                          activeClassName="bg-secondary text-secondary-foreground"
+                          activeClassName="bg-ink text-white hover:bg-ink"
                         >
                           <item.icon className="size-5 text-muted-foreground" aria-hidden />
                           {item.label}

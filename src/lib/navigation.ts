@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import {
   Bell,
+  CalendarCheck,
   BedDouble,
   Building2,
   ClipboardList,
@@ -78,6 +79,8 @@ export const routes = {
   ownerProperties: route("/owner/properties"),
   ownerNewProperty: route("/owner/properties/new"),
   ownerInquiries: route("/owner/inquiries"),
+  ownerBookings: route("/owner/bookings"),
+  bookings: route("/bookings"),
   ownerReviews: route("/owner/reviews"),
   ownerVerification: route("/owner/verification"),
   ownerProfile: route("/owner/profile"),
@@ -134,6 +137,8 @@ export function withQuery(
  */
 export function searchHref(filters: {
   city?: string | null;
+  /** A `property_type` enum value, e.g. "hostel". */
+  type?: string | null;
   budget_min?: number | null;
   budget_max?: number | null;
 }): Route {
@@ -211,6 +216,7 @@ export const mobileTabs = [
 
 /** Account menu shown to signed-in users. */
 export const accountNav = [
+  { label: "My bookings", href: routes.bookings, icon: CalendarCheck },
   { label: "Notifications", href: routes.notifications, icon: Bell },
   { label: "Roommate profile", href: routes.roommateProfile, icon: UserRound },
   { label: "Settings", href: routes.settings, icon: Settings },
@@ -224,6 +230,7 @@ export const ownerNav = [
       { label: "Overview", href: routes.owner, icon: LayoutDashboard, exact: true },
       { label: "Properties", href: routes.ownerProperties, icon: Building2 },
       { label: "Enquiries", href: routes.ownerInquiries, icon: Inbox },
+      { label: "Bookings", href: routes.ownerBookings, icon: CalendarCheck },
       { label: "Reviews", href: routes.ownerReviews, icon: Star },
     ],
   },

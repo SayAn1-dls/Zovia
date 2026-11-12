@@ -101,7 +101,10 @@ export function useCookieConsent(): CookieConsent {
   return value;
 }
 
-/** Banner shown until the visitor makes a choice. Both buttons carry equal weight. */
+/**
+ * Small bottom-left banner shown until the visitor makes a choice: one line
+ * and two equally weighted buttons. Analytics stays off unless allowed.
+ */
 export function CookieConsentBanner() {
   const { state, accept, decline } = useCookieConsent();
   if (state !== "undecided") return null;
@@ -109,25 +112,20 @@ export function CookieConsentBanner() {
   return (
     <section
       aria-label="Cookie preferences"
-      className="fixed inset-x-3 bottom-3 z-40 mx-auto max-w-xl rounded-2xl bg-card p-4 shadow-xl ring-1 ring-border sm:inset-x-6 sm:bottom-6 sm:p-5"
+      className="fixed bottom-3 left-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-foreground bg-card py-1 pr-1 pl-4 sm:bottom-5 sm:left-5 sm:py-1.5 sm:pr-1.5"
     >
-      <p className="text-sm leading-relaxed text-foreground">
-        We use essential storage to keep ZUVIO working. With your permission we
-        also use analytics to understand what to improve. It stays off unless
-        you allow it.{" "}
-        <Link
-          href={routes.privacy}
-          className="font-medium text-violet-strong underline underline-offset-4"
-        >
-          Privacy policy
+      <p className="text-sm font-medium whitespace-nowrap text-foreground">
+        Analytics cookies?{" "}
+        <Link href={routes.privacy} className="underline decoration-foreground/40 underline-offset-4">
+          Details
         </Link>
       </p>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <Button variant="outline" size="lg" onClick={decline}>
-          Essential only
+      <div className="flex gap-1">
+        <Button variant="outline" size="sm" className="h-11 px-3.5 sm:h-9" onClick={decline}>
+          No
         </Button>
-        <Button variant="outline" size="lg" onClick={accept}>
-          Allow analytics
+        <Button variant="outline" size="sm" className="h-11 px-3.5 sm:h-9" onClick={accept}>
+          Allow
         </Button>
       </div>
     </section>

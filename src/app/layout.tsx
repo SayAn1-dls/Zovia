@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
+import { Onest, Unbounded } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { site } from "@/lib/site";
@@ -7,24 +7,19 @@ import { site } from "@/lib/site";
 import "./globals.css";
 
 // Self-hosted by next/font at build time: no requests to Google at runtime.
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// Text: Onest. latin-ext carries the rupee sign (U+20B9).
+const onest = Onest({
+  variable: "--font-onest",
+  subsets: ["latin", "latin-ext"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Display: Unbounded, for headlines and the wordmark only (never long text).
+const unbounded = Unbounded({
+  variable: "--font-unbounded",
   subsets: ["latin"],
+  weight: ["600", "700", "800"],
   display: "swap",
-  preload: false,
-});
-
-const bricolage = Bricolage_Grotesque({
-  variable: "--font-bricolage",
-  subsets: ["latin"],
-  display: "swap",
-  axes: ["opsz"],
 });
 
 export const metadata: Metadata = {
@@ -66,12 +61,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en-IN"
-      className={`${geistSans.variable} ${geistMono.variable} ${bricolage.variable} h-full antialiased`}
+      className={`${onest.variable} ${unbounded.variable} h-full antialiased`}
+      // Browser extensions add attributes to <html> before hydration. This
+      // silences attribute mismatches on this element only, not its children.
+      suppressHydrationWarning
+      // globals.css sets smooth scrolling; this tells Next to switch it off during route changes.
+      data-scroll-behavior="smooth"
     >
       <body className="flex min-h-full flex-col">
         <a
           href="#main-content"
-          className="sr-only z-50 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+          className="sr-only z-50 rounded-full bg-lime px-5 py-3 text-sm font-semibold text-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         >
           Skip to content
         </a>

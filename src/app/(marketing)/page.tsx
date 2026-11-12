@@ -1,24 +1,13 @@
-import {
-  ArrowRight,
-  ArrowUpRight,
-  EyeOff,
-  ListChecks,
-  MessagesSquare,
-  PhoneOff,
-  SlidersHorizontal,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
-import { Container, Eyebrow, Section } from "@/components/layout/section";
-import { Reveal } from "@/components/motion/reveal";
-import { buttonVariants } from "@/components/ui/button";
-import { verificationSignals, type VerificationKind } from "@/components/verified-badge";
-import { primaryActions, routes, searchHref } from "@/lib/navigation";
+import { Container, Section } from "@/components/layout/section";
+import { primaryActions, searchHref } from "@/lib/navigation";
+import { citiesPhotos, spacesPhotos } from "@/lib/photos";
 import { launchCities, site } from "@/lib/site";
-import { cn } from "@/lib/utils";
 
-import { HeroArt } from "./_components/hero-art";
 import { HeroSearch } from "./_components/hero-search";
 
 export const metadata: Metadata = {
@@ -28,231 +17,138 @@ export const metadata: Metadata = {
 };
 
 const steps = [
-  {
-    icon: SlidersHorizontal,
-    title: "Say what you need",
-    body: "Pick a city and a budget. For roommates, answer a few questions about how you live.",
-  },
-  {
-    icon: ListChecks,
-    title: "Compare what's real",
-    body: "Every listing breaks down rent, deposit and monthly extras, and shows available beds separately.",
-  },
-  {
-    icon: MessagesSquare,
-    title: "Connect on your terms",
-    body: "Message owners or matched roommates in the app. Meet when you're both ready.",
-  },
+  { title: "Pick a city", body: "Tell us where, and how much." },
+  { title: "See what's real", body: "Rent, deposit and extras, up front." },
+  { title: "Say hi", body: "Message owners and matched roommates." },
 ] as const;
 
-const signalOrder: VerificationKind[] = ["owner", "authorisation", "recently_confirmed"];
+/** Room types shown with real photos. Each opens search filtered to that type. */
+const spaces = [
+  { label: "PGs", type: "pg", photo: spacesPhotos.pg },
+  { label: "Hostels", type: "hostel", photo: spacesPhotos.hostel },
+  { label: "Co-living", type: "co_living", photo: spacesPhotos.coliving },
+  { label: "Flats", type: "one_bhk", photo: spacesPhotos.flat },
+] as const;
+
+const photoCities = launchCities.filter((city) => city.slug in citiesPhotos);
+const otherCities = launchCities.filter((city) => !(city.slug in citiesPhotos));
 
 export default function HomePage() {
   return (
     <>
-      {/* Hero */}
-      <div className="band-dark relative isolate overflow-hidden">
-        <div aria-hidden className="bg-dot-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_75%)]" />
-        <div aria-hidden className="absolute -top-48 -left-40 -z-10 size-[36rem] rounded-full bg-violet/30 blur-[120px]" />
-        <div aria-hidden className="absolute right-[-12rem] bottom-[-14rem] -z-10 size-[34rem] rounded-full bg-blue/25 blur-[120px]" />
-
-        <Container className="grid items-center gap-12 pt-10 pb-16 sm:pt-16 sm:pb-24 lg:grid-cols-[1.15fr_1fr] lg:gap-8">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-[0.8125rem] font-medium text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-green" aria-hidden />
-              Homes and roommates across India
-            </p>
-            <h1 className="mt-5 text-display-xl font-extrabold">
-              Find your space. <span className="text-gradient">Find your people.</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-lead text-muted-foreground">
-              PGs, hostels, co-living and flats, plus roommates who match how you
-              actually live.
-            </p>
-
-            <div className="mt-8 max-w-xl">
-              <HeroSearch />
-            </div>
-
-            <ul className="mt-6 grid max-w-xl gap-2 sm:grid-cols-3">
-              {primaryActions.map((action) => (
-                <li key={action.href}>
-                  <Link
-                    href={action.href}
-                    className="group flex h-full min-h-14 items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.06] px-4 py-3 text-sm font-semibold text-white transition-[background-color,border-color,transform] duration-200 ease-out-soft hover:-translate-y-0.5 hover:border-violet-soft/60 hover:bg-white/10"
-                  >
-                    <action.icon className="size-5 shrink-0 text-violet-soft" aria-hidden />
-                    <span className="flex-1">{action.label}</span>
-                    <ArrowRight
-                      className="size-4 shrink-0 text-white/50 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-white"
-                      aria-hidden
-                    />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="hidden lg:block">
-            <HeroArt />
-          </div>
-        </Container>
-      </div>
-
-      {/* How it works */}
-      <Section
-        id="how-it-works"
-        eyebrow="How it works"
-        title="Three steps. No runaround."
-      >
-        <ol className="grid gap-5 md:grid-cols-3">
-          {steps.map((step, index) => (
-            <Reveal as="li" key={step.title} delay={index * 0.08}>
-              <div className="h-full rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border sm:p-7">
-                <div className="flex items-center justify-between">
-                  <span className="flex size-12 items-center justify-center rounded-2xl bg-secondary text-violet-strong">
-                    <step.icon className="size-6" aria-hidden />
-                  </span>
-                  <span aria-hidden className="font-heading text-4xl font-extrabold text-lavender">
-                    {index + 1}
-                  </span>
-                </div>
-                <h3 className="mt-5 text-display-sm font-bold">{step.title}</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
-                  {step.body}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </ol>
-      </Section>
-
-      {/* Trust */}
-      <Section
-        id="trust"
-        tone="tint"
-        eyebrow="Trust, spelled out"
-        title="Three checks. Never one vague tick."
-        description="Each badge means one specific thing, and a listing only shows the ones it has earned."
-      >
-        <ul className="grid gap-5 md:grid-cols-3">
-          {signalOrder.map((kind, index) => {
-            const signal = verificationSignals[kind];
-            return (
-              <Reveal as="li" key={kind} delay={index * 0.08}>
-                <div className="h-full rounded-2xl bg-card p-6 shadow-sm ring-1 ring-border sm:p-7">
-                  <span className={cn("flex size-12 items-center justify-center rounded-2xl", signal.iconWrap)}>
-                    <signal.icon className="size-6" aria-hidden />
-                  </span>
-                  <h3 className="mt-5 text-xl font-bold tracking-tight">{signal.label}</h3>
-                  <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
-                    {signal.description}
-                  </p>
-                </div>
-              </Reveal>
-            );
-          })}
-        </ul>
-
-        <ul className="mt-5 grid gap-5 md:grid-cols-2">
-          <Reveal as="li">
-            <div className="band-dark flex h-full gap-4 rounded-2xl p-6 sm:p-7">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-violet-soft">
-                <EyeOff className="size-6" aria-hidden />
-              </span>
-              <div>
-                <h3 className="text-xl font-bold tracking-tight">Privacy-first roommate chat</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
-                  You chat only after you both like each other. Phone numbers,
-                  e-mail addresses and social handles are held back in roommate
-                  chat, so you share them in person, when you choose.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-          <Reveal as="li" delay={0.08}>
-            <div className="band-dark flex h-full gap-4 rounded-2xl p-6 sm:p-7">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-green">
-                <PhoneOff className="size-6" aria-hidden />
-              </span>
-              <div>
-                <h3 className="text-xl font-bold tracking-tight">No brokerage spam</h3>
-                <p className="mt-2 text-[0.9375rem] leading-relaxed text-muted-foreground">
-                  Your number is never shown on a listing or handed to brokers.
-                  You decide which owners to contact, and enquiries stay in
-                  your ZUVIO inbox.
-                </p>
-              </div>
-            </div>
-          </Reveal>
-        </ul>
-
-        <p className="mt-8">
-          <Link
-            href={routes.safety}
-            className="inline-flex min-h-11 items-center gap-1.5 text-[0.9375rem] font-semibold text-violet-strong underline-offset-4 hover:underline"
-          >
-            Read the safety guidelines
-            <ArrowRight className="size-4" aria-hidden />
-          </Link>
+      <Container className="pt-10 pb-14 sm:pt-20 sm:pb-24">
+        <h1 className="text-display-xl font-extrabold">
+          Find your <br className="sm:hidden" />
+          space.
+          <br />
+          Find your <br className="sm:hidden" />
+          <span className="mark-lime">people.</span>
+        </h1>
+        <p className="mt-5 max-w-lg text-lead text-muted-foreground sm:mt-7">
+          New city. New room. New people. Let&apos;s sort it.
         </p>
-      </Section>
 
-      {/* Cities */}
-      <Section
-        id="cities"
-        eyebrow="Cities"
-        title="Start with your city"
-        description="Jump straight into search. You can narrow by locality, budget and more once you're there."
-      >
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {launchCities.map((city) => (
-            <li key={city.slug}>
+        <div className="mt-7 max-w-2xl sm:mt-10">
+          <HeroSearch />
+        </div>
+
+        <ul className="mt-3 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+          {primaryActions.map((action) => (
+            <li key={action.href}>
               <Link
-                href={searchHref({ city: city.slug })}
-                className="group flex min-h-16 items-center justify-between gap-2 rounded-2xl bg-card px-4 py-3 shadow-xs ring-1 ring-border transition-[box-shadow,transform,background-color] duration-200 ease-out-soft hover:-translate-y-0.5 hover:bg-secondary hover:shadow-md hover:ring-violet/30"
+                href={action.href}
+                className="group flex h-full min-h-20 flex-col justify-between gap-3 rounded-2xl border border-border bg-card p-3 transition-colors duration-150 hover:border-foreground sm:flex-row sm:items-center sm:p-4"
               >
-                <span className="min-w-0">
-                  <span className="block truncate text-base font-semibold">{city.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{city.state}</span>
+                <action.icon className="size-5 shrink-0" aria-hidden />
+                <span className="text-[0.8125rem] leading-tight font-semibold sm:flex-1 sm:text-[0.9375rem]">
+                  {action.label}
                 </span>
                 <ArrowUpRight
-                  className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-violet-strong"
+                  className="hidden size-4 shrink-0 text-muted-foreground transition-colors duration-150 group-hover:text-foreground sm:block"
                   aria-hidden
                 />
               </Link>
             </li>
           ))}
         </ul>
+      </Container>
+
+      <Section id="how-it-works" title="How it works" divider className="pt-0 sm:pt-0">
+        <ol className="grid gap-8 sm:grid-cols-3 sm:gap-10">
+          {steps.map((step, index) => (
+            <li key={step.title}>
+              <span aria-hidden className="font-heading text-sm font-bold text-muted-foreground tabular-nums">
+                0{index + 1}
+              </span>
+              <h3 className="mt-1 text-display-sm font-extrabold">{step.title}</h3>
+              <p className="mt-1 text-base text-muted-foreground">{step.body}</p>
+            </li>
+          ))}
+        </ol>
       </Section>
 
-      {/* Owner call to action */}
-      <div className="pb-16 sm:pb-24">
-        <Container>
-          <Reveal>
-            <div className="bg-gradient-brand relative isolate overflow-hidden rounded-3xl px-6 py-10 text-white sm:px-12 sm:py-14">
-              <div aria-hidden className="bg-dot-grid absolute inset-0 -z-10 opacity-70" />
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-                <div className="max-w-xl">
-                  <Eyebrow className="text-white">For owners and PG operators</Eyebrow>
-                  <h2 className="text-display-md font-bold">Have a place to fill?</h2>
-                  <p className="mt-3 text-lead text-white">
-                    List rooms and beds, keep availability current and answer
-                    enquiries in one inbox.
-                  </p>
+      <Section id="spaces" title="Pick your kind of space" divider className="pt-0 sm:pt-0">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          {spaces.map((space) => (
+            <li key={space.type}>
+              <Link href={searchHref({ type: space.type })} className="group block">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
+                  <Image
+                    src={space.photo.src}
+                    alt={space.photo.alt}
+                    fill
+                    sizes="(min-width: 640px) 25vw, 50vw"
+                    className="object-cover transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none"
+                  />
                 </div>
+                <span className="mt-2 flex items-center gap-1 text-[0.9375rem] font-semibold">
+                  {space.label}
+                  <ArrowUpRight className="size-4 text-muted-foreground group-hover:text-foreground" aria-hidden />
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-muted-foreground">Example photos of each kind of space. Listings show the owner&apos;s own photos.</p>
+      </Section>
+
+      <Section id="cities" title="Start with your city" divider className="pt-0 sm:pt-0">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          {photoCities.map((city) => {
+            const photo = citiesPhotos[city.slug as keyof typeof citiesPhotos];
+            return (
+              <li key={city.slug}>
                 <Link
-                  href={routes.listYourProperty}
-                  className={cn(buttonVariants({ variant: "inverse", size: "xl" }), "shrink-0")}
+                  href={searchHref({ city: city.slug })}
+                  className="group relative block aspect-[4/3] overflow-hidden rounded-2xl bg-ink"
                 >
-                  List your property
-                  <ArrowRight aria-hidden />
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    fill
+                    sizes="(min-width: 640px) 25vw, 50vw"
+                    className="object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.03] motion-reduce:transition-none"
+                  />
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <span className="absolute bottom-3 left-3 text-base font-bold text-white">{city.name}</span>
                 </Link>
-              </div>
-            </div>
-          </Reveal>
-        </Container>
-      </div>
+              </li>
+            );
+          })}
+        </ul>
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {otherCities.map((city) => (
+            <li key={city.slug}>
+              <Link
+                href={searchHref({ city: city.slug })}
+                className="inline-flex h-11 items-center rounded-full border border-border bg-card px-4 text-[0.9375rem] font-medium transition-colors duration-150 hover:border-foreground hover:bg-lime"
+              >
+                {city.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </Section>
     </>
   );
 }

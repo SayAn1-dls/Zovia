@@ -217,3 +217,52 @@ export type AdminModerationRow = {
 export type AdminSettingRow = { key: string; value: unknown; description: string | null; updated_at: string };
 
 export type Paged<T> = { rows: T[]; total: number; page: number; page_size: number };
+
+// ───────────────────────────── analytics (admin_dashboard_stats) ─────────────────────────────
+
+export const BOOKING_STATUSES = ["requested", "accepted", "confirmed", "declined", "expired", "cancelled"] as const satisfies readonly Enums["booking_status"][];
+export type BookingStatus = (typeof BOOKING_STATUSES)[number];
+
+const count = z.number().int().nonnegative().catch(0);
+
+/** Parses the jsonb from admin_dashboard_stats(); unknown status keys are ignored, missing ones are 0. */
+export const adminAnalyticsSchema = z.object({
+  generated_at: z.string(),
+  users_total: count,
+  users_new_today: count,
+  users_new_7d: count,
+  users_new_30d: count,
+  signups_by_day: z.array(z.object({ day: z.string(), count })).catch([]),
+  owners: count,
+  listings_by_status: z.record(z.string(), count).catch({}),
+  bookings_by_status: z.record(z.string(), count).catch({}),
+  roommate_profiles: count,
+  roommate_profiles_active: count,
+  matches: count,
+  messages_7d: count,
+  contact_messages_new: count,
+  ai_calls_7d: count,
+});
+
+export type AdminAnalytics = Omit<z.infer<typeof adminAnalyticsSchema>, "listings_by_status" | "bookings_by_status"> & {
+  listings_by_status: Record<ListingStatus, number>;
+  bookings_by_status: Record<BookingStatus, number>;
+};
+
+const LISTING_STATUS_KEYS = ["draft", "pending_review", "published", "paused", "rejected", "archived"] as const satisfies readonly ListingStatus[];
+
+function pick<K extends string>(keys: readonly K[], source: Record<string, number>): Record<K, number> {
+  const out = {} as Record<K, number>;
+  for (const key of keys) out[key] = source[key] ?? 0;
+  return out;
+}
+
+export function parseAdminAnalytics(raw: unknown): AdminAnalytics {
+  const parsed = adminAnalyticsSchema.parse(raw);
+  return {
+    ...parsed,
+    signups_by_day: parsed.signups_by_day.map((point) => ({ day: point.day.slice(0, 10), count: point.count })),
+    listings_by_status: pick(LISTING_STATUS_KEYS, parsed.listings_by_status),
+    bookings_by_status: pick(BOOKING_STATUSES, parsed.bookings_by_status),
+  };
+}

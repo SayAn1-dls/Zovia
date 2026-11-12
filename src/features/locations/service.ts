@@ -3,14 +3,16 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { env } from "@/server/env";
+import { createSupabasePublicClient } from "@/server/supabase/public";
 import { errors } from "@/server/http/errors";
 import { logger, serializeError } from "@/server/logger";
 
 import { roundCoordinate } from "./geo";
 import { fetchPhoto, textSearch } from "./google/places";
 import { normaliseGeocodeQuery } from "./osm/nominatim";
-import { buildHousingQuery, parseHousingResponse, type OsmHousing } from "./osm/housing";
-import { fetchOverpass, OSM_ATTRIBUTION, selectNearby } from "./osm/overpass";
+import type { OsmHousing } from "./osm/housing";
+import { OSM_ATTRIBUTION, selectNearby } from "./osm/overpass";
+import * as repo from "./repository";
 import { createOpenStreetMapProvider, type LocationProvider } from "./provider";
 import {
   NEARBY_RADIUS_M,
@@ -33,6 +35,8 @@ export const LOCATION_CACHE_TAGS = { geocode: "geocode", nearby: "nearby-places"
 
 /** Extra radius fetched around the rounded centre so the exact point's radius is still covered. */
 const ROUNDING_PADDING_M = 120;
+/** Imported places are searched a little wider, since only named places are imported. */
+const NEARBY_IMPORTED_RADIUS_M = 3000;
 
 function provider(): LocationProvider {
   const site = env().NEXT_PUBLIC_SITE_URL;
@@ -67,6 +71,15 @@ async function cachedPlacesAround(lat: number, lng: number) {
 
 /** Named colleges, stations, hospitals, shops ... within 2 km of `point`, nearest first per kind. */
 export async function getNearbyPlaces(point: LatLng): Promise<NearbyPlacesResult> {
+  // Imported data first (instant, reliable); the live Overpass query only where nothing is imported.
+  try {
+    const imported = await repo.nearbyFromImported(createSupabasePublicClient(), point, NEARBY_IMPORTED_RADIUS_M);
+    if (imported.length > 0) {
+      return { places: imported, radius_m: NEARBY_IMPORTED_RADIUS_M, source: "openstreetmap", attribution: OSM_ATTRIBUTION };
+    }
+  } catch (cause) {
+    logger.warn("locations.nearby_imported_failed", { error: serializeError(cause) });
+  }
   try {
     const places = await cachedPlacesAround(roundCoordinate(point.lat), roundCoordinate(point.lng));
     return {
@@ -124,33 +137,12 @@ export async function getGooglePlacePhoto(name: string): Promise<{ body: ArrayBu
 
 export type OsmHousingSection = { status: "ok"; places: OsmHousing[]; attribution: string } | { status: "error" };
 
-async function cachedHousingAround(lat: number, lng: number): Promise<OsmHousing[]> {
-  "use cache";
-  cacheLife("days");
-  cacheTag("osm-housing");
-  const json = await fetchOverpass(buildHousingQuery({ lat, lng }), {
-    userAgent: `ZUVIO/0.1 (+${env().NEXT_PUBLIC_SITE_URL})`,
-    timeoutMs: 30_000,
-  });
-  return parseHousingResponse(json);
-}
-
-/**
- * The public Overpass servers are shared and often busy (timeouts, 429). Successes are cached for
- * days; after a failure we stop asking for a while (per server instance) so pages answer quickly
- * with "couldn't load" instead of waiting on a server that is refusing us.
- */
-const HOUSING_BACKOFF_MS = 10 * 60_000;
-let housingFailedAt = 0;
-
 /** Real hostels / PGs / guest houses mapped on OpenStreetMap around a city centre. */
-export async function getOsmHousingForCity(centre: LatLng): Promise<OsmHousingSection> {
-  if (Date.now() - housingFailedAt < HOUSING_BACKOFF_MS) return { status: "error" };
+export async function getOsmHousingForCity(citySlug: string): Promise<OsmHousingSection> {
   try {
-    const places = await cachedHousingAround(roundCoordinate(centre.lat), roundCoordinate(centre.lng));
+    const places = await repo.housingForCity(createSupabasePublicClient(), citySlug);
     return { status: "ok", places, attribution: OSM_ATTRIBUTION };
   } catch (error) {
-    housingFailedAt = Date.now();
     logger.warn("locations.osm_housing_failed", { error: serializeError(error) });
     return { status: "error" };
   }

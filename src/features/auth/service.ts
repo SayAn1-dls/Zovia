@@ -50,17 +50,14 @@ export async function signUp(ctx: ServiceContext, input: SignUpInput): Promise<S
 }
 
 /**
- * Where a person lands after signing in: suspended -> the suspension page, not onboarded ->
- * onboarding (keeping `next`), otherwise `next` or search.
+ * Where a person lands after signing in: suspended -> the suspension page; otherwise `next` when
+ * given, else search (onboarding is optional).
  */
 export async function postSignInPath(ctx: ServiceContext, userId: string, next: string | undefined): Promise<string> {
   const row = await fetchAccessRow(ctx.supabase, userId);
   const safe = safeNextPath(next, "");
   if (!row) return routes.home;
   if (row.status === "suspended") return routes.accountSuspended;
-  if (row.onboarding_completed_at === null) {
-    return safe ? `${routes.onboarding}?next=${encodeURIComponent(safe)}` : routes.onboarding;
-  }
   return safe || routes.search;
 }
 

@@ -20,8 +20,8 @@ const ownerSignUp = withQuery(routes.signUp, { next: routes.ownerOnboarding });
 const steps = [
   { title: "Sign up", body: "Create an owner account." },
   { title: "Add your place", body: "Rooms, beds, rent, photos." },
-  { title: "Get verified", body: "We check your ID and your right to let." },
-  { title: "Go live", body: "We review it. Enquiries land in your inbox." },
+  { title: "Get verified", body: "ID and right to let." },
+  { title: "Go live", body: "Enquiries land in your inbox." },
 ] as const;
 
 export default function ListYourPropertyPage() {
@@ -34,7 +34,7 @@ export default function ListYourPropertyPage() {
             <span className="mark-lime">Let&apos;s fill it.</span>
           </>
         }
-        description="PGs, hostels, co-living, rooms and flats. One place for your beds and your enquiries."
+        description="Beds, rent and enquiries in one place."
       />
       <Container className="py-12 sm:py-16">
         <ol className="max-w-xl border-t border-foreground">

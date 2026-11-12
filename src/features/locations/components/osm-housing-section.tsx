@@ -26,7 +26,7 @@ export function OsmHousingSection({
           <h2 id="osm-housing-heading" className="text-display-sm font-bold">
             Hostels and PGs in {cityName}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Real places from OpenStreetMap near the city centre. Call or visit to ask.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Real places on OpenStreetMap. Call or visit to ask.</p>
         </div>
         <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-warning-surface px-3 py-1.5 text-xs font-semibold text-warning-foreground">
           <Info className="size-3.5" aria-hidden />
@@ -35,7 +35,7 @@ export function OsmHousingSection({
       </div>
 
       {places.length === 0 ? (
-        <p className="mt-6 text-sm text-muted-foreground">OpenStreetMap has no hostels or PGs mapped near the centre of {cityName} yet.</p>
+        <p className="mt-6 text-sm text-muted-foreground">No hostels or PGs from OpenStreetMap for {cityName} yet.</p>
       ) : (
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
           <ul className="grid gap-3 sm:grid-cols-2">
@@ -47,6 +47,11 @@ export function OsmHousingSection({
                     {OSM_HOUSING_KIND_LABELS[place.kind]}
                   </span>
                 </div>
+                {place.gender_hint === "female" || place.gender_hint === "male" ? (
+                  <p className="text-xs font-semibold text-primary" title="Guessed from the name">
+                    {place.gender_hint === "female" ? "Women / girls" : "Men / boys"} · from name
+                  </p>
+                ) : null}
                 {place.address ? (
                   <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="mt-0.5 size-3.5 shrink-0" aria-hidden />

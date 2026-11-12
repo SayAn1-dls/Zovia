@@ -44,14 +44,14 @@ export function PhotoGallery({ photos, title }: { photos: Photo[]; title: string
       {/* Tablet and up: mosaic. */}
       <div
         className={cn(
-          "hidden h-[22rem] gap-2 overflow-hidden rounded-3xl sm:grid lg:h-[28rem]",
+          "hidden h-[22rem] gap-2 overflow-hidden rounded-2xl sm:grid lg:h-[30rem]",
           side.length > 0 ? "grid-cols-4 grid-rows-2" : "grid-cols-1",
         )}
       >
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className={cn("relative bg-muted", side.length > 0 ? "col-span-2 row-span-2" : "")}
+          className={cn("relative bg-muted transition-[filter] duration-200 hover:brightness-90 focus-visible:brightness-90 focus-visible:outline-none", side.length > 0 ? "col-span-2 row-span-2" : "")}
           aria-label={`Open all ${photos.length} photos`}
         >
           <PropertyPhoto src={first!.url} alt={first!.alt} sizes="(min-width: 1024px) 50vw, 60vw" preload />
@@ -61,7 +61,7 @@ export function PhotoGallery({ photos, title }: { photos: Photo[]; title: string
             key={photo.id}
             type="button"
             onClick={() => setOpen(true)}
-            className={cn("relative bg-muted", side.length < 3 && "row-span-2", side.length === 3 && index === 0 && "row-span-2")}
+            className={cn("relative bg-muted transition-[filter] duration-200 hover:brightness-90 focus-visible:brightness-90 focus-visible:outline-none", side.length < 3 && "row-span-2", side.length === 3 && index === 0 && "row-span-2")}
             aria-label={`Open all ${photos.length} photos`}
           >
             <PropertyPhoto src={photo.url} alt={photo.alt} sizes="25vw" />
@@ -73,10 +73,10 @@ export function PhotoGallery({ photos, title }: { photos: Photo[]; title: string
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="absolute right-3 bottom-3 inline-flex h-10 items-center gap-2 rounded-full bg-card px-4 text-sm font-semibold shadow-md ring-1 ring-border max-sm:hidden"
+          className="absolute right-4 bottom-4 inline-flex h-10 items-center gap-2 rounded-lg border border-foreground bg-card px-4 text-sm font-semibold shadow-md transition-transform hover:scale-[1.02] max-sm:hidden"
         >
           <Images className="size-4" aria-hidden />
-          Show all {photos.length} photos
+          Show all photos
         </button>
       ) : null}
 

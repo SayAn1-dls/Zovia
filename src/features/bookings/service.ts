@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { ServiceContext, UserServiceContext } from "@/server/auth/context";
+import { env } from "@/server/env";
 import { errors } from "@/server/http/errors";
 import { logger } from "@/server/logger";
 
@@ -8,6 +9,21 @@ import { getPaymentProvider } from "./payment-provider";
 import * as payments from "./payment-repository";
 import * as repo from "./repository";
 import type { Booking, PaymentOrder, RequestBookingInput, RespondBookingInput, VerifyPaymentInput } from "./schemas";
+
+/**
+ * Demo payments: product-owner request so the booking flow can be completed locally without a
+ * gateway account. Never in production builds, never when Razorpay is configured, and the
+ * payment is stored with provider 'demo' and shown as "Demo payment, no money moved".
+ */
+export function demoPaymentsEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" && env().PAYMENTS_DEMO_MODE && getPaymentProvider() === null && payments.canRecordPayments();
+}
+
+export async function confirmDemoPayment(ctx: UserServiceContext, bookingId: string): Promise<{ booking_id: string }> {
+  if (!demoPaymentsEnabled()) throw errors.forbidden("Demo payments are not enabled.");
+  await repo.payableAmountPaise(ctx.supabase, bookingId); // as the seeker: theirs, accepted, in time
+  return { booking_id: await payments.confirmDemoPayment(bookingId) };
+}
 
 export function paymentsConfigured(): boolean {
   return getPaymentProvider() !== null && payments.canRecordPayments();
@@ -45,7 +61,13 @@ export function cancelBooking(ctx: UserServiceContext, id: string, reason?: stri
  */
 export async function createPaymentOrder(ctx: UserServiceContext, bookingId: string): Promise<PaymentOrder> {
   const provider = getPaymentProvider();
-  if (!provider || !payments.canRecordPayments()) return { status: "not_configured" };
+  if (!provider || !payments.canRecordPayments()) {
+    if (demoPaymentsEnabled()) {
+      await repo.payableAmountPaise(ctx.supabase, bookingId);
+      return { status: "demo" };
+    }
+    return { status: "not_configured" };
+  }
 
   const amountPaise = await repo.payableAmountPaise(ctx.supabase, bookingId);
   const booking = await getBooking(ctx, bookingId);

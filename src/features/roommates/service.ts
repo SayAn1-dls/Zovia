@@ -112,14 +112,15 @@ export async function getOwnProfile(ctx: UserServiceContext): Promise<OwnRoommat
     url: urls.get(photo.storage_path) ?? null,
   }));
 
+  const account = await getAccountProfile(ctx);
   if (!profile) {
-    const account = await getAccountProfile(ctx);
     const cities = await listAccountCities(ctx);
     const city =
       cities.find((c) => [c.name.toLowerCase(), c.slug].includes((account.preferred_city ?? "").toLowerCase()))?.name ?? "";
     return {
       exists: false,
       status: "draft",
+      display_name: account.display_name,
       photos,
       values: {
         headline: "",
@@ -154,6 +155,7 @@ export async function getOwnProfile(ctx: UserServiceContext): Promise<OwnRoommat
   return {
     exists: true,
     status: profile.status,
+    display_name: account.display_name,
     photos,
     values: {
       headline: profile.headline ?? "",

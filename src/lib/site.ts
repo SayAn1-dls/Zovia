@@ -37,6 +37,10 @@ export const site = {
   url: normaliseSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_IN",
   themeColor: "#f6f4ee",
+  /** Public support line (E.164). Shown in the footer and on /contact. */
+  contactPhone: "+918918596845",
+  /** Human-readable form of contactPhone. */
+  contactPhoneDisplay: "+91 89185 96845",
   /** null when NEXT_PUBLIC_SUPPORT_EMAIL is unset: hide the e-mail, never invent one. */
   supportEmail: optional(process.env.NEXT_PUBLIC_SUPPORT_EMAIL),
   /** null when NEXT_PUBLIC_WHATSAPP_NUMBER is unset: the support button is hidden. */

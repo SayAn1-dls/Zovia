@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { MAP_STYLE_URL } from "./map-view";
+import { MAP_FILL, MAP_STYLE_URL } from "./map-view";
 
 export type LatLng = { lat: number; lng: number };
 
@@ -89,7 +89,7 @@ export function LocationPicker({
 
   return (
     <div className={cn("relative h-72 overflow-hidden rounded-2xl border border-border bg-muted", className)}>
-      <div ref={containerRef} className="absolute inset-0" aria-label="Map: tap to place the pin, or drag it" />
+      <div ref={containerRef} style={MAP_FILL} aria-label="Map: tap to place the pin, or drag it" />
       {failed ? (
         <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-muted-foreground">
           The map could not load. Check your connection.

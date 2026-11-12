@@ -166,34 +166,29 @@ export type NavGroup = { label: string; items: readonly NavItem[] };
 export const primaryActions = [
   {
     label: "Find a Home",
-    description: "PGs, hostels, co-living, rooms and flats.",
+    description: "PGs, hostels, co-living, flats.",
     href: routes.search,
     icon: House,
   },
   {
     label: "Find a Roommate",
-    description: "People who match your budget and habits.",
+    description: "Matched on budget and habits.",
     href: routes.roommates,
     icon: Users,
   },
   {
     label: "List Your Property",
-    description: "Reach verified seekers. Manage vacancies.",
+    description: "Fill beds with verified seekers.",
     href: routes.listYourProperty,
     icon: Building2,
   },
 ] as const satisfies readonly (NavItem & { description: string })[];
 
-/** Marketing header links. */
+/** Marketing header links (signed out). Kept lean. */
 export const marketingNav = [
-  { label: "Find a Home", href: routes.search, icon: House },
-  { label: "Find a Roommate", href: routes.roommates, icon: Users },
-  {
-    label: "List Your Property",
-    href: routes.listYourProperty,
-    icon: Building2,
-  },
-  { label: "Safety", href: routes.safety, icon: ShieldCheck },
+  { label: "Homes", href: routes.search, icon: House },
+  { label: "Roommates", href: routes.roommates, icon: Users },
+  { label: "List your property", href: routes.listYourProperty, icon: Building2 },
 ] as const satisfies readonly NavItem[];
 
 /** App header links (desktop). */
@@ -201,8 +196,8 @@ export const appNav = [
   { label: "Homes", href: routes.search, icon: Search },
   { label: "Roommates", href: routes.roommates, icon: Users },
   { label: "Saved", href: routes.saved, icon: Heart },
+  { label: "Bookings", href: routes.bookings, icon: CalendarCheck },
   { label: "Messages", href: routes.messages, icon: MessageCircle },
-  { label: "Assistant", href: routes.assistant, icon: Sparkles },
 ] as const satisfies readonly NavItem[];
 
 /** Bottom tab bar in the app area on mobile (five items maximum). */
@@ -217,6 +212,7 @@ export const mobileTabs = [
 /** Account menu shown to signed-in users. */
 export const accountNav = [
   { label: "My bookings", href: routes.bookings, icon: CalendarCheck },
+  { label: "Assistant", href: routes.assistant, icon: Sparkles },
   { label: "Notifications", href: routes.notifications, icon: Bell },
   { label: "Roommate profile", href: routes.roommateProfile, icon: UserRound },
   { label: "Settings", href: routes.settings, icon: Settings },

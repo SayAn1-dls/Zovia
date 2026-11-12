@@ -42,6 +42,8 @@ export type RespondBookingInput = z.output<typeof respondBookingSchema>;
 
 export const cancelBookingSchema = z.object({ reason: z.string().trim().max(300).optional() });
 
+export const demoPaymentSchema = z.object({ booking_id: z.uuid() });
+
 export const verifyPaymentSchema = z.object({
   razorpay_order_id: z.string().min(1).max(100),
   razorpay_payment_id: z.string().min(1).max(100),
@@ -76,6 +78,7 @@ export type Booking = {
 /** POST /api/v1/bookings/[id]/payment-order: what the browser needs to open Razorpay Checkout. */
 export type PaymentOrder =
   | { status: "ready"; provider: "razorpay"; key_id: string; order_id: string; amount_paise: number; currency: "INR"; description: string }
+  | { status: "demo" }
   | { status: "not_configured" };
 
 /** Calendar date `days` from today in India, as YYYY-MM-DD. */

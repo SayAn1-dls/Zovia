@@ -59,8 +59,8 @@ export function DetailSection({
   className?: string;
 }) {
   return (
-    <section aria-labelledby={`${id}-heading`} className={cn("border-t border-border py-8", className)}>
-      <h2 id={`${id}-heading`} className="mb-5 text-display-sm font-bold">
+    <section aria-labelledby={`${id}-heading`} className={cn("border-t border-border py-8 sm:py-10", className)}>
+      <h2 id={`${id}-heading`} className="mb-5 text-xl font-bold tracking-tight">
         {title}
       </h2>
       {children}

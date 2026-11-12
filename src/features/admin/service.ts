@@ -9,6 +9,8 @@ import { errors } from "@/server/http/errors";
 import * as repo from "./repository";
 import {
   ADMIN_PAGE_SIZE,
+  parseAdminAnalytics,
+  type AdminAnalytics,
   type AdminAuditRow,
   type AdminContactMessage,
   type AdminListingDetail,
@@ -65,6 +67,11 @@ export async function getStats(ctx: UserServiceContext): Promise<AdminStats> {
     contact_messages_total: contactTotal,
     verifications_pending: verificationsPending,
   };
+}
+
+/** Platform analytics for the overview: real counts from admin_dashboard_stats(). */
+export async function getAnalytics(ctx: UserServiceContext): Promise<AdminAnalytics> {
+  return parseAdminAnalytics(await repo.fetchDashboardStats(ctx.supabase));
 }
 
 export async function listListings(ctx: UserServiceContext, status: ListingStatus, page: number): Promise<Paged<AdminListingRow>> {

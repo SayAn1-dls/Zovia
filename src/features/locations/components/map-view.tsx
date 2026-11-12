@@ -13,6 +13,12 @@ import { cn } from "@/lib/utils";
  * plain message if WebGL is unavailable.
  */
 
+/**
+ * MapLibre's stylesheet sets `.maplibregl-map { position: relative }` on the container, which
+ * beats a Tailwind `absolute` class and collapses the map to 0 px high. Inline style wins.
+ */
+export const MAP_FILL = { position: "absolute", inset: 0 } as const;
+
 export const MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
 
 export type MapMarker = {
@@ -122,7 +128,7 @@ export function MapView({ center, zoom = 13, markers = [], fitToMarkers = false,
 
   return (
     <div role="region" aria-label={label} className={cn("relative overflow-hidden rounded-2xl bg-muted", className)}>
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} style={MAP_FILL} />
       {failed ? (
         <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-muted-foreground">
           The map could not load on this device.

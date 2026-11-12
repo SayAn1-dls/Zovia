@@ -42,3 +42,10 @@ export async function failPayment(orderId: string): Promise<void> {
   const { error } = await admin().rpc("fail_payment", { p_order_id: orderId });
   if (error) throw fromSupabaseError(error);
 }
+
+/** Local demo payment (provider 'demo'); the caller checked demo mode and booking ownership. */
+export async function confirmDemoPayment(bookingId: string): Promise<string> {
+  const { data, error } = await admin().rpc("confirm_demo_payment", { p_booking_id: bookingId });
+  if (error) throw fromSupabaseError(error);
+  return data as string;
+}

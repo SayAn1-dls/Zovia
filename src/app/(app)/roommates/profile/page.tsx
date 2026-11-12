@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Roommate profile", robots: { index: 
 
 export default function RoommateProfilePage() {
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-6xl">
       <Suspense fallback={<LoadingState variant="form" count={8} label="Loading your profile" />}>
         <ProfileBody />
       </Suspense>
@@ -37,14 +37,21 @@ async function ProfileBody() {
         title={profile.exists ? "Your roommate profile" : "Create your roommate profile"}
         description="Honest answers lead to better matches. Your contact details are never shown."
       />
-      <div className="space-y-6">
-        {profile.exists ? (
-          <PhotoManager userId={user.id} photos={profile.photos} />
-        ) : (
-          <FormMessage tone="info">You can add photos after you create your profile.</FormMessage>
-        )}
-        <RoommateProfileForm initial={profile.values} exists={profile.exists} questions={questions} cities={cities} />
-      </div>
+      <RoommateProfileForm
+        initial={profile.values}
+        exists={profile.exists}
+        questions={questions}
+        cities={cities}
+        displayName={profile.display_name}
+        photoUrls={profile.photos.flatMap((photo) => (photo.url ? [photo.url] : []))}
+        header={
+          profile.exists ? (
+            <PhotoManager userId={user.id} photos={profile.photos} />
+          ) : (
+            <FormMessage tone="info">You can add photos after you create your profile.</FormMessage>
+          )
+        }
+      />
     </>
   );
 }

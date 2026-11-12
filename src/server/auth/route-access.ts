@@ -88,11 +88,8 @@ export function decideRoute(input: {
     return isStaff(user) ? { kind: "next" } : { kind: "not_found" };
   }
 
-  if (!user.onboarded) {
-    return under(pathname, ROUTES.onboarding)
-      ? { kind: "next" }
-      : { kind: "redirect", to: withNext(ROUTES.onboarding, pathname, search) };
-  }
+  // Onboarding is optional (product-owner decision 2026-11-13): signing up lands straight in the
+  // app; the questions can be answered later from /onboarding or settings.
 
   if (under(pathname, "/owner")) {
     // /owner/onboarding is where a signed-in user becomes an owner, so it cannot require the role.

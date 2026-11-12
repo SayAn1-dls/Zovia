@@ -21,6 +21,8 @@ export type OsmHousing = {
   address: string | null;
   phone: string | null;
   website: string | null;
+  /** From the name only ("Ladies Hostel" -> female); null when the name says nothing. */
+  gender_hint?: "male" | "female" | "any" | null;
   osm_url: string;
 };
 

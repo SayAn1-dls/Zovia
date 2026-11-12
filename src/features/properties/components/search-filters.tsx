@@ -64,6 +64,9 @@ const searchParsers = {
 /** Amenities offered as quick filters, in this order (codes from the `amenities` table). */
 const FEATURED_AMENITIES = ["wifi", "ac", "attached_bathroom", "laundry", "parking", "food", "power_backup", "housekeeping"];
 
+/** Property types offered as one-tap pills in the bar (the sheet has all of them). */
+const QUICK_TYPES = PROPERTY_TYPES.filter((type) => ["pg", "hostel", "co_living", "one_bhk"].includes(type));
+
 const BUDGET_PRESETS = [
   { min: null, max: 8000 },
   { min: 8000, max: 15000 },
@@ -234,38 +237,54 @@ export function SearchFilters({ cities, amenities }: { cities: CityOption[]; ame
 
   return (
     <div className="space-y-3">
-      <form onSubmit={onSubmitText} role="search" className="flex gap-2">
+      <form
+        onSubmit={onSubmitText}
+        role="search"
+        className="flex items-center gap-2 rounded-full border border-border bg-card p-1.5 pl-4 shadow-md transition-shadow focus-within:shadow-lg"
+      >
         <label htmlFor={ids.q} className="sr-only">
           Locality, PIN code, college or office
         </label>
-        <div className="relative min-w-0 flex-1">
-          <Search
-            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden
-          />
-          <Input
-            id={ids.q}
-            value={q}
-            onChange={(event) => setQ(event.target.value)}
-            placeholder="Locality, PIN, college or office"
-            enterKeyHint="search"
-            maxLength={100}
-            className="pl-10"
-          />
-        </div>
-        <Button type="submit" size="lg" disabled={isPending}>
+        <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+        <input
+          id={ids.q}
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          placeholder="Locality, PIN, college or office"
+          enterKeyHint="search"
+          maxLength={100}
+          className="h-10 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground md:text-[0.9375rem]"
+        />
+        <Button type="submit" size="lg" disabled={isPending} className="rounded-full" aria-label="Search">
           {isPending ? <Loader2 className="animate-spin" aria-hidden /> : <Search aria-hidden />}
-          <span className="sr-only sm:not-sr-only">Search</span>
+          <span className="hidden sm:inline">Search</span>
         </Button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="w-[calc(50%-0.25rem)] sm:w-44">
+      <div className="relative -mx-5 overflow-hidden sm:mx-0 sm:overflow-visible">
+      <div className="relative flex items-center gap-2 overflow-x-auto px-5 py-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => openSheet(true)}
+          aria-haspopup="dialog"
+          className={cn("shrink-0 rounded-full", activeCount > 0 && "border-foreground")}
+        >
+          <SlidersHorizontal aria-hidden />
+          Filters
+          {activeCount > 0 ? (
+            <span className="ml-0.5 inline-flex size-5 items-center justify-center rounded-full bg-ink text-xs text-white">
+              {activeCount}
+            </span>
+          ) : null}
+        </Button>
+        <div className="w-36 shrink-0 sm:w-40">
           <label htmlFor={ids.city} className="sr-only">
             City
           </label>
           <NativeSelect
             id={ids.city}
+            className="rounded-full font-medium"
             value={cities.find((c) => c.slug === filters.city?.toLowerCase() || c.name === filters.city)?.slug ?? ""}
             onChange={(event) => void setFilters({ city: event.target.value || null, page: null })}
           >
@@ -277,12 +296,42 @@ export function SearchFilters({ cities, amenities }: { cities: CityOption[]; ame
             ))}
           </NativeSelect>
         </div>
-        <div className="w-[calc(50%-0.25rem)] sm:w-48">
+        {QUICK_TYPES.map((type) => {
+          const selected = filters.type.includes(type);
+          return (
+            <button
+              key={type}
+              type="button"
+              aria-pressed={selected}
+              onClick={() => void setFilters({ type: toggle(filters.type, type), page: null })}
+              className={cn(
+                "inline-flex h-11 shrink-0 items-center rounded-full border px-4 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                selected ? "border-ink bg-ink text-white" : "border-border bg-card hover:border-foreground",
+              )}
+            >
+              {PROPERTY_TYPE_LABELS[type]}
+            </button>
+          );
+        })}
+        <Button
+          variant={hasPoint ? "default" : "outline"}
+          size="lg"
+          onClick={nearMe}
+          disabled={locating}
+          aria-pressed={hasPoint}
+          className="shrink-0 rounded-full"
+        >
+          {locating ? <Loader2 className="animate-spin" aria-hidden /> : <LocateFixed aria-hidden />}
+          Near me
+          {hasPoint ? <X className="size-3.5" aria-hidden /> : null}
+        </Button>
+        <div className="w-44 shrink-0 sm:ml-auto sm:w-48">
           <label htmlFor={ids.sort} className="sr-only">
             Sort by
           </label>
           <NativeSelect
             id={ids.sort}
+            className="rounded-full font-medium"
             value={filters.sort}
             onChange={(event) =>
               void setFilters({ sort: event.target.value as (typeof SORTS)[number], page: null })
@@ -296,20 +345,7 @@ export function SearchFilters({ cities, amenities }: { cities: CityOption[]; ame
             ))}
           </NativeSelect>
         </div>
-        <Button variant="outline" size="lg" onClick={() => openSheet(true)} aria-haspopup="dialog">
-          <SlidersHorizontal aria-hidden />
-          Filters
-          {activeCount > 0 ? (
-            <span className="ml-0.5 inline-flex size-5 items-center justify-center rounded-full bg-ink text-xs text-white">
-              {activeCount}
-            </span>
-          ) : null}
-        </Button>
-        <Button variant={hasPoint ? "default" : "outline"} size="lg" onClick={nearMe} disabled={locating} aria-pressed={hasPoint}>
-          {locating ? <Loader2 className="animate-spin" aria-hidden /> : <LocateFixed aria-hidden />}
-          Near me
-          {hasPoint ? <X className="size-3.5" aria-hidden /> : null}
-        </Button>
+      </div>
       </div>
 
       <Sheet open={open} onOpenChange={openSheet}>
@@ -320,7 +356,7 @@ export function SearchFilters({ cities, amenities }: { cities: CityOption[]; ame
         >
           <SheetHeader className="border-b border-border">
             <SheetTitle>Filters</SheetTitle>
-            <SheetDescription>Only real listings that match every choice are shown.</SheetDescription>
+            <SheetDescription className="sr-only">Narrow the results.</SheetDescription>
           </SheetHeader>
           <div className="flex-1 space-y-7 overflow-y-auto px-5 pb-4">
             <FilterGroup title="Property type">

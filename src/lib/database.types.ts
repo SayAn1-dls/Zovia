@@ -499,6 +499,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"osm_places": {
+                  Row: {
+                    "address": string | null,"category": string,"city_slug": string,"gender_hint": Database["public"]['Enums']["tenant_gender"] | null,"id": string,"imported_at": string,"kind": string,"location": unknown,"name": string,"phone": string | null,"source_url": string,"website": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address"?: string | null,"category": string,"city_slug": string,"gender_hint"?: Database["public"]['Enums']["tenant_gender"] | null,"id": string,"imported_at"?: string,"kind": string,"location": unknown,"name": string,"phone"?: string | null,"source_url": string,"website"?: string | null
+                  }
+                  Update: {
+                    "address"?: string | null,"category"?: string,"city_slug"?: string,"gender_hint"?: Database["public"]['Enums']["tenant_gender"] | null,"id"?: string,"imported_at"?: string,"kind"?: string,"location"?: unknown,"name"?: string,"phone"?: string | null,"source_url"?: string,"website"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "osm_places_city_slug_fkey"
+      columns: ["city_slug"]
+isOneToOne: false
+      referencedRelation: "cities"
+      referencedColumns: ["slug"]
+    }
+                  ]
                 },"owner_replies": {
                   Row: {
                     "body": string,"created_at": string,"owner_id": string,"review_id": string,"updated_at": string
@@ -1435,7 +1455,10 @@ isOneToOne: true
                 }
           }
           Functions: {
-            "admin_review_property":
+            "admin_dashboard_stats":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_review_property":
 { Args: { "p_approve": boolean,"p_property_id": string,"p_reason"?: string }; Returns: undefined
                            },
 "audit":
@@ -1466,6 +1489,9 @@ isOneToOne: true
                            },
 "confirm_booking_payment":
 { Args: { "p_amount_paise": number,"p_order_id": string,"p_payment_id": string }; Returns: string
+                           },
+"confirm_demo_payment":
+{ Args: { "p_booking_id": string }; Returns: string
                            },
 "confirm_listing":
 { Args: { "p_property_id": string }; Returns: undefined
@@ -1521,6 +1547,11 @@ isOneToOne: true
 "my_conversations":
 { Args: { "p_limit"?: number,"p_offset"?: number }; Returns: {
               "created_at": string,"id": string,"inquiry_id": string,"kind": Database["public"]['Enums']["conversation_kind"],"last_message_at": string,"last_message_preview": string,"last_read_at": string,"match_id": string,"muted": boolean,"my_role": string,"other_avatar_path": string,"other_display_name": string,"other_user_id": string,"property_id": string,"property_title": string,"status": Database["public"]['Enums']["conversation_status"],"unread_count": number
+            }[]
+                           },
+"nearby_osm_places":
+{ Args: { "p_lat": number,"p_lng": number,"p_per_kind"?: number,"p_radius_m"?: number }; Returns: {
+              "distance_m": number,"id": string,"kind": string,"lat": number,"lng": number,"name": string
             }[]
                            },
 "notify":

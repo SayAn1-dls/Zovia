@@ -1,6 +1,6 @@
 "use client";
 
-import { Flag, Heart, MessageCircle, RotateCw, UserRoundPen, Users, X } from "lucide-react";
+import { Flag, Heart, MapPin, MessageCircle, RotateCw, SlidersHorizontal, X } from "lucide-react";
 import { AnimatePresence, motion, useMotionValue, useReducedMotion, useTransform, type PanInfo } from "motion/react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -14,12 +14,11 @@ import { apiFetch, isApiError } from "@/lib/api/client";
 import { dynamicRoutes, routes } from "@/lib/navigation";
 
 import type { DeckCandidate, SwipeResult } from "../schemas";
-import { CandidateCard } from "./candidate-card";
+import { RoommateCard, SWIPE_DISTANCE, SwipeStamps } from "./roommate-card";
 
 type Decision = "like" | "pass";
 type DeckResponse = { state: string; candidates?: DeckCandidate[] };
 
-const SWIPE_DISTANCE = 110;
 const SWIPE_VELOCITY = 600;
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -27,63 +26,66 @@ function isTypingTarget(target: EventTarget | null): boolean {
   return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
 }
 
+const exitVariants = {
+  exit: (direction: number) =>
+    direction === 0
+      ? { opacity: 0, transition: { duration: 0.15 } }
+      : { x: direction * 520, rotate: direction * 24, opacity: 0, transition: { duration: 0.32, ease: [0.4, 0, 1, 1] as const } },
+};
+
 function SwipeCard({
   candidate,
-  draggable,
   reduceMotion,
+  expanded,
+  onToggleExpanded,
   onDecide,
 }: {
   candidate: DeckCandidate;
-  draggable: boolean;
   reduceMotion: boolean;
+  expanded: boolean;
+  onToggleExpanded: () => void;
   onDecide: (decision: Decision) => void;
 }) {
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-240, 240], reduceMotion ? [0, 0] : [-12, 12]);
-  const likeOpacity = useTransform(x, [30, SWIPE_DISTANCE], [0, 1]);
-  const passOpacity = useTransform(x, [-SWIPE_DISTANCE, -30], [1, 0]);
+  const rotate = useTransform(x, [-240, 240], reduceMotion ? [0, 0] : [-14, 14]);
+  const dragged = useRef(false);
 
   function onDragEnd(_: unknown, info: PanInfo) {
+    // Swallow the click that follows a drag so it does not toggle the details sheet.
+    window.setTimeout(() => (dragged.current = false), 0);
     if (info.offset.x > SWIPE_DISTANCE || info.velocity.x > SWIPE_VELOCITY) onDecide("like");
     else if (info.offset.x < -SWIPE_DISTANCE || info.velocity.x < -SWIPE_VELOCITY) onDecide("pass");
   }
 
   return (
     <motion.div
-      className="absolute inset-0 touch-pan-y"
+      className="absolute inset-0 z-10 cursor-grab touch-pan-y active:cursor-grabbing"
       style={{ x, rotate }}
-      drag={draggable && !reduceMotion ? "x" : false}
+      drag={reduceMotion ? false : "x"}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
+      onDragStart={() => (dragged.current = true)}
       onDragEnd={onDragEnd}
-      initial={reduceMotion ? { opacity: 0 } : { scale: 0.96, opacity: 0, y: 12 }}
+      onClickCapture={(event) => {
+        if (dragged.current) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }}
+      variants={reduceMotion ? undefined : exitVariants}
+      initial={reduceMotion ? { opacity: 0 } : { scale: 0.95, y: 14, opacity: 1 }}
       animate={{ scale: 1, opacity: 1, y: 0 }}
-      exit={
-        reduceMotion
-          ? { opacity: 0, transition: { duration: 0.12 } }
-          : { opacity: 0, transition: { duration: 0.22 } }
-      }
-      transition={{ duration: reduceMotion ? 0.12 : 0.2, ease: [0.22, 1, 0.36, 1] }}
+      exit={reduceMotion ? { opacity: 0, transition: { duration: 0.12 } } : "exit"}
+      transition={{ duration: reduceMotion ? 0.12 : 0.22, ease: [0.22, 1, 0.36, 1] }}
     >
-      <CandidateCard candidate={candidate} />
-      {!reduceMotion ? (
-        <>
-          <motion.span
-            style={{ opacity: likeOpacity }}
-            className="pointer-events-none absolute top-6 left-6 -rotate-12 rounded-xl border-4 border-lime bg-ink/70 px-3 py-1 text-2xl font-extrabold text-lime"
-            aria-hidden
-          >
-            LIKE
-          </motion.span>
-          <motion.span
-            style={{ opacity: passOpacity }}
-            className="pointer-events-none absolute top-6 right-6 rotate-12 rounded-xl border-4 border-coral bg-ink/70 px-3 py-1 text-2xl font-extrabold text-coral"
-            aria-hidden
-          >
-            NOPE
-          </motion.span>
-        </>
-      ) : null}
+      <RoommateCard
+        person={candidate}
+        compatibility={candidate.compatibility}
+        expanded={expanded}
+        onToggleExpanded={onToggleExpanded}
+        reduceMotion={reduceMotion}
+      />
+      {!reduceMotion ? <SwipeStamps x={x} /> : null}
     </motion.div>
   );
 }
@@ -96,6 +98,8 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
   const [loadingMore, setLoadingMore] = useState(false);
   const [exhausted, setExhausted] = useState(initial.length === 0);
   const [announcement, setAnnouncement] = useState("");
+  const [direction, setDirection] = useState(0);
+  const [expanded, setExpanded] = useState(false);
   const seen = useRef(new Set(initial.map((c) => c.user_id)));
   const pending = useRef(0);
 
@@ -119,6 +123,8 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
     async (decision: Decision) => {
       const top = queue[0];
       if (!top || match || reporting) return;
+      setDirection(decision === "like" ? 1 : -1);
+      setExpanded(false);
       setQueue((current) => current.slice(1));
       setAnnouncement(`${decision === "like" ? "Liked" : "Passed on"} ${top.display_name}.`);
       if (queue.length <= 4 && !exhausted) void refill();
@@ -152,6 +158,9 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
       } else if (event.key === "ArrowLeft") {
         event.preventDefault();
         void decide("pass");
+      } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        setExpanded(event.key === "ArrowUp");
       }
     }
     window.addEventListener("keydown", onKey);
@@ -159,6 +168,7 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
   }, [decide]);
 
   const top = queue[0];
+  const behind = queue.slice(1, 3);
 
   return (
     <div className="mx-auto w-full max-w-md">
@@ -167,38 +177,51 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
       </p>
       {top ? (
         <>
-          <div className="relative h-[min(68dvh,620px)] min-h-[440px]">
-            {queue[1] ? (
-              <div className="absolute inset-0 translate-y-2 scale-[0.97] opacity-60" aria-hidden>
-                <CandidateCard candidate={queue[1]} />
-              </div>
-            ) : null}
-            <AnimatePresence initial={false}>
-              <SwipeCard key={top.user_id} candidate={top} draggable reduceMotion={reduceMotion} onDecide={(d) => void decide(d)} />
+          <div className="relative h-[min(62dvh,600px)] min-h-[420px]">
+            {behind
+              .map((candidate, index) => (
+                <div
+                  key={candidate.user_id}
+                  className="absolute inset-0 transition-transform duration-300"
+                  style={{ transform: `translateY(${(index + 1) * 12}px) scale(${1 - (index + 1) * 0.04})` }}
+                  aria-hidden
+                  inert
+                >
+                  <RoommateCard person={candidate} compatibility={candidate.compatibility} expanded={false} onToggleExpanded={() => {}} />
+                </div>
+              ))
+              .reverse()}
+            <AnimatePresence initial={false} custom={direction}>
+              <SwipeCard
+                key={top.user_id}
+                candidate={top}
+                reduceMotion={reduceMotion}
+                expanded={expanded}
+                onToggleExpanded={() => setExpanded((open) => !open)}
+                onDecide={(d) => void decide(d)}
+              />
             </AnimatePresence>
           </div>
-          <div className="mt-5 flex items-center justify-center gap-5">
-            <Button
-              variant="outline"
-              size="icon-lg"
-              className="size-16 border-2 [&_svg:not([class*='size-'])]:size-7"
+          <div className="mt-6 flex items-center justify-center gap-8">
+            <button
+              type="button"
+              className="flex size-16 items-center justify-center rounded-full bg-card text-coral shadow-lg ring-1 ring-border transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
               aria-label={`Pass on ${top.display_name} (left arrow)`}
               onClick={() => void decide("pass")}
             >
-              <X aria-hidden />
-            </Button>
-            <Button
-              variant="accent"
-              size="icon-lg"
-              className="size-16 [&_svg:not([class*='size-'])]:size-7"
+              <X className="size-8" strokeWidth={3} aria-hidden />
+            </button>
+            <button
+              type="button"
+              className="flex size-20 items-center justify-center rounded-full bg-lime text-ink shadow-lg ring-1 ring-ink/10 transition-transform hover:scale-105 active:scale-95 motion-reduce:transition-none motion-reduce:hover:scale-100"
               aria-label={`Like ${top.display_name} (right arrow)`}
               onClick={() => void decide("like")}
             >
-              <Heart aria-hidden />
-            </Button>
+              <Heart className="size-9 fill-current" aria-hidden />
+            </button>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            <span className="hidden sm:inline">Tip: use ← and → keys</span>
+            <span className="hidden sm:inline">Tip: ← pass, → like, ↑ details</span>
             <button
               type="button"
               className="inline-flex min-h-11 items-center gap-1 font-medium hover:text-foreground"
@@ -212,24 +235,28 @@ export function SwipeDeck({ initial, city }: { initial: DeckCandidate[]; city: s
             title={`Report ${top.display_name}`}
             open={reporting}
             onOpenChange={setReporting}
-            onReported={() => setQueue((current) => current.filter((c) => c.user_id !== top.user_id))}
+            onReported={() => {
+              setDirection(0);
+              setExpanded(false);
+              setQueue((current) => current.filter((c) => c.user_id !== top.user_id));
+            }}
           />
         </>
       ) : (
         <EmptyState
-          icon={Users}
-          title={loadingMore ? "Finding more people…" : "You're all caught up"}
-          description={`You have seen everyone who matches your preferences${city ? ` in ${city}` : ""} for now. New people join every day.`}
+          icon={MapPin}
+          title={loadingMore ? "Finding more people…" : `No one new in ${city ?? "your city"} yet`}
+          description="You have seen everyone who fits your preferences for now. New people join every day, or widen your filters to see more."
           action={
             <>
+              <Link href={routes.roommateProfile} className={buttonVariants({ size: "lg" })}>
+                <SlidersHorizontal data-icon="inline-start" aria-hidden /> Edit filters
+              </Link>
               <Button variant="outline" size="lg" onClick={() => void refill()} disabled={loadingMore}>
                 <RotateCw data-icon="inline-start" aria-hidden /> Check again
               </Button>
-              <Link href={routes.roommateMatches} className={buttonVariants({ size: "lg" })}>
+              <Link href={routes.roommateMatches} className={buttonVariants({ variant: "ghost", size: "lg" })}>
                 <Heart data-icon="inline-start" aria-hidden /> Your matches
-              </Link>
-              <Link href={routes.roommateProfile} className={buttonVariants({ variant: "ghost", size: "lg" })}>
-                <UserRoundPen data-icon="inline-start" aria-hidden /> Edit preferences
               </Link>
             </>
           }

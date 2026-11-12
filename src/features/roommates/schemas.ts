@@ -265,6 +265,8 @@ export type MatchItem = {
 export type OwnRoommateProfile = {
   exists: boolean;
   status: RoommateProfileStatus;
+  /** The account display name, shown on the card preview. */
+  display_name: string;
   values: RoommateProfileFormValues;
   photos: { id: string; storage_path: string; url: string | null }[];
 };

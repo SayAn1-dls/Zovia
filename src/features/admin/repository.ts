@@ -236,3 +236,10 @@ export async function listSettings(supabase: AppSupabaseClient) {
   check(error);
   return data ?? [];
 }
+
+/** Aggregate counts for the overview (admin_dashboard_stats: SECURITY DEFINER, re-checks is_staff()). */
+export async function fetchDashboardStats(supabase: AppSupabaseClient): Promise<unknown> {
+  const { data, error } = await supabase.rpc("admin_dashboard_stats");
+  check(error);
+  return data;
+}

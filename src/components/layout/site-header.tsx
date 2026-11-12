@@ -40,7 +40,9 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
   const session = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const isApp = variant === "app";
-  const links: readonly NavItem[] = isApp ? appNav : marketingNav;
+  const signedIn = session.status === "signed_in";
+  // Signed-in people get the product nav everywhere; visitors get a lean marketing nav.
+  const links: readonly NavItem[] = isApp || signedIn ? appNav : marketingNav;
   const closeMenu = () => setMenuOpen(false);
 
   const authActions =
@@ -48,16 +50,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
       <span aria-hidden className="h-11 w-28 rounded-full bg-muted" />
     ) : session.status === "signed_in" ? (
       <>
-        {isApp ? (
-          <NotificationBell userId={session.user.id} />
-        ) : (
-          <Link
-            href={routes.search}
-            className={cn(buttonVariants({ size: "lg" }), "hidden sm:inline-flex")}
-          >
-            Open ZUVIO
-          </Link>
-        )}
+        <NotificationBell userId={session.user.id} />
         <UserMenu />
       </>
     ) : (
@@ -68,7 +61,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
         >
           Sign in
         </Link>
-        <Link href={routes.signUp} className={buttonVariants({ size: "lg" })}>
+        <Link href={routes.signUp} className={cn(buttonVariants({ size: "lg" }), "rounded-full px-5")}>
           Get started
         </Link>
       </>
@@ -83,7 +76,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
     >
       <div className="mx-auto flex h-full w-full max-w-7xl items-center gap-2 px-4 sm:px-8">
         <Link
-          href={isApp ? routes.search : routes.home}
+          href={isApp || signedIn ? routes.search : routes.home}
           aria-label="ZUVIO home"
           className="mr-2 flex h-11 items-center rounded-lg text-foreground"
         >
@@ -92,14 +85,15 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
         </Link>
 
         <nav aria-label="Main" className="hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-0.5">
             {links.map((item) => (
               <li key={item.href}>
                 <NavLink
                   href={item.href}
-                  className="inline-flex h-11 items-center rounded-full px-3.5 text-sm font-medium text-foreground/70 transition-colors duration-150 hover:text-foreground"
-                  activeClassName="text-foreground underline decoration-2 underline-offset-8"
+                  className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium text-foreground/70 transition-colors duration-150 hover:bg-muted hover:text-foreground"
+                  activeClassName="bg-muted text-foreground"
                 >
+                  <item.icon className="size-4" aria-hidden />
                   {item.label}
                 </NavLink>
               </li>

@@ -47,6 +47,17 @@ export function PayButton({ bookingId, prefill }: { bookingId: string; prefill?:
     setMessage(null);
     try {
       const order = await apiFetch<PaymentOrder>(`/bookings/${bookingId}/payment-order`, { method: "POST" });
+      if (order.status === "demo") {
+        if (!window.confirm("Demo payment: no real money moves. Confirm this booking?")) {
+          setBusy(false);
+          return;
+        }
+        await apiFetch("/payments/demo", { method: "POST", body: { booking_id: bookingId } });
+        setMessage({ tone: "success", text: "Demo payment done. Your booking is confirmed (no money moved)." });
+        setBusy(false);
+        router.refresh();
+        return;
+      }
       if (order.status === "not_configured") {
         setMessage({ tone: "info", text: "Online payment is not set up on ZUVIO yet. The owner can still see your accepted booking." });
         setBusy(false);

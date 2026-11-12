@@ -33,6 +33,7 @@ import {
   type RoommateProfileInput,
 } from "../schemas";
 import { ChoicePill } from "./choice-pill";
+import { ProfileCardPreview } from "./profile-card-preview";
 
 type Values = RoommateProfileFormValues;
 type FormControl = Control<Values, unknown, RoommateProfileInput>;
@@ -220,11 +221,19 @@ export function RoommateProfileForm({
   exists,
   questions,
   cities,
+  displayName,
+  photoUrls,
+  header,
 }: {
   initial: Values;
   exists: boolean;
   questions: LifestyleQuestion[];
   cities: City[];
+  /** Account display name and photo URLs, for the live card preview. */
+  displayName: string;
+  photoUrls: string[];
+  /** Rendered above the form in the main column (e.g. the photo manager). */
+  header?: ReactNode;
 }) {
   const router = useRouter();
   const form = useForm<Values, unknown, RoommateProfileInput>({
@@ -261,181 +270,189 @@ export function RoommateProfileForm({
   }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit, () => setFailure("Some details need attention. Check the highlighted fields."))}
-      noValidate
-      className="space-y-6"
-    >
-      <Section title="The basics" description="This is what people see first on your card.">
-        <FormField control={form.control} name="headline" label="Headline" description="One line about you, e.g. “Calm designer who cooks on Sundays”.">
-          {(field) => <Input maxLength={80} {...field} />}
-        </FormField>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FormField control={form.control} name="age" label="Age">
-            {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
-          </FormField>
-          <FormField control={form.control} name="gender" label="Gender">
-            {(field) => (
-              <NativeSelect {...field}>
-                <option value="" disabled>
-                  Choose
-                </option>
-                {GENDERS.map((value) => (
-                  <option key={value} value={value}>
-                    {GENDER_LABELS[value]}
-                  </option>
-                ))}
-              </NativeSelect>
-            )}
-          </FormField>
-          <FormField control={form.control} name="occupation" label="You are a" optional>
-            {(field) => (
-              <NativeSelect {...field}>
-                <option value="">Not set</option>
-                {OCCUPATIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {OCCUPATION_LABELS[value]}
-                  </option>
-                ))}
-              </NativeSelect>
-            )}
-          </FormField>
-          <FormField
-            control={form.control}
-            name="occupation_detail"
-            label={occupation === "student" ? "College" : occupation === "working_professional" ? "Company or field" : "What you do"}
-            optional
-          >
-            {(field) => <Input maxLength={120} {...field} />}
-          </FormField>
-        </div>
-        <FormField control={form.control} name="about" label="About you" optional description="Up to 1,000 characters.">
-          {(field) => <Textarea rows={4} maxLength={1000} {...field} />}
-        </FormField>
-      </Section>
-
-      <Section title="Where and when">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <FormField control={form.control} name="city" label="City">
-            {(field) => (
-              <NativeSelect {...field}>
-                <option value="" disabled>
-                  Choose a city
-                </option>
-                {cities.map((city) => (
-                  <option key={city.slug} value={city.name}>
-                    {city.name}
-                  </option>
-                ))}
-              </NativeSelect>
-            )}
-          </FormField>
-          <FormField control={form.control} name="move_in_date" label="Move-in date" optional>
-            {(field) => <Input type="date" {...field} />}
-          </FormField>
-          <FormField control={form.control} name="budget_min" label="Budget from (₹ / month)">
-            {(field) => <Input type="number" inputMode="numeric" min={0} step={500} {...field} value={field.value ?? ""} />}
-          </FormField>
-          <FormField control={form.control} name="budget_max" label="Budget up to (₹ / month)">
-            {(field) => <Input type="number" inputMode="numeric" min={0} step={500} {...field} value={field.value ?? ""} />}
-          </FormField>
-        </div>
-        <LocalitiesField control={form.control} />
-      </Section>
-
-      <Section title="Your place" description="Already renting? Tell people about the room you are sharing.">
-        <PlaceToggle control={form.control} />
-        {hasPlace ? (
-          <div className="grid gap-5 sm:grid-cols-2">
-            <FormField control={form.control} name="place.title" label="Title" className="sm:col-span-2">
-              {(field) => <Input maxLength={100} placeholder="Sunny room in a 2BHK" {...field} />}
+    <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-8">
+      <aside className="mb-6 lg:sticky lg:top-24 lg:order-2 lg:mb-0">
+        <ProfileCardPreview control={form.control} displayName={displayName} photoUrls={photoUrls} />
+      </aside>
+      <div className="min-w-0 space-y-6">
+        {header}
+        <form
+          onSubmit={form.handleSubmit(onSubmit, () => setFailure("Some details need attention. Check the highlighted fields."))}
+          noValidate
+          className="space-y-6"
+        >
+          <Section title="The basics" description="This is what people see first on your card.">
+            <FormField control={form.control} name="headline" label="Headline" description="One line about you, e.g. “Calm designer who cooks on Sundays”.">
+              {(field) => <Input maxLength={80} {...field} />}
             </FormField>
-            <FormField control={form.control} name="place.locality" label="Locality" optional>
-              {(field) => <Input maxLength={80} {...field} value={field.value ?? ""} />}
-            </FormField>
-            <FormField control={form.control} name="place.furnishing" label="Furnishing" optional>
-              {(field) => (
-                <NativeSelect {...field} value={field.value ?? ""}>
-                  <option value="">Not set</option>
-                  {FURNISHINGS.map((value) => (
-                    <option key={value} value={value}>
-                      {FURNISHING_LABELS[value]}
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField control={form.control} name="age" label="Age">
+                {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
+              </FormField>
+              <FormField control={form.control} name="gender" label="Gender">
+                {(field) => (
+                  <NativeSelect {...field}>
+                    <option value="" disabled>
+                      Choose
                     </option>
-                  ))}
-                </NativeSelect>
+                    {GENDERS.map((value) => (
+                      <option key={value} value={value}>
+                        {GENDER_LABELS[value]}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </FormField>
+              <FormField control={form.control} name="occupation" label="You are a" optional>
+                {(field) => (
+                  <NativeSelect {...field}>
+                    <option value="">Not set</option>
+                    {OCCUPATIONS.map((value) => (
+                      <option key={value} value={value}>
+                        {OCCUPATION_LABELS[value]}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </FormField>
+              <FormField
+                control={form.control}
+                name="occupation_detail"
+                label={occupation === "student" ? "College" : occupation === "working_professional" ? "Company or field" : "What you do"}
+                optional
+              >
+                {(field) => <Input maxLength={120} {...field} />}
+              </FormField>
+            </div>
+            <FormField control={form.control} name="about" label="About you" optional description="Up to 1,000 characters.">
+              {(field) => <Textarea rows={4} maxLength={1000} {...field} />}
+            </FormField>
+          </Section>
+
+          <Section title="Where and when">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <FormField control={form.control} name="city" label="City">
+                {(field) => (
+                  <NativeSelect {...field}>
+                    <option value="" disabled>
+                      Choose a city
+                    </option>
+                    {cities.map((city) => (
+                      <option key={city.slug} value={city.name}>
+                        {city.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </FormField>
+              <FormField control={form.control} name="move_in_date" label="Move-in date" optional>
+                {(field) => <Input type="date" {...field} />}
+              </FormField>
+              <FormField control={form.control} name="budget_min" label="Budget from (₹ / month)">
+                {(field) => <Input type="number" inputMode="numeric" min={0} step={500} {...field} value={field.value ?? ""} />}
+              </FormField>
+              <FormField control={form.control} name="budget_max" label="Budget up to (₹ / month)">
+                {(field) => <Input type="number" inputMode="numeric" min={0} step={500} {...field} value={field.value ?? ""} />}
+              </FormField>
+            </div>
+            <LocalitiesField control={form.control} />
+          </Section>
+
+          <Section title="Your place" description="Already renting? Tell people about the room you are sharing.">
+            <PlaceToggle control={form.control} />
+            {hasPlace ? (
+              <div className="grid gap-5 sm:grid-cols-2">
+                <FormField control={form.control} name="place.title" label="Title" className="sm:col-span-2">
+                  {(field) => <Input maxLength={100} placeholder="Sunny room in a 2BHK" {...field} />}
+                </FormField>
+                <FormField control={form.control} name="place.locality" label="Locality" optional>
+                  {(field) => <Input maxLength={80} {...field} value={field.value ?? ""} />}
+                </FormField>
+                <FormField control={form.control} name="place.furnishing" label="Furnishing" optional>
+                  {(field) => (
+                    <NativeSelect {...field} value={field.value ?? ""}>
+                      <option value="">Not set</option>
+                      {FURNISHINGS.map((value) => (
+                        <option key={value} value={value}>
+                          {FURNISHING_LABELS[value]}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  )}
+                </FormField>
+                <FormField control={form.control} name="place.rent_share" label="Their rent share (₹ / month)" optional>
+                  {(field) => <Input type="number" inputMode="numeric" min={0} {...field} value={field.value ?? ""} />}
+                </FormField>
+                <FormField control={form.control} name="place.deposit_share" label="Their deposit share (₹)" optional>
+                  {(field) => <Input type="number" inputMode="numeric" min={0} {...field} value={field.value ?? ""} />}
+                </FormField>
+                <FormField control={form.control} name="place.vacancies" label="Spots open" optional>
+                  {(field) => <Input type="number" inputMode="numeric" min={1} max={10} {...field} value={field.value ?? ""} />}
+                </FormField>
+                <FormField control={form.control} name="place.available_from" label="Available from" optional>
+                  {(field) => <Input type="date" {...field} value={field.value ?? ""} />}
+                </FormField>
+                <FormField control={form.control} name="place.description" label="Describe the place" optional className="sm:col-span-2">
+                  {(field) => <Textarea rows={3} maxLength={1000} {...field} value={field.value ?? ""} />}
+                </FormField>
+              </div>
+            ) : null}
+          </Section>
+
+          <Section title="Who you'd like to live with" description="Gender and age are hard filters in both directions; leave them empty for no preference.">
+            <MultiChoice control={form.control} name="preferred_genders" legend="Gender" options={GENDERS} labels={GENDER_LABELS} />
+            <div className="grid grid-cols-2 gap-5">
+              <FormField control={form.control} name="age_min" label="Age from" optional>
+                {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
+              </FormField>
+              <FormField control={form.control} name="age_max" label="Age up to" optional>
+                {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
+              </FormField>
+            </div>
+            <MultiChoice
+              control={form.control}
+              name="occupation_prefs"
+              legend="Ideally a… (not a filter)"
+              options={OCCUPATIONS}
+              labels={OCCUPATION_LABELS}
+            />
+          </Section>
+
+          <Section title="Your lifestyle" description="Answer honestly. This is how we estimate compatibility.">
+            <Questionnaire control={form.control} questions={questions} />
+          </Section>
+
+          <Section title="Deal-breakers" description="People who answered these will not appear in your deck, and you will not appear in theirs.">
+            <MultiChoice
+              control={form.control}
+              name="deal_breakers"
+              legend="I can't live with"
+              options={DEAL_BREAKER_CODES}
+              labels={DEAL_BREAKER_LABELS}
+            />
+          </Section>
+
+          <Section title="Visibility">
+            <StatusChoice control={form.control} />
+          </Section>
+
+          {failure ? (
+            <FormMessage tone="danger" title="Not saved">
+              {failure}
+            </FormMessage>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" size="lg" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
+              ) : (
+                <Save data-icon="inline-start" aria-hidden />
               )}
-            </FormField>
-            <FormField control={form.control} name="place.rent_share" label="Their rent share (₹ / month)" optional>
-              {(field) => <Input type="number" inputMode="numeric" min={0} {...field} value={field.value ?? ""} />}
-            </FormField>
-            <FormField control={form.control} name="place.deposit_share" label="Their deposit share (₹)" optional>
-              {(field) => <Input type="number" inputMode="numeric" min={0} {...field} value={field.value ?? ""} />}
-            </FormField>
-            <FormField control={form.control} name="place.vacancies" label="Spots open" optional>
-              {(field) => <Input type="number" inputMode="numeric" min={1} max={10} {...field} value={field.value ?? ""} />}
-            </FormField>
-            <FormField control={form.control} name="place.available_from" label="Available from" optional>
-              {(field) => <Input type="date" {...field} value={field.value ?? ""} />}
-            </FormField>
-            <FormField control={form.control} name="place.description" label="Describe the place" optional className="sm:col-span-2">
-              {(field) => <Textarea rows={3} maxLength={1000} {...field} value={field.value ?? ""} />}
-            </FormField>
+              {exists ? "Save profile" : "Create profile"}
+            </Button>
           </div>
-        ) : null}
-      </Section>
-
-      <Section title="Who you'd like to live with" description="Gender and age are hard filters in both directions; leave them empty for no preference.">
-        <MultiChoice control={form.control} name="preferred_genders" legend="Gender" options={GENDERS} labels={GENDER_LABELS} />
-        <div className="grid grid-cols-2 gap-5">
-          <FormField control={form.control} name="age_min" label="Age from" optional>
-            {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
-          </FormField>
-          <FormField control={form.control} name="age_max" label="Age up to" optional>
-            {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
-          </FormField>
-        </div>
-        <MultiChoice
-          control={form.control}
-          name="occupation_prefs"
-          legend="Ideally a… (not a filter)"
-          options={OCCUPATIONS}
-          labels={OCCUPATION_LABELS}
-        />
-      </Section>
-
-      <Section title="Your lifestyle" description="Answer honestly. This is how we estimate compatibility.">
-        <Questionnaire control={form.control} questions={questions} />
-      </Section>
-
-      <Section title="Deal-breakers" description="People who answered these will not appear in your deck, and you will not appear in theirs.">
-        <MultiChoice
-          control={form.control}
-          name="deal_breakers"
-          legend="I can't live with"
-          options={DEAL_BREAKER_CODES}
-          labels={DEAL_BREAKER_LABELS}
-        />
-      </Section>
-
-      <Section title="Visibility">
-        <StatusChoice control={form.control} />
-      </Section>
-
-      {failure ? (
-        <FormMessage tone="danger" title="Not saved">
-          {failure}
-        </FormMessage>
-      ) : null}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <Loader2 data-icon="inline-start" className="animate-spin" aria-hidden />
-          ) : (
-            <Save data-icon="inline-start" aria-hidden />
-          )}
-          {exists ? "Save profile" : "Create profile"}
-        </Button>
+        </form>
       </div>
-    </form>
+    </div>
   );
 }

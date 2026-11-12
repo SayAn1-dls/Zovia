@@ -1,3 +1,4 @@
+import { Phone } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -21,7 +22,7 @@ const linkClass =
 export default function ContactPage() {
   return (
     <>
-      <MarketingHero title="Talk to us." description="Send a message and we will reply by e-mail." />
+      <MarketingHero title="Talk to us." description="We reply by e-mail." />
       <Container className="grid gap-10 py-10 sm:py-14 lg:grid-cols-[1fr_18rem] lg:gap-16">
         <div className="max-w-2xl">
           <ContactForm />
@@ -29,12 +30,18 @@ export default function ContactPage() {
 
         <aside className="space-y-5 text-[0.9375rem] leading-relaxed text-muted-foreground">
           <p>
-            Reporting a person or a listing? Use Report on the profile, listing or message itself.{" "}
+            <a href={`tel:${site.contactPhone}`} className="inline-flex min-h-11 items-center gap-2 text-lg font-semibold text-foreground hover:underline">
+              <Phone className="size-4" aria-hidden />
+              {site.contactPhoneDisplay}
+            </a>
+          </p>
+          <p>
+            Reporting someone? Use Report on the profile or listing.{" "}
             <Link href={routes.safety} className={linkClass}>
-              How reporting works
+              How it works
             </Link>
           </p>
-          <p>In an emergency, call 112 first.</p>
+          <p>Emergency? Call 112 first.</p>
           {site.supportEmail ? (
             <p>
               <a href={`mailto:${site.supportEmail}`} className={`${linkClass} break-all`}>

@@ -42,7 +42,7 @@ export function HeroSearch() {
   });
 
   return (
-    <div className="rounded-3xl border border-foreground bg-card p-2.5 sm:p-3">
+    <div className="rounded-3xl bg-card p-2.5 shadow-xl sm:p-3">
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <label htmlFor={cityId} className="sr-only">
@@ -69,7 +69,7 @@ export function HeroSearch() {
             className="pointer-events-none absolute top-1/2 right-4 size-5 -translate-y-1/2 text-muted-foreground"
           />
         </div>
-        <Link href={href} className={cn(buttonVariants({ size: "xl" }), "sm:px-8")}>
+        <Link href={href} className={cn(buttonVariants({ size: "xl" }), "rounded-2xl sm:px-8")}>
           <Search aria-hidden />
           Search
         </Link>

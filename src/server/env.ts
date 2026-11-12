@@ -54,6 +54,8 @@ const envSchema = z.object({
   RAZORPAY_KEY_ID: optionalString,
   RAZORPAY_KEY_SECRET: optionalString,
   RAZORPAY_WEBHOOK_SECRET: optionalString,
+  // Local demo payments (no money moves). Ignored in production builds.
+  PAYMENTS_DEMO_MODE: flag,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -110,6 +112,7 @@ function readProcessEnv(): Record<string, string | undefined> {
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
+    PAYMENTS_DEMO_MODE: process.env.PAYMENTS_DEMO_MODE,
   };
 }
 

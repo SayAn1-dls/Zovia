@@ -1,4 +1,4 @@
-import { MapPin, Users, UtensilsCrossed } from "lucide-react";
+import { BedDouble, Building2, type LucideIcon, MapPin, MessageCircle, Sofa, Users, UtensilsCrossed } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -25,7 +25,8 @@ import { OwnerContactCard } from "@/features/properties/components/owner-contact
 import { PhotoGallery } from "@/features/properties/components/photo-gallery";
 import { PriceBreakdown } from "@/features/properties/components/price-breakdown";
 import { SaveButton } from "@/features/properties/components/save-button";
-import { pricePrefix } from "@/features/properties/presenters";
+import { ShareButton } from "@/features/properties/components/share-button";
+import { bedAvailabilityLabel, pricePrefix } from "@/features/properties/presenters";
 import {
   FURNISHING_LABELS,
   PROPERTY_TYPE_LABELS,
@@ -87,51 +88,107 @@ function PropertyView({ property }: { property: PropertyDetail }) {
   const address = [property.address_line, property.landmark && `near ${property.landmark}`, property.locality, property.city, property.state, property.pincode]
     .filter(Boolean)
     .join(", ");
-  const facts = [
-    PROPERTY_TYPE_LABELS[property.property_type],
-    TENANT_GENDER_LABELS[property.tenant_gender],
-    property.furnishing ? FURNISHING_LABELS[property.furnishing] : null,
-  ].filter(Boolean) as string[];
+  const facts: { icon: LucideIcon; label: string }[] = [
+    { icon: Building2, label: PROPERTY_TYPE_LABELS[property.property_type] },
+    { icon: Users, label: TENANT_GENDER_LABELS[property.tenant_gender] },
+    ...(property.furnishing ? [{ icon: Sofa, label: FURNISHING_LABELS[property.furnishing] }] : []),
+    ...(property.listing_mode === "per_bed" && property.total_beds > 0
+      ? [{ icon: BedDouble, label: bedAvailabilityLabel(property.available_beds, property.total_beds) }]
+      : []),
+  ];
 
   return (
     <article>
-      <header className="mb-5 space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0">
-            <h1 className="text-display-md font-extrabold break-words">{property.title}</h1>
+      <header className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-display-sm font-extrabold break-words sm:text-display-md">{property.title}</h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+            {property.rating_count > 0 ? <RatingStars value={property.rating_avg} count={property.rating_count} /> : null}
             {place ? (
-              <p className="mt-1 flex items-center gap-1.5 text-muted-foreground">
+              <span className="flex items-center gap-1.5 font-medium">
                 <MapPin className="size-4 shrink-0" aria-hidden />
-                {place}
-              </p>
+                <a href="#location" className="underline underline-offset-4">
+                  {place}
+                </a>
+              </span>
             ) : null}
+            <TrustBadges trust={property.trust} />
           </div>
-          <SaveButton propertyId={property.id} title={property.title} variant="inline" className="self-start" />
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          {property.rating_count > 0 ? <RatingStars value={property.rating_avg} count={property.rating_count} /> : null}
-          <TrustBadges trust={property.trust} />
+        <div className="flex shrink-0 gap-2">
+          <ShareButton title={property.title} />
+          <SaveButton propertyId={property.id} title={property.title} variant="inline" />
         </div>
       </header>
 
       <PhotoGallery photos={property.photos} title={property.title} />
 
-      <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <div className="min-w-0">
-          <section aria-label="Summary" className="pb-8">
-            <p className="flex flex-wrap gap-x-2 text-base font-medium">
-              {facts.map((fact, index) => (
-                <span key={fact}>
-                  {index > 0 ? <span className="mr-2 text-muted-foreground">·</span> : null}
-                  {fact}
-                </span>
-              ))}
-            </p>
-            {property.description ? (
-              <p className="mt-4 leading-relaxed whitespace-pre-line text-foreground/90">{property.description}</p>
-            ) : null}
-          </section>
+      <div className="mt-8 grid gap-x-16 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
+        <section aria-label="Summary" className="min-w-0 pb-8 lg:col-start-1">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {facts.map((fact) => (
+              <li key={fact.label} className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4">
+                <fact.icon className="size-5" aria-hidden />
+                <span className="text-sm leading-tight font-semibold">{fact.label}</span>
+              </li>
+            ))}
+          </ul>
+          {property.description ? (
+            <p className="mt-6 max-w-prose leading-relaxed whitespace-pre-line text-foreground/90">{property.description}</p>
+          ) : null}
+        </section>
 
+        <aside
+          id="book"
+          aria-label="Booking"
+          className="mb-8 lg:sticky lg:top-24 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mb-0 lg:self-start"
+        >
+          <div className="rounded-3xl border border-border bg-card p-5 shadow-xl sm:p-6">
+            <div className="mb-4">
+              {property.min_rent !== null ? (
+                <p className="text-2xl font-bold">
+                  {pricePrefix(property.listing_mode) ? (
+                    <span className="mr-1 text-base font-normal text-muted-foreground">from</span>
+                  ) : null}
+                  <Money amount={property.min_rent} suffix="/month" />
+                </p>
+              ) : (
+                <p className="text-muted-foreground">Rent not listed yet</p>
+              )}
+            </div>
+            <div className="[&>section]:border-0 [&>section]:bg-transparent [&>section]:p-0 [&>section]:shadow-none">
+              <BookingCard
+                propertyId={property.id}
+                slug={property.slug}
+                listingMode={property.listing_mode}
+                beds={property.rooms.flatMap((room) =>
+                  room.beds
+                    .filter((bed) => bed.status === "available" && (bed.rent_override ?? room.rent_per_bed) !== null)
+                    .map((bed) => ({
+                      id: bed.id,
+                      label: bed.label,
+                      room_name: room.name,
+                      rent: (bed.rent_override ?? room.rent_per_bed) as number,
+                      deposit: room.security_deposit,
+                      available_from: bed.available_from,
+                    })),
+                )}
+                monthlyRent={property.monthly_rent}
+                securityDeposit={property.security_deposit}
+                unitAvailable={["available", "limited", "coming_soon"].includes(property.availability?.status ?? "")}
+              />
+            </div>
+            <a
+              href="#owner"
+              className="mt-4 flex min-h-11 items-center justify-center gap-2 border-t border-border pt-4 text-sm font-semibold underline-offset-4 hover:underline"
+            >
+              <MessageCircle className="size-4" aria-hidden />
+              Ask the owner
+            </a>
+          </div>
+        </aside>
+
+        <div className="min-w-0 lg:col-start-1">
           <DetailSection id="availability" title="Availability">
             <AvailabilitySummary property={property} />
           </DetailSection>
@@ -146,7 +203,7 @@ function PropertyView({ property }: { property: PropertyDetail }) {
             </DetailSection>
           ) : null}
 
-          <DetailSection id="amenities" title="Amenities">
+          <DetailSection id="amenities" title="What this place offers">
             <AmenitiesList property={property} />
             <div className="mt-6 flex items-start gap-3">
               <UtensilsCrossed className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
@@ -158,87 +215,49 @@ function PropertyView({ property }: { property: PropertyDetail }) {
             <HouseRules property={property} />
           </DetailSection>
 
-          <DetailSection id="location" title="Location">
-            {address ? <p className="mb-4 text-sm">{address}</p> : null}
-            {property.location ? (
-              <>
-                <MapView
-                  center={property.location}
-                  zoom={15}
-                  markers={[{ id: property.id, lat: property.location.lat, lng: property.location.lng, title: property.title }]}
-                  label={`Map showing ${property.title}`}
-                  className="h-72 sm:h-96"
+          <DetailSection id="owner" title="Meet the owner" className="scroll-mt-24">
+            <div className="grid gap-8 sm:grid-cols-2">
+              <div className="space-y-6">
+                <OwnerContactCard owner={property.owner} propertyId={property.id} slug={property.slug} />
+                <TrustExplainer trust={property.trust} />
+              </div>
+              <div>
+                <h3 className="mb-3 text-base font-semibold">Send an enquiry</h3>
+                <InquiryForm
+                  propertyId={property.id}
+                  slug={property.slug}
+                  rooms={property.rooms.map(({ id, name }) => ({ id, name }))}
                 />
-                <h3 className="mt-8 mb-4 text-lg font-semibold">Nearby</h3>
-                <NearbyPlaces point={property.location} />
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">The owner hasn&apos;t placed this listing on the map.</p>
-            )}
-          </DetailSection>
-
-          <DetailSection id="reviews" title="Reviews">
-            <ReviewsList property={property} />
+              </div>
+            </div>
           </DetailSection>
         </div>
+      </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start" aria-label="Contact and booking">
-          <div className="space-y-6 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
-            <div>
-              {property.min_rent !== null ? (
-                <p className="text-2xl font-bold">
-                  {pricePrefix(property.listing_mode) ? (
-                    <span className="mr-1 text-base font-normal text-muted-foreground">from</span>
-                  ) : null}
-                  <Money amount={property.min_rent} suffix="/month" />
-                </p>
-              ) : (
-                <p className="text-muted-foreground">Rent not listed yet</p>
-              )}
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Users className="size-4" aria-hidden />
-                {TENANT_GENDER_LABELS[property.tenant_gender]}
-              </p>
-            </div>
-            <BookingCard
-              propertyId={property.id}
-              slug={property.slug}
-              listingMode={property.listing_mode}
-              beds={property.rooms.flatMap((room) =>
-                room.beds
-                  .filter((bed) => bed.status === "available" && (bed.rent_override ?? room.rent_per_bed) !== null)
-                  .map((bed) => ({
-                    id: bed.id,
-                    label: bed.label,
-                    room_name: room.name,
-                    rent: (bed.rent_override ?? room.rent_per_bed) as number,
-                    deposit: room.security_deposit,
-                    available_from: bed.available_from,
-                  })),
-              )}
-              monthlyRent={property.monthly_rent}
-              securityDeposit={property.security_deposit}
-              unitAvailable={["available", "limited", "coming_soon"].includes(property.availability?.status ?? "")}
-            />
-            <div>
-              <h2 className="mb-3 text-base font-semibold">Send an enquiry</h2>
-              <InquiryForm
-                propertyId={property.id}
-                slug={property.slug}
-                rooms={property.rooms.map(({ id, name }) => ({ id, name }))}
+      <DetailSection id="location" title="Where you'll be" className="scroll-mt-24">
+        {address ? <p className="-mt-2 mb-4 text-sm text-muted-foreground">{address}</p> : null}
+        {property.location ? (
+          <>
+            <div className="overflow-hidden rounded-3xl ring-1 ring-border">
+              <MapView
+                center={property.location}
+                zoom={15}
+                markers={[{ id: property.id, lat: property.location.lat, lng: property.location.lng, title: property.title }]}
+                label={`Map showing ${property.title}`}
+                className="h-80 sm:h-[420px]"
               />
             </div>
-            <div className="border-t border-border pt-6">
-              <h2 className="mb-3 text-base font-semibold">Owner</h2>
-              <OwnerContactCard owner={property.owner} propertyId={property.id} slug={property.slug} />
-            </div>
-            <div className="border-t border-border pt-6">
-              <h2 className="mb-3 text-base font-semibold">Trust</h2>
-              <TrustExplainer trust={property.trust} />
-            </div>
-          </div>
-        </aside>
-      </div>
+            <h3 className="mt-8 mb-4 text-lg font-semibold">Nearby</h3>
+            <NearbyPlaces point={property.location} />
+          </>
+        ) : (
+          <p className="text-sm text-muted-foreground">The owner hasn&apos;t placed this listing on the map.</p>
+        )}
+      </DetailSection>
+
+      <DetailSection id="reviews" title="Reviews">
+        <ReviewsList property={property} />
+      </DetailSection>
     </article>
   );
 }

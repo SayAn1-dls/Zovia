@@ -94,7 +94,7 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
   return (
     <div aria-busy={isPending}>
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold" aria-live="polite">
+        <h2 className="text-base font-semibold" aria-live="polite">
           {heading}
         </h2>
         <div className="flex rounded-full bg-muted p-1 lg:hidden" role="group" aria-label="Show results as">
@@ -123,7 +123,7 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className={cn("transition-opacity", isPending && "opacity-60", view === "map" && "hidden lg:block")}>
-          <ul className="grid gap-5 sm:grid-cols-2">
+          <ul className="grid gap-x-5 gap-y-8 sm:grid-cols-2">
             {response.items.map((item, index) => (
               <li key={item.id} className="flex">
                 <div className="w-full">
@@ -148,12 +148,12 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
               markers={markers}
               fitToMarkers
               label={`Map of ${heading}`}
-              className="h-[calc(100dvh-16rem)] min-h-80 lg:h-[calc(100dvh-8rem)]"
+              className="h-[calc(100dvh-16rem)] min-h-80 overflow-hidden rounded-3xl lg:h-[calc(100dvh-8rem)]"
             />
             ) : null}
-            <p className="mt-2 text-xs text-muted-foreground">
-              Pins show the lowest monthly rent. {markers.length < response.items.length ? "Some listings have no map pin." : ""}
-            </p>
+            {markers.length < response.items.length ? (
+              <p className="mt-2 text-xs text-muted-foreground">Some listings have no map pin.</p>
+            ) : null}
           </div>
         </div>
       </div>

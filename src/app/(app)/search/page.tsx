@@ -27,14 +27,11 @@ export const metadata: Metadata = {
 export default function SearchPage({ searchParams }: PageProps<"/search">) {
   return (
     <SearchTransitionProvider>
-      <PageHeader
-        title="Find a home"
-        description="Real listings from owners: prices, beds and availability as they state them."
-      />
+      <PageHeader title="Find a home" className="mb-4 sm:mb-5" />
       <Suspense fallback={<FiltersSkeleton />}>
         <Filters />
       </Suspense>
-      <div className="mt-8">
+      <div className="mt-6">
         <SectionErrorBoundary title="Search didn't load" description="We couldn't load listings. Try again in a moment.">
           <Suspense fallback={<ResultsSkeleton />}>
             <Results searchParams={searchParams} />
@@ -88,16 +85,22 @@ async function OsmHousing({ searchParams }: Pick<PageProps<"/search">, "searchPa
   const { cities } = await getSearchReferenceData();
   const city = resolveCity(cities, filters.city);
   if (!city) return null;
-  const section = await getOsmHousingForCity({ lat: city.lat, lng: city.lng });
+  const section = await getOsmHousingForCity(city.slug);
   if (section.status === "error") {
     return (
       <p className="mt-14 border-t border-border pt-10 text-sm text-muted-foreground">
-        Hostels and PGs from OpenStreetMap couldn&apos;t load right now. Try again in a minute.
+        Hostels and PGs from OpenStreetMap couldn&apos;t load right now.
       </p>
     );
   }
   return (
-    <OsmHousingSection cityName={city.name} centre={{ lat: city.lat, lng: city.lng }} places={section.places} attribution={section.attribution} />
+    <OsmHousingSection
+      cityName={city.name}
+      centre={{ lat: city.lat, lng: city.lng }}
+      // "Who's it for": drop places whose name says the other gender; unknown ones stay.
+      places={filters.gender ? section.places.filter((place) => !place.gender_hint || place.gender_hint === filters.gender) : section.places}
+      attribution={section.attribution}
+    />
   );
 }
 
@@ -117,12 +120,12 @@ function OsmHousingSkeleton() {
 function FiltersSkeleton() {
   return (
     <div className="space-y-3" aria-hidden>
-      <Skeleton className="h-11 w-full rounded-xl" />
-      <div className="flex flex-wrap gap-2">
-        <Skeleton className="h-11 w-44 rounded-xl" />
-        <Skeleton className="h-11 w-48 rounded-xl" />
-        <Skeleton className="h-11 w-28 rounded-full" />
-        <Skeleton className="h-11 w-28 rounded-full" />
+      <Skeleton className="h-13 w-full rounded-full" />
+      <div className="flex gap-2 overflow-hidden">
+        <Skeleton className="h-11 w-28 shrink-0 rounded-full" />
+        <Skeleton className="h-11 w-36 shrink-0 rounded-full" />
+        <Skeleton className="h-11 w-20 shrink-0 rounded-full" />
+        <Skeleton className="h-11 w-24 shrink-0 rounded-full" />
       </div>
     </div>
   );
@@ -138,7 +141,7 @@ function ResultsSkeleton() {
           <CardGridSkeleton count={4} />
         </div>
       </div>
-      <Skeleton className="hidden h-[calc(100dvh-8rem)] rounded-2xl lg:block" aria-hidden />
+      <Skeleton className="hidden h-[calc(100dvh-8rem)] rounded-3xl lg:block" aria-hidden />
     </div>
   );
 }

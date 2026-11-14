@@ -111,16 +111,17 @@ export function CookieConsentBanner() {
 
   return (
     <section
+      data-consent-banner
       aria-label="Cookie preferences"
-      className="fixed bottom-3 left-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-2 rounded-full border border-foreground bg-card py-1 pr-1 pl-4 sm:bottom-5 sm:left-5 sm:py-1.5 sm:pr-1.5"
+      className="fixed right-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 z-40 flex items-center justify-between gap-2 rounded-full border border-foreground bg-card py-1 pr-1 pl-4 sm:right-auto sm:bottom-5 sm:left-5 sm:max-w-[calc(100vw-2.5rem)] sm:py-1.5 sm:pr-1.5"
     >
-      <p className="text-sm font-medium whitespace-nowrap text-foreground">
+      <p className="min-w-0 truncate text-[0.8125rem] font-medium text-foreground sm:text-sm">
         Analytics cookies?{" "}
         <Link href={routes.privacy} className="underline decoration-foreground/40 underline-offset-4">
           Details
         </Link>
       </p>
-      <div className="flex gap-1">
+      <div className="flex shrink-0 gap-1">
         <Button variant="outline" size="sm" className="h-11 px-3.5 sm:h-9" onClick={decline}>
           No
         </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { List, Map as MapIcon, RotateCcw, SearchX } from "lucide-react";
+import { List, Map as MapIcon, RotateCcw, SearchX, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -107,6 +107,8 @@ export function CityBrowser({
     if (query.size > 0) setFilters(fromQuery(query));
   }, []);
   const [view, setView] = useState<"list" | "map">("list");
+  // Phones: the filters fold away behind one button so the list keeps the screen.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
   const isDesktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(DESKTOP).matches, () => false);
 
@@ -161,14 +163,14 @@ export function CityBrowser({
   return (
     <div>
       <div className="sticky top-16 z-20 -mx-5 border-b border-border bg-background/95 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div id="city-filters" className={cn("mb-2 grid grid-cols-2 gap-2 sm:grid-cols-4", !filtersOpen && "hidden lg:grid")}>
           {selects.map(({ key, label, options }) => (
             <label key={key} className="min-w-0">
               <span className="sr-only">{label}</span>
               <NativeSelect
                 value={String(filters[key])}
                 onChange={(event) => set(key, event.target.value as never)}
-                className={cn("h-10 text-sm md:text-sm", filters[key] !== EMPTY[key] && "border-foreground bg-lime/40")}
+                className={cn("h-10 text-base md:text-sm", filters[key] !== EMPTY[key] && "border-foreground bg-lime/40")}
               >
                 {options.map(([value, text]) => (
                   <option key={value} value={value}>
@@ -179,7 +181,20 @@ export function CityBrowser({
             </label>
           ))}
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-expanded={filtersOpen}
+            aria-controls="city-filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+            className={cn(
+              "inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-sm font-semibold transition-colors lg:hidden",
+              filtersOpen || active > 0 ? "border-ink bg-ink text-white" : "border-foreground/20 bg-card",
+            )}
+          >
+            <SlidersHorizontal className="size-4" aria-hidden />
+            Filters{active > 0 ? ` · ${active}` : ""}
+          </button>
           {(
             [
               ["ac", "AC rooms"],
@@ -192,7 +207,8 @@ export function CityBrowser({
               aria-pressed={filters[key]}
               onClick={() => set(key, !filters[key])}
               className={cn(
-                "inline-flex h-9 items-center rounded-full border px-3.5 text-sm font-medium transition-colors",
+                "h-9 items-center rounded-full border px-3.5 text-sm font-medium transition-colors",
+                filtersOpen ? "inline-flex" : "hidden lg:inline-flex",
                 filters[key] ? "border-ink bg-ink text-white" : "border-foreground/20 bg-card hover:border-foreground",
               )}
             >
@@ -205,8 +221,8 @@ export function CityBrowser({
               Clear {active}
             </Button>
           ) : null}
-          <p className="ml-auto text-sm font-semibold" aria-live="polite">
-            {results.length} {results.length === 1 ? "place" : "places"} in {cityName}
+          <p className="ml-auto text-sm font-semibold whitespace-nowrap" aria-live="polite">
+            {results.length} {results.length === 1 ? "place" : "places"}<span className="hidden min-[400px]:inline"> in {cityName}</span>
           </p>
           <div className="flex rounded-full bg-muted p-1 lg:hidden" role="group" aria-label="Show results as">
             {(
@@ -242,8 +258,8 @@ export function CityBrowser({
           action={<Button onClick={() => setFilters(EMPTY)}>Clear filters</Button>}
         />
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_28rem]">
-          <ul className={cn("grid gap-5 sm:grid-cols-2", view === "map" && "hidden lg:grid")}>
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_28rem]">
+          <ul className={cn("grid grid-cols-1 gap-5 sm:grid-cols-2", view === "map" && "hidden lg:grid")}>
             {results.map((listing, index) => (
               <li key={listing.slug}>
                 <CatalogCard

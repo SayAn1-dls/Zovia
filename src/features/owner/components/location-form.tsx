@@ -120,7 +120,7 @@ export function LocationForm({ property, cities }: { property: OwnerPropertyDeta
       <FormField control={form.control} name="address_line" label="Street address" description="Building and street. It is shown on the published listing.">
         {(field) => <Input autoComplete="address-line1" maxLength={200} {...field} />}
       </FormField>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField control={form.control} name="locality" label="Locality / area">
           {(field) => <Input autoComplete="address-level3" maxLength={80} {...field} />}
         </FormField>

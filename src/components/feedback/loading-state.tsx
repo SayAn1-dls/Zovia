@@ -30,7 +30,7 @@ function CardSkeleton() {
 /** Grid of listing-shaped cards. */
 export function CardGridSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }, (_, i) => (
         <CardSkeleton key={i} />
       ))}
@@ -61,7 +61,7 @@ export function DetailSkeleton() {
   return (
     <div className="space-y-6">
       <Skeleton className="aspect-[16/9] w-full rounded-3xl sm:aspect-[21/9]" />
-      <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
           <Skeleton className="h-9 w-3/4" />
           <Skeleton className="h-5 w-1/2" />

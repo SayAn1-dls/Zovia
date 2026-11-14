@@ -19,7 +19,7 @@ export function SiteFooter() {
   return (
     <footer className="band-dark">
       <div className="mx-auto w-full max-w-6xl px-5 pt-14 pb-10 sm:px-8 sm:pt-16">
-        <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
             <Link href={routes.home} aria-label="Zovia home" className="inline-flex h-11 items-center rounded-lg">
               <Logo size="md" />

@@ -22,7 +22,7 @@ export default function ContactPage() {
   return (
     <>
       <MarketingHero title="Talk to us." description="Send a message and we will reply by e-mail." />
-      <Container className="grid gap-10 py-10 sm:py-14 lg:grid-cols-[1fr_18rem] lg:gap-16">
+      <Container className="grid grid-cols-1 gap-10 py-10 sm:py-14 lg:grid-cols-[1fr_18rem] lg:gap-16">
         <div className="max-w-2xl">
           <ContactForm />
         </div>

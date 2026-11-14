@@ -207,6 +207,21 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Nothing may push the page wider than the screen; clip (not hidden) keeps sticky working. */
+    overflow-x: clip;
+    overflow-wrap: break-word;
+  }
+  img,
+  video,
+  canvas,
+  iframe {
+    max-width: 100%;
+  }
+  /* Phones: keep the cookie banner clear of the bottom tab bar. */
+  @media (width < 64rem) {
+    body:has([data-mobile-tabbar]) [data-consent-banner] {
+      bottom: calc(4.25rem + env(safe-area-inset-bottom));
+    }
   }
   h1,
   h2,

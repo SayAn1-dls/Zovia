@@ -212,7 +212,7 @@ export function CatalogListingView({
         ].filter((item) => item.place);
         if (items.length === 0) return null;
         return (
-          <ul aria-label="Nearest essentials" className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <ul aria-label="Nearest essentials" className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {items.map(({ icon: Icon, label, place }) => (
               <li key={label} className="flex items-center gap-2.5 rounded-2xl bg-lime/35 px-3.5 py-2.5 text-sm">
                 <Icon className="size-4 shrink-0" aria-hidden />
@@ -237,11 +237,11 @@ export function CatalogListingView({
         ))}
       </nav>
 
-      <div className="mt-2 grid gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
+      <div className="mt-2 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
         <div className="min-w-0">
           <Section id="about" title="About this place">
             <p className="leading-relaxed text-foreground/90">{listing.about}</p>
-            <ul className="mt-5 grid gap-2 sm:grid-cols-2">
+            <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {listing.highlights.map((item) => (
                 <li key={item} className="flex items-center gap-2 text-sm font-medium">
                   <Check className="size-4 text-success-foreground" aria-hidden />
@@ -318,7 +318,7 @@ export function CatalogListingView({
           </Section>
 
           <Section id="rules" title="House rules">
-            <ul className="grid gap-2.5 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               <Rule ok={listing.rules.smoking !== "not_allowed"} icon={listing.rules.smoking === "not_allowed" ? CigaretteOff : Cigarette}>
                 {SMOKING_LABELS[listing.rules.smoking]}
               </Rule>
@@ -389,7 +389,7 @@ export function CatalogListingView({
                   All of {listing.city}
                 </Link>
               </div>
-              <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {similar.map((other) => (
                   <li key={other.slug}>
                     <CatalogCard listing={other} />

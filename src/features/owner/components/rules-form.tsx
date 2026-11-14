@@ -55,7 +55,7 @@ function RulesPanel({ propertyId, rules }: { propertyId: string; rules: RuleRow[
 
   return (
     <Panel title="House rules" description="Say clearly what is and is not allowed. Leave a rule as “Not specified” if it does not apply.">
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {YES_NO_RULES.map((rule) => (
           <label key={rule.code} className="flex flex-col gap-1.5 text-sm font-semibold">
             {rule.label}
@@ -119,7 +119,7 @@ function ChargesPanel({ propertyId, charges }: { propertyId: string; charges: Ow
       {rows.length ? (
         <ul className="space-y-3">
           {rows.map((row) => (
-            <li key={row.key} className="grid gap-3 rounded-xl bg-muted/50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-end">
+            <li key={row.key} className="grid grid-cols-1 gap-3 rounded-xl bg-muted/50 p-3 sm:grid-cols-[1.4fr_1fr_1fr_auto] sm:items-end">
               <label className="flex flex-col gap-1.5 text-sm font-medium">
                 Charge
                 <Input value={row.label} maxLength={80} onChange={(event) => patch(row.key, { label: event.target.value })} placeholder="Laundry" />

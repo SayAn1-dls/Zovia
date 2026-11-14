@@ -76,7 +76,7 @@ function RoomForm({ propertyId, room, onDone }: { propertyId: string; room: Owne
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-4" aria-label={room ? `Edit ${room.name}` : "New room"}>
       {failure ? <FormMessage tone="danger" title="Not saved">{failure}</FormMessage> : null}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField control={form.control} name="name" label="Room name">
           {(field) => <Input maxLength={60} placeholder="Room 101" {...field} />}
         </FormField>
@@ -162,7 +162,7 @@ function BedRow({ bed, onChanged }: { bed: OwnerBed; onChanged: () => void }) {
         </span>
         <StatusBadge status={bed.status} />
       </div>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
         <label className="flex flex-col gap-1.5 text-sm font-medium">
           Status
           <NativeSelect value={status} onChange={(event) => setStatus(event.target.value as BedStatus)} aria-label={`Status of ${bed.label}`}>

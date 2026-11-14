@@ -37,7 +37,7 @@ export function LegalPage({ eyebrow, title, summary, lastUpdated, draft = false,
 
         <nav aria-label="On this page" className="mb-12 border-y border-border py-4">
           <h2 className="font-sans text-sm font-semibold text-muted-foreground">On this page</h2>
-          <ol className="mt-1 grid gap-x-6 sm:grid-cols-2">
+          <ol className="mt-1 grid grid-cols-1 gap-x-6 sm:grid-cols-2">
             {contents.map(([id, label]) => (
               <li key={id}>
                 <a

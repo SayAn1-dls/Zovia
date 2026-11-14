@@ -75,7 +75,7 @@ export default function HomePage() {
       </Container>
 
       <Section id="how-it-works" title="How it works" divider className="pt-0 sm:pt-0">
-        <ol className="grid gap-8 sm:grid-cols-3 sm:gap-10">
+        <ol className="grid grid-cols-1 gap-8 sm:grid-cols-3 sm:gap-10">
           {steps.map((step, index) => (
             <li key={step.title}>
               <span aria-hidden className="font-heading text-sm font-bold text-muted-foreground tabular-nums">

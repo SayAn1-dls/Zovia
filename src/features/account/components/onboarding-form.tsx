@@ -96,7 +96,7 @@ export function OnboardingForm({ profile, cities, next }: { profile: OwnProfile;
 
       <fieldset className="space-y-4">
         <legend className="text-lg font-bold text-foreground">What brings you to Zovia?</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {USER_INTENTS.map((value) => {
             const Icon = INTENT_ICONS[value];
             const checked = intent.field.value === value;
@@ -150,7 +150,7 @@ export function OnboardingForm({ profile, cities, next }: { profile: OwnProfile;
         </FormField>
 
         {occupation === "student" ? (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <FormField control={form.control} name="college_name" label="College or university" className="sm:col-span-2">
               {(field) => <Input autoComplete="organization" {...field} value={field.value ?? ""} />}
             </FormField>
@@ -173,7 +173,7 @@ export function OnboardingForm({ profile, cities, next }: { profile: OwnProfile;
         ) : null}
 
         {occupation === "working_professional" ? (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <FormField control={form.control} name="work_location" label="Where you work" description="Area or city, e.g. Whitefield." className="sm:col-span-2">
               {(field) => <Input {...field} value={field.value ?? ""} />}
             </FormField>
@@ -201,7 +201,7 @@ export function OnboardingForm({ profile, cities, next }: { profile: OwnProfile;
 
       <fieldset className="space-y-5">
         <legend className="text-lg font-bold text-foreground">Where are you looking?</legend>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <FormField control={form.control} name="preferred_city" label="City">
             {(field) => (
               <NativeSelect {...field}>

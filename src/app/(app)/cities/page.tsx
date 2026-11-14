@@ -55,7 +55,7 @@ export default function CitiesPage() {
           <h2 id={`tier-${tier.cities[0]!.tier}`} className="mb-4 text-xl font-bold tracking-tight">
             {tier.title}
           </h2>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tier.cities.map((city) => (
               <li key={city.slug}>
                 <CityTile city={city} />

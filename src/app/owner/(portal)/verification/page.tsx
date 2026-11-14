@@ -39,7 +39,7 @@ async function VerificationBody() {
 
   return (
     <div className="space-y-8">
-      <ul className="grid gap-4 lg:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {(["owner", "authorisation", "recently_confirmed"] as const).map((kind) => (
           <li key={kind} className="space-y-3 rounded-2xl bg-card p-4 ring-1 ring-border sm:p-5">
             <VerifiedBadge kind={kind} />

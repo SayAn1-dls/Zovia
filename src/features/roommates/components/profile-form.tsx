@@ -270,7 +270,7 @@ export function RoommateProfileForm({
         <FormField control={form.control} name="headline" label="Headline" description="One line about you, e.g. “Calm designer who cooks on Sundays”.">
           {(field) => <Input maxLength={80} {...field} />}
         </FormField>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <FormField control={form.control} name="age" label="Age">
             {(field) => <Input type="number" inputMode="numeric" min={18} max={99} {...field} value={field.value ?? ""} />}
           </FormField>
@@ -315,7 +315,7 @@ export function RoommateProfileForm({
       </Section>
 
       <Section title="Where and when">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <FormField control={form.control} name="city" label="City">
             {(field) => (
               <NativeSelect {...field}>
@@ -346,7 +346,7 @@ export function RoommateProfileForm({
       <Section title="Your place" description="Already renting? Tell people about the room you are sharing.">
         <PlaceToggle control={form.control} />
         {hasPlace ? (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <FormField control={form.control} name="place.title" label="Title" className="sm:col-span-2">
               {(field) => <Input maxLength={100} placeholder="Sunny room in a 2BHK" {...field} />}
             </FormField>

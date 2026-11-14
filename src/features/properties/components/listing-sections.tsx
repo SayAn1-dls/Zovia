@@ -174,7 +174,7 @@ export function RoomsList({ property }: { property: PropertyDetail }) {
     return <p className="text-sm text-muted-foreground">The owner hasn&apos;t added rooms yet.</p>;
   }
   return (
-    <ul className="grid gap-4 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {property.rooms.map((room) => {
         const available = room.beds.filter((bed) => bed.status === "available").length;
         const features = [
@@ -299,7 +299,7 @@ export function HouseRules({ property }: { property: PropertyDetail }) {
   }
   const sorted = [...property.rules].sort((a, b) => a.rule_code.localeCompare(b.rule_code));
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {sorted.map((rule) => (
         <li key={rule.rule_code} className="flex items-start gap-3 text-sm">
           {rule.allowed === false ? (
@@ -353,7 +353,7 @@ export function ReviewsList({ property }: { property: PropertyDetail }) {
   return (
     <div className="space-y-6">
       <RatingStars value={property.rating_avg} count={property.rating_count} size="md" />
-      <ul className="grid gap-6 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {property.reviews.map((review) => (
           <li key={review.id} className="space-y-2">
             <div className="flex items-center justify-between gap-3">

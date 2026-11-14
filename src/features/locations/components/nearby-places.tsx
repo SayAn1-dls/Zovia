@@ -21,7 +21,7 @@ export function NearbyPlaces({ point }: { point: LatLng }) {
 
   if (query.isPending) {
     return (
-      <div role="status" aria-busy="true" className="grid gap-6 sm:grid-cols-2">
+      <div role="status" aria-busy="true" className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <span className="sr-only">Loading nearby places</span>
         {Array.from({ length: 4 }, (_, i) => (
           <div key={i} className="space-y-2" aria-hidden>
@@ -67,7 +67,7 @@ export function NearbyPlaces({ point }: { point: LatLng }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
         {GROUPS.filter((group) => byGroup.has(group)).map((group) => (
           <div key={group}>
             <h3 className="text-sm font-semibold">{group}</h3>

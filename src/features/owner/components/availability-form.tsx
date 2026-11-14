@@ -80,7 +80,7 @@ export function AvailabilityForm({ property }: { property: OwnerPropertyDetail }
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-5">
       {failure ? <FormMessage tone="danger" title="Not saved">{failure}</FormMessage> : null}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField control={form.control} name="status" label="Availability">
           {(field) => (
             <NativeSelect {...field}>

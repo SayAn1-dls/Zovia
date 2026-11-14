@@ -76,7 +76,7 @@ export function HeroSearch() {
 
       <fieldset className="mt-2">
         <legend className="sr-only">Monthly budget</legend>
-        <div className="grid grid-cols-4 gap-1.5 sm:flex sm:gap-2">
+        <div className="grid grid-cols-2 gap-1.5 min-[360px]:grid-cols-4 sm:flex sm:gap-2">
           {budgetBands.map((entry) => {
             const selected = entry.id === bandId;
             return (

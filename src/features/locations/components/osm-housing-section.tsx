@@ -37,8 +37,8 @@ export function OsmHousingSection({
       {places.length === 0 ? (
         <p className="mt-6 text-sm text-muted-foreground">OpenStreetMap has no hostels or PGs mapped near the centre of {cityName} yet.</p>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
-          <ul className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_22rem]">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {places.map((place) => (
               <li key={place.id} className="flex flex-col gap-2 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow hover:shadow-md">
                 <div className="flex items-start justify-between gap-2">

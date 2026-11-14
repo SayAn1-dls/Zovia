@@ -121,9 +121,9 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
         <div className={cn("transition-opacity", isPending && "opacity-60", view === "map" && "hidden lg:block")}>
-          <ul className="grid gap-5 sm:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {response.items.map((item, index) => (
               <li key={item.id} className="flex">
                 <div className="w-full">

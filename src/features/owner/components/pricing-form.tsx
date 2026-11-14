@@ -144,10 +144,10 @@ export function PricingForm({ property }: { property: OwnerPropertyDetail }) {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_20rem]">
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-6">
         {failure ? <FormMessage tone="danger" title="Not saved">{failure}</FormMessage> : null}
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           {entireUnit ? (
             <>
               {moneyInput("monthly_rent", "Monthly rent", "For the whole unit, in rupees.", false)}
@@ -161,7 +161,7 @@ export function PricingForm({ property }: { property: OwnerPropertyDetail }) {
           {moneyInput("maintenance_monthly", "Maintenance per month")}
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <FormField control={form.control} name="electricity_billing" label="Electricity">
             {(field) => (
               <NativeSelect {...field}>

@@ -256,7 +256,7 @@ export function ImageUploader<TResult>({
       ) : null}
 
       {items.length > 0 ? (
-        <ul className="grid gap-2 sm:grid-cols-2" aria-label="Uploads">
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Uploads">
           {items.map((item) => (
             <li
               key={item.id}

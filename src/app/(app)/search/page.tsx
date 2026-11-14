@@ -187,7 +187,7 @@ function OsmHousingSkeleton() {
     <div className="mt-14 space-y-3 border-t border-border pt-10" role="status" aria-label="Loading hostels and PGs">
       <Skeleton className="h-7 w-64" />
       <Skeleton className="h-4 w-80" />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Skeleton className="h-28 rounded-2xl" />
         <Skeleton className="h-28 rounded-2xl" />
       </div>
@@ -211,7 +211,7 @@ function FiltersSkeleton() {
 
 function ResultsSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
+    <div role="status" aria-busy="true" className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
       <span className="sr-only">Loading listings</span>
       <div aria-hidden>
         <Skeleton className="mb-4 h-6 w-40" />

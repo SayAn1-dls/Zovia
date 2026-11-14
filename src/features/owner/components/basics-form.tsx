@@ -80,7 +80,7 @@ export function BasicsForm({ property }: { property: OwnerPropertyDetail | null 
       <FormField control={form.control} name="title" label="Listing title" description="Short and specific, e.g. “Sunny girls PG near Christ University”.">
         {(field) => <Input maxLength={120} {...field} />}
       </FormField>
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField control={form.control} name="property_type" label="Property type">
           {(field) => (
             <NativeSelect {...field}>

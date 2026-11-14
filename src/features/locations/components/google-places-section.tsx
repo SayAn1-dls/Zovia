@@ -28,7 +28,7 @@ export function GooglePlacesSection({ cityName, places }: { cityName: string; pl
       {places.length === 0 ? (
         <p className="mt-6 text-sm text-muted-foreground">Google Maps returned no places for {cityName}.</p>
       ) : (
-        <ul className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {places.map((place) => (
             <li key={place.place_id} className="flex flex-col overflow-hidden rounded-2xl bg-card ring-1 ring-border">
               <div className="relative aspect-[4/3] bg-muted">

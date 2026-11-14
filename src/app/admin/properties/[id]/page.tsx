@@ -98,7 +98,7 @@ async function ListingBody({ params }: { params: PageProps<"/admin/properties/[i
         )}
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card title="Listing">
           <dl className="grid grid-cols-2 gap-4">
             <Fact label="Type">{human(listing.property_type)}</Fact>

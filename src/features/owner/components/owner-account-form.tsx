@@ -89,7 +89,7 @@ export function OwnerAccountForm({ mode, account }: { mode: "onboarding" | "prof
           {failure}
         </FormMessage>
       ) : null}
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <FormField control={form.control} name="owner_type" label="You are">
           {(field) => (
             <NativeSelect {...field}>

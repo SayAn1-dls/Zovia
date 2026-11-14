@@ -30,10 +30,18 @@ export function newRequestId(): string {
  * object from `createHandler`.
  */
 export async function getServiceContext(requestId?: string): Promise<ServiceContext> {
-  const [{ supabase }, user] = await Promise.all([getSession(), getCurrentUser()]);
-  // Generated only after the cookie read: with Cache Components, randomness before any request
-  // data is a prerender error ("unstable value crypto.randomUUID()").
-  return { supabase, user, requestId: requestId ?? newRequestId() };
+  try {
+    const [{ supabase }, user] = await Promise.all([getSession(), getCurrentUser()]);
+    // Generated only after the cookie read: with Cache Components, randomness before any request
+    // data is a prerender error ("unstable value crypto.randomUUID()").
+    return { supabase, user, requestId: requestId ?? newRequestId() };
+  } catch {
+    return {
+      supabase: null as unknown as AppSupabaseClient,
+      user: null,
+      requestId: requestId ?? newRequestId(),
+    };
+  }
 }
 
 /** Context that requires a signed-in, non-suspended user (throws 401 / restricted otherwise). */

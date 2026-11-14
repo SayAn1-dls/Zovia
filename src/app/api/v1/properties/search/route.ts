@@ -1,5 +1,8 @@
-import { parseSearchFilters, SEARCH_PAGE_SIZE } from "@/features/properties/schemas";
-import { searchPublicProperties } from "@/features/properties/service";
+import { CATALOG_CITIES } from "@/features/catalog/cities";
+import { searchCatalog, toSearchResultItem } from "@/features/catalog/listings";
+import { straightLineMetres } from "@/features/locations/geo";
+import { parseSearchFilters, SEARCH_PAGE_SIZE, type SearchResponse } from "@/features/properties/schemas";
+import { resolveCity, searchPublicProperties } from "@/features/properties/service";
 import { createHandler, ok } from "@/server/http";
 
 /**
@@ -17,15 +20,68 @@ export const GET = createHandler(
       const values = url.searchParams.getAll(key);
       raw[key] = values.length > 1 ? values : (values[0] ?? "");
     }
-    const result = await searchPublicProperties(parseSearchFilters(raw), SEARCH_PAGE_SIZE);
+    const filters = parseSearchFilters(raw);
+    const limit = SEARCH_PAGE_SIZE;
+    let db: SearchResponse | null = null;
+    try {
+      db = await searchPublicProperties(filters, limit);
+    } catch {
+      db = null;
+    }
+
+    const catalogCities = CATALOG_CITIES.map((c) => ({
+      slug: c.slug,
+      name: c.name,
+      state: c.state,
+      lat: c.lat,
+      lng: c.lng,
+    }));
+    const city = db?.city ?? (filters.city ? resolveCity(catalogCities, filters.city) : null);
+    const origin =
+      db?.origin ??
+      (filters.lat !== undefined && filters.lng !== undefined
+        ? { lat: filters.lat, lng: filters.lng }
+        : filters.sort === "distance" && city
+          ? { lat: city.lat, lng: city.lng }
+          : null);
+
+    const catalog = searchCatalog({
+      city: filters.city,
+      q: filters.q,
+      types: filters.type,
+      gender: filters.gender,
+      budget_min: filters.budget_min,
+      budget_max: filters.budget_max,
+      food: filters.food,
+      amenities: filters.amenities,
+      furnishing: filters.furnishing,
+      available_only: filters.available_only,
+    }).map((listing) => {
+      const item = toSearchResultItem(listing);
+      return origin
+        ? { ...item, distance_m: Math.round(straightLineMetres(origin, { lat: listing.lat, lng: listing.lng })) }
+        : item;
+    });
+    if (filters.sort === "price_asc") catalog.sort((a, b) => (a.price_from ?? 0) - (b.price_from ?? 0));
+    if (filters.sort === "price_desc") catalog.sort((a, b) => (b.price_from ?? 0) - (a.price_from ?? 0));
+    if (filters.sort === "distance" && origin) catalog.sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0));
+
+    const dbTotal = db?.total ?? 0;
+    const dbItems = db?.items ?? [];
+    const offset = (filters.page - 1) * limit;
+    const catalogStart = Math.max(0, offset - dbTotal);
+    const room = limit - dbItems.length;
+    const items = [...dbItems, ...(room > 0 ? catalog.slice(catalogStart, catalogStart + room) : [])];
+    const total = dbTotal + catalog.length;
+
     return ok(
-      { items: result.items, city: result.city, origin: result.origin },
+      { items, city, origin },
       {
         meta: {
-          page: result.page,
-          limit: result.limit,
-          total: result.total,
-          has_more: result.page * result.limit < result.total,
+          page: filters.page,
+          limit,
+          total,
+          has_more: filters.page * limit < total,
         },
       },
     );

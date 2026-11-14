@@ -47,9 +47,13 @@ export const getSession = cache(async (): Promise<Session> => {
   // Cache Components refuses during prerendering ("unstable value Date.now()").
   await connection();
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getClaims();
-  const sub = error ? undefined : data?.claims?.sub;
-  return { supabase, userId: typeof sub === "string" && sub.length > 0 ? sub : null };
+  try {
+    const { data, error } = await supabase.auth.getClaims();
+    const sub = error ? undefined : data?.claims?.sub;
+    return { supabase, userId: typeof sub === "string" && sub.length > 0 ? sub : null };
+  } catch {
+    return { supabase, userId: null };
+  }
 });
 
 /**
@@ -57,9 +61,13 @@ export const getSession = cache(async (): Promise<Session> => {
  * missing, or when the account has been deleted. One database query, memoised per render.
  */
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const { supabase, userId } = await getSession();
-  if (!userId) return null;
-  const row = await fetchAccessRow(supabase, userId);
-  if (!row || row.status === "deleted") return null;
-  return row;
+  try {
+    const { supabase, userId } = await getSession();
+    if (!userId) return null;
+    const row = await fetchAccessRow(supabase, userId);
+    if (!row || row.status === "deleted") return null;
+    return row;
+  } catch {
+    return null;
+  }
 });

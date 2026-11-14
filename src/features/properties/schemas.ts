@@ -431,9 +431,19 @@ export const propertyRefSchema = z.object({
   id: z.string().trim().min(1).max(160),
 });
 
-export const propertyIdParamsSchema = z.object({ id: z.uuid({ error: "That listing id is not valid." }) });
+const propertyIdOrCatalogSchema = z
+  .string()
+  .trim()
+  .refine(
+    (v) =>
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) ||
+      /^catalog:[a-z0-9-]+$/i.test(v),
+    { message: "That listing id is not valid." },
+  );
 
-export const saveBodySchema = z.object({ property_id: z.uuid({ error: "That listing id is not valid." }) });
+export const propertyIdParamsSchema = z.object({ id: propertyIdOrCatalogSchema });
+
+export const saveBodySchema = z.object({ property_id: propertyIdOrCatalogSchema });
 export type SaveBody = z.output<typeof saveBodySchema>;
 
 const isoDate = /^\d{4}-\d{2}-\d{2}$/;

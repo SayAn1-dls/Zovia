@@ -9,6 +9,6 @@ import { createHandler, ok } from "@/server/http";
  * property card is a published listing a database tool returned in this turn.
  */
 export const POST = createHandler(
-  { auth: "user", rateLimit: "assistant", label: "assistant.chat", body: chatRequestSchema, maxBodyBytes: 40_000 },
+  { auth: "optional", rateLimit: "assistant", label: "assistant.chat", body: chatRequestSchema, maxBodyBytes: 40_000 },
   async ({ supabase, user, requestId, body }) => ok(await chat({ supabase, user, requestId }, body)),
 );

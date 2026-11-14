@@ -81,8 +81,17 @@ export class NoopEmailProvider implements EmailProvider {
 }
 
 export function getEmailProvider(): EmailProvider {
-  const { RESEND_API_KEY, EMAIL_FROM } = env();
-  return RESEND_API_KEY && EMAIL_FROM ? new ResendEmailProvider(RESEND_API_KEY, EMAIL_FROM) : new NoopEmailProvider();
+  let apiKey: string | undefined;
+  let from: string | undefined;
+  try {
+    const config = env();
+    apiKey = config.RESEND_API_KEY;
+    from = config.EMAIL_FROM;
+  } catch {
+    apiKey = process.env.RESEND_API_KEY?.trim() || undefined;
+    from = process.env.EMAIL_FROM?.trim() || undefined;
+  }
+  return apiKey && from ? new ResendEmailProvider(apiKey, from) : new NoopEmailProvider();
 }
 
 /** Inbox that receives contact-form messages and visit requests (NEXT_PUBLIC_CONTACT_INBOX). */
@@ -162,7 +171,13 @@ export async function deliverToTeam(message: TeamMessage): Promise<EmailResult> 
     logger.warn("mail.resend_failed", { error: result.status === "failed" ? result.error : result.status });
   }
 
-  const fallback = await new FormSubmitEmailProvider(env().NEXT_PUBLIC_SITE_URL).send({ ...mail, fromName: message.fromName });
+  let siteUrl = site.url;
+  try {
+    siteUrl = env().NEXT_PUBLIC_SITE_URL;
+  } catch {
+    siteUrl = site.url;
+  }
+  const fallback = await new FormSubmitEmailProvider(siteUrl).send({ ...mail, fromName: message.fromName });
   if (fallback.status !== "sent") logger.warn("mail.formsubmit_failed", { error: fallback.status === "failed" ? fallback.error : fallback.status });
   return fallback.status === "sent" ? fallback : (attempts[0] ?? fallback);
 }

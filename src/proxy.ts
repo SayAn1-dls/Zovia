@@ -62,7 +62,6 @@ export const config = {
     "/bookings/:path*",
     "/roommates/:path*",
     "/messages/:path*",
-    "/assistant/:path*",
     "/notifications/:path*",
     "/settings/:path*",
     "/account/:path*",

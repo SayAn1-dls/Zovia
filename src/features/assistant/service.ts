@@ -10,7 +10,7 @@ import {
   getSearchReferenceData,
   searchPublicProperties,
 } from "@/features/properties/service";
-import type { UserServiceContext } from "@/server/auth/context";
+import type { ServiceContext } from "@/server/auth/context";
 import { env } from "@/server/env";
 import { errors } from "@/server/http/errors";
 import { logger, serializeError } from "@/server/logger";
@@ -68,12 +68,24 @@ const FEATURE = "assistant.chat";
 const BASIC_PROVIDER = { provider: "basic", model: "rules-v1" } as const;
 
 export function getAIProvider(): AIProvider | null {
-  const config = env();
-  const name = (config.AI_PROVIDER ?? "anthropic").trim().toLowerCase();
-  if (!config.AI_PROVIDER_API_KEY || name !== "anthropic") return null;
+  let providerName: string | undefined;
+  let apiKey: string | undefined;
+  let model: string | undefined;
+  try {
+    const config = env();
+    providerName = config.AI_PROVIDER;
+    apiKey = config.AI_PROVIDER_API_KEY;
+    model = config.AI_MODEL;
+  } catch {
+    providerName = process.env.AI_PROVIDER?.trim() || undefined;
+    apiKey = process.env.AI_PROVIDER_API_KEY?.trim() || undefined;
+    model = process.env.AI_MODEL?.trim() || undefined;
+  }
+  const name = (providerName ?? "anthropic").trim().toLowerCase();
+  if (!apiKey || name !== "anthropic") return null;
   return new AnthropicProvider({
-    apiKey: config.AI_PROVIDER_API_KEY,
-    model: config.AI_MODEL,
+    apiKey,
+    model,
   });
 }
 
@@ -82,9 +94,10 @@ export function getAssistantStatus(): AssistantStatus {
 }
 
 async function recordUsage(
-  ctx: UserServiceContext,
+  ctx: ServiceContext,
   record: repo.UsageRecord,
 ): Promise<void> {
+  if (!ctx.user) return;
   try {
     await repo.logUsage(ctx.supabase, record);
   } catch (error) {
@@ -96,11 +109,12 @@ async function recordUsage(
 }
 
 async function recordSearch(
-  ctx: UserServiceContext,
+  ctx: ServiceContext,
   query: string,
   filters: SearchFilters,
   total: number,
 ) {
+  if (!ctx.user) return;
   try {
     const params = Object.fromEntries(
       Object.entries(searchFiltersToQuery(filters)).filter(
@@ -331,7 +345,7 @@ function describeListing(listing: CatalogListing): string {
 }
 
 async function basicReply(
-  ctx: UserServiceContext,
+  ctx: ServiceContext,
   input: ChatInput,
   note: string | null,
 ): Promise<{
@@ -514,7 +528,7 @@ async function basicReply(
 // ───────────────────────────── AI mode ─────────────────────────────
 
 async function aiReply(
-  ctx: UserServiceContext,
+  ctx: ServiceContext,
   provider: AIProvider,
   input: ChatInput,
 ): Promise<{
@@ -596,7 +610,7 @@ async function aiReply(
 // ───────────────────────────── entry point ─────────────────────────────
 
 export async function chat(
-  ctx: UserServiceContext,
+  ctx: ServiceContext,
   input: ChatInput,
   options: { provider?: AIProvider | null } = {},
 ): Promise<AssistantReply> {
@@ -607,28 +621,38 @@ export async function chat(
   const providerName = provider?.name ?? BASIC_PROVIDER.provider;
   const model = provider?.model ?? BASIC_PROVIDER.model;
 
-  const allowed = await repo.consumeQuota(
-    ctx.supabase,
-    "assistant_daily",
-    ASSISTANT_DAILY_LIMIT,
-    DAY_SECONDS,
-  );
-  if (!allowed) {
-    await recordUsage(ctx, {
-      provider: providerName,
-      model,
-      feature: FEATURE,
-      input_tokens: 0,
-      output_tokens: 0,
-      tool_calls: 0,
-      latency_ms: elapsed(),
-      status: "rate_limited",
-      error_code: "daily_quota",
-    });
-    throw errors.rateLimited(
-      undefined,
-      `You've used today's ${ASSISTANT_DAILY_LIMIT} assistant messages. You can still search listings, and the assistant is back tomorrow.`,
-    );
+  if (ctx.user) {
+    let allowed = true;
+    try {
+      allowed = await repo.consumeQuota(
+        ctx.supabase,
+        "assistant_daily",
+        ASSISTANT_DAILY_LIMIT,
+        DAY_SECONDS,
+      );
+    } catch (error) {
+      logger.warn("assistant.quota_check_failed", {
+        request_id: ctx.requestId,
+        error: serializeError(error),
+      });
+    }
+    if (!allowed) {
+      await recordUsage(ctx, {
+        provider: providerName,
+        model,
+        feature: FEATURE,
+        input_tokens: 0,
+        output_tokens: 0,
+        tool_calls: 0,
+        latency_ms: elapsed(),
+        status: "rate_limited",
+        error_code: "daily_quota",
+      });
+      throw errors.rateLimited(
+        undefined,
+        `You've used today's ${ASSISTANT_DAILY_LIMIT} assistant messages. You can still search listings, and the assistant is back tomorrow.`,
+      );
+    }
   }
 
   if (provider) {

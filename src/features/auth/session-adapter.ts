@@ -50,15 +50,7 @@ async function loadMe(): Promise<void> {
 function start() {
   if (started) return;
   started = true;
-  const supabase = getSupabaseBrowserClient();
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === "TOKEN_REFRESHED") return;
-    if (session) void loadMe();
-    else {
-      loadSeq += 1;
-      publish(SESSION_SIGNED_OUT);
-    }
-  });
+  void loadMe();
 }
 
 /** Re-reads /api/v1/me (after onboarding, a profile edit or becoming an owner). */
@@ -77,7 +69,11 @@ export const supabaseSessionAdapter: SessionAdapter = {
   async signOut() {
     await apiFetch("/auth/sign-out", { method: "POST" });
     // Clears the browser client's copy too; the server already revoked the session.
-    await getSupabaseBrowserClient().auth.signOut({ scope: "local" });
+    try {
+      await getSupabaseBrowserClient().auth.signOut({ scope: "local" });
+    } catch {
+      // Ignore if the browser client is not configured.
+    }
     loadSeq += 1;
     publish(SESSION_SIGNED_OUT);
   },

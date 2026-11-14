@@ -40,7 +40,7 @@ type Filters = {
   sort: "recommended" | "price_asc" | "price_desc" | "beds";
 };
 
-const BUDGETS = ["8000", "12000", "15000", "18000", "25000"] as const;
+const BUDGETS = ["8000", "12000", "15000", "18000", "25000", "25000+"] as const;
 
 /** Filters a link can preset: /cities/pune?budget=15000&food=veg&gender=female&type=pg */
 function fromQuery(query: URLSearchParams): Filters {
@@ -98,7 +98,14 @@ function matches(listing: CatalogListing, f: Filters): boolean {
     ? listing.sharing.filter((option) => option.type === f.sharing)
     : listing.sharing;
   if (options.length === 0) return false;
-  if (f.budget && !options.some((option) => option.rent <= Number(f.budget)))
+  if (
+    f.budget &&
+    !options.some((option) =>
+      f.budget.endsWith("+")
+        ? option.rent >= Number(f.budget.slice(0, -1))
+        : option.rent <= Number(f.budget),
+    )
+  )
     return false;
   if (f.ac && !options.some((option) => option.ac)) return false;
   if (f.available && !options.some((option) => option.beds_left > 0))
@@ -257,7 +264,9 @@ export function CityBrowser({
         ["", "Any budget"],
         ...BUDGETS.map((value): [string, string] => [
           value,
-          `Up to ${formatINRCompact(Number(value))}`,
+          value.endsWith("+")
+            ? `${formatINRCompact(Number(value.slice(0, -1)))}+`
+            : `Up to ${formatINRCompact(Number(value))}`,
         ]),
       ],
     },

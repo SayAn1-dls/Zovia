@@ -1,6 +1,7 @@
 import { roomPhotos, type RoomPhotoKey } from "@/lib/photos";
 
 import type {
+  Furnishing,
   PropertyType,
   SearchResultItem,
   TenantGender,
@@ -578,6 +579,7 @@ export type CatalogSearch = {
   sharing?: SharingType;
   /** Amenity codes that must all be present (AC also counts when a room type has AC). */
   amenities?: readonly string[];
+  furnishing?: Furnishing;
   available_only?: boolean;
   /** Exact neighbourhood name, e.g. "Kothrud". */
   locality?: string;
@@ -616,15 +618,7 @@ export function searchCatalog(filters: CatalogSearch): CatalogListing[] {
       listing.gender !== filters.gender
     )
       return false;
-    if (
-      filters.budget_min !== undefined &&
-      listing.price_from < filters.budget_min
-    )
-      return false;
-    if (
-      filters.budget_max !== undefined &&
-      listing.price_from > filters.budget_max
-    )
+    if (filters.furnishing && listing.furnishing !== filters.furnishing)
       return false;
     if (filters.food && !listing.food.provided) return false;
     if (filters.diet === "veg" && listing.food.diet !== "veg") return false;
@@ -646,9 +640,14 @@ export function searchCatalog(filters: CatalogSearch): CatalogListing[] {
       : listing.sharing;
     if (options.length === 0) return false;
     if (
-      filters.sharing &&
-      filters.budget_max !== undefined &&
-      !options.some((option) => option.rent <= filters.budget_max!)
+      (filters.budget_min !== undefined || filters.budget_max !== undefined) &&
+      !options.some(
+        (option) =>
+          (filters.budget_min === undefined ||
+            option.rent >= filters.budget_min) &&
+          (filters.budget_max === undefined ||
+            option.rent <= filters.budget_max),
+      )
     )
       return false;
     if (
@@ -672,9 +671,13 @@ export function searchCatalog(filters: CatalogSearch): CatalogListing[] {
       return false;
     if (
       q &&
-      ![listing.title, listing.locality, listing.city].some((field) =>
-        field.toLowerCase().includes(q),
-      )
+      ![
+        listing.title,
+        listing.locality,
+        listing.city,
+        listing.address,
+        listing.best_for,
+      ].some((field) => field.toLowerCase().includes(q))
     )
       return false;
     return true;

@@ -15,7 +15,6 @@ export const PRIVATE_PREFIXES = [
   "/bookings",
   "/roommates",
   "/messages",
-  "/assistant",
   "/notifications",
   "/settings",
   "/account",

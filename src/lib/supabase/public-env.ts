@@ -27,7 +27,7 @@ export const publicEnv = {
     return required("NEXT_PUBLIC_SUPABASE_ANON_KEY", process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   },
   get siteUrl(): string {
-    return required("NEXT_PUBLIC_SITE_URL", process.env.NEXT_PUBLIC_SITE_URL).replace(/\/+$/, "");
+    return (optional(process.env.NEXT_PUBLIC_SITE_URL) ?? "http://localhost:3000").replace(/\/+$/, "");
   },
   get googleAuthEnabled(): boolean {
     return process.env.NEXT_PUBLIC_ENABLE_GOOGLE_AUTH === "true";

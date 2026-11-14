@@ -28,7 +28,6 @@ export default function AssistantPage() {
 
 async function AssistantBody() {
   const ctx = await getServiceContext();
-  if (!ctx.user) redirect(`${routes.signIn}?next=${encodeURIComponent(routes.assistant)}`);
-  if (!isActiveStatus(ctx.user.status)) redirect(routes.accountSuspended);
+  if (ctx.user && !isActiveStatus(ctx.user.status)) redirect(routes.accountSuspended);
   return <AssistantChat initialMode={getAssistantStatus().mode} />;
 }

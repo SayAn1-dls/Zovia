@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { site } from "@/lib/site";
 import { assertActive, assertAdmin, assertRole, assertStaff } from "@/server/auth/guards";
 import { newRequestId } from "@/server/auth/context";
 import { getCurrentUser, getSession, type CurrentUser } from "@/server/auth/session";
@@ -136,15 +137,38 @@ function parseWith<S extends Schema>(schema: S, value: unknown, message?: string
   return result.data;
 }
 
+function resolveSiteUrl(): string {
+  try {
+    return env().NEXT_PUBLIC_SITE_URL;
+  } catch {
+    return site.url;
+  }
+}
+
 async function authenticate(
   level: AuthLevel,
   allowSuspended: boolean,
 ): Promise<{ supabase: AppSupabaseClient; user: CurrentUser | null }> {
-  if (level === "public") return { supabase: createSupabasePublicClient(), user: null };
+  if (level === "public") {
+    try {
+      return { supabase: createSupabasePublicClient(), user: null };
+    } catch {
+      return { supabase: null as unknown as AppSupabaseClient, user: null };
+    }
+  }
+
+  if (level === "optional") {
+    try {
+      const { supabase } = await getSession();
+      const user = await getCurrentUser();
+      return { supabase, user };
+    } catch {
+      return { supabase: null as unknown as AppSupabaseClient, user: null };
+    }
+  }
 
   const { supabase } = await getSession();
   const user = await getCurrentUser();
-  if (level === "optional") return { supabase, user };
   if (!user) throw errors.unauthenticated();
 
   switch (level) {
@@ -194,8 +218,7 @@ export function createHandler<
     let userId: string | undefined;
 
     try {
-      const config = env();
-      assertSameOrigin(request, config.NEXT_PUBLIC_SITE_URL);
+      assertSameOrigin(request, resolveSiteUrl());
 
       const { supabase, user } = await authenticate(options.auth, options.allowSuspended === true);
       userId = user?.id;

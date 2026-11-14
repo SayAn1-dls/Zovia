@@ -36,8 +36,13 @@ export function HeroSearch() {
   const band = budgetBands.find((entry) => entry.id === bandId);
 
   // A chosen city opens its PG page (filters, photos, map); "Any city" searches everywhere.
+  const cityBudget = band
+    ? band.budget_max !== null
+      ? String(band.budget_max)
+      : `${band.budget_min}+`
+    : null;
   const href = city
-    ? withQuery(dynamicRoutes.city(city), { budget: band?.budget_max ?? null })
+    ? withQuery(dynamicRoutes.city(city), { budget: cityBudget })
     : searchHref({ budget_min: band?.budget_min ?? null, budget_max: band?.budget_max ?? null });
 
   return (

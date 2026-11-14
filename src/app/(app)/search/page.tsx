@@ -120,6 +120,9 @@ async function combinedSearch(filters: Filters): Promise<SearchResponse> {
     budget_min: filters.budget_min,
     budget_max: filters.budget_max,
     food: filters.food,
+    amenities: filters.amenities,
+    furnishing: filters.furnishing,
+    available_only: filters.available_only,
   }).map((listing) => {
     const item = toSearchResultItem(listing);
     return origin ? { ...item, distance_m: Math.round(straightLineMetres(origin, { lat: listing.lat, lng: listing.lng })) } : item;

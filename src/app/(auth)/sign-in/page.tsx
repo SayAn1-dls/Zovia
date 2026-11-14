@@ -16,7 +16,7 @@ export default function SignInPage() {
       description="Sign in to see your saved homes, matches and messages."
       footer={
         <>
-          New to ZUVIO?{" "}
+          New to Zovia?{" "}
           <Link href={routes.signUp} className={authLinkClass}>
             Create an account
           </Link>

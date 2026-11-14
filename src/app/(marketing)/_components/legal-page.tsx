@@ -30,7 +30,7 @@ export function LegalPage({ eyebrow, title, summary, lastUpdated, draft = false,
             className="mb-10 rounded-2xl border border-warning-foreground/30 bg-warning-surface p-4 text-sm text-warning-foreground"
           >
             <strong className="font-semibold">Draft, pending legal review.</strong> This page
-            describes in plain English how ZUVIO works today. It has not yet been reviewed by a
+            describes in plain English how Zovia works today. It has not yet been reviewed by a
             lawyer and will be finalised before launch.
           </p>
         ) : null}

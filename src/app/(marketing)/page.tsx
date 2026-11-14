@@ -4,9 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Container, Section } from "@/components/layout/section";
-import { primaryActions, searchHref } from "@/lib/navigation";
+import { CATALOG_CITIES } from "@/features/catalog/cities";
+import { dynamicRoutes, primaryActions, routes, searchHref } from "@/lib/navigation";
 import { citiesPhotos, spacesPhotos } from "@/lib/photos";
-import { launchCities, site } from "@/lib/site";
+import { site } from "@/lib/site";
 
 import { HeroSearch } from "./_components/hero-search";
 
@@ -30,8 +31,8 @@ const spaces = [
   { label: "Flats", type: "one_bhk", photo: spacesPhotos.flat },
 ] as const;
 
-const photoCities = launchCities.filter((city) => city.slug in citiesPhotos);
-const otherCities = launchCities.filter((city) => !(city.slug in citiesPhotos));
+const photoCities = CATALOG_CITIES.filter((city) => city.tier === 1);
+const otherCities = CATALOG_CITIES.filter((city) => city.tier === 2);
 
 export default function HomePage() {
   return (
@@ -113,13 +114,13 @@ export default function HomePage() {
       </Section>
 
       <Section id="cities" title="Start with your city" divider className="pt-0 sm:pt-0">
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-5 sm:gap-4">
           {photoCities.map((city) => {
             const photo = citiesPhotos[city.slug as keyof typeof citiesPhotos];
             return (
               <li key={city.slug}>
                 <Link
-                  href={searchHref({ city: city.slug })}
+                  href={dynamicRoutes.city(city.slug)}
                   className="group relative block aspect-[4/3] overflow-hidden rounded-2xl bg-ink"
                 >
                   <Image
@@ -140,13 +141,22 @@ export default function HomePage() {
           {otherCities.map((city) => (
             <li key={city.slug}>
               <Link
-                href={searchHref({ city: city.slug })}
+                href={dynamicRoutes.city(city.slug)}
                 className="inline-flex h-11 items-center rounded-full border border-border bg-card px-4 text-[0.9375rem] font-medium transition-colors duration-150 hover:border-foreground hover:bg-lime"
               >
                 {city.name}
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href={routes.cities}
+              className="inline-flex h-11 items-center gap-1 rounded-full bg-ink px-4 text-[0.9375rem] font-semibold text-white transition-opacity duration-150 hover:opacity-90"
+            >
+              All cities
+              <ArrowUpRight className="size-4" aria-hidden />
+            </Link>
+          </li>
         </ul>
       </Section>
     </>

@@ -37,14 +37,14 @@ export function OwnerContactCard({ owner, propertyId, slug }: { owner: OwnerCard
           <p className="truncate font-semibold">{owner?.display_name ?? "Owner"}</p>
           <p className="text-sm text-muted-foreground">
             {owner ? OWNER_TYPE_LABELS[owner.owner_type] : "Owner"}
-            {owner?.member_since ? ` · on ZUVIO since ${formatDate(owner.member_since, { month: "short", year: "numeric" })}` : ""}
+            {owner?.member_since ? ` · on Zovia since ${formatDate(owner.member_since, { month: "short", year: "numeric" })}` : ""}
           </p>
         </div>
       </div>
       {owner?.verification_status === "verified" ? (
         <p className="flex items-center gap-1.5 text-sm font-medium text-success-foreground">
           <BadgeCheck className="size-4" aria-hidden />
-          Identity verified by ZUVIO
+          Identity verified by Zovia
         </p>
       ) : (
         <p className="text-sm text-muted-foreground">Identity not verified yet.</p>

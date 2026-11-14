@@ -72,7 +72,7 @@ export function OwnerAccountForm({ mode, account }: { mode: "onboarding" | "prof
     }
     if (mode === "onboarding") {
       await refreshSession();
-      toast.success("You are now an owner on ZUVIO");
+      toast.success("You are now an owner on Zovia");
       router.replace(routes.owner);
       router.refresh();
       return;

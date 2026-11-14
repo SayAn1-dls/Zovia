@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "List your property", robots: { index
 export default function OwnerOnboardingPage() {
   return (
     <>
-      <h1 className="text-display-sm font-extrabold text-foreground">List your property on ZUVIO.</h1>
+      <h1 className="text-display-sm font-extrabold text-foreground">List your property on Zovia.</h1>
       <p className="mt-2 text-[0.9375rem] text-muted-foreground">
         Tell us how to reach you. It is free; your listing goes live after a quick review by our team.
       </p>

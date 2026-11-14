@@ -129,8 +129,8 @@ export function AssistantChat({ initialMode }: { initialMode: AssistantMode }) {
         )}
         <p className="text-xs text-muted-foreground">
           {mode === "ai"
-            ? "Listings come straight from ZUVIO; the assistant can make mistakes in its wording."
-            : "Understands city, budget, type, food, Wi-Fi, AC and who it's for. Listings come straight from ZUVIO."}
+            ? "Listings come straight from Zovia; the assistant can make mistakes in its wording."
+            : "Understands city, budget, type, food, Wi-Fi, AC and who it's for. Listings come straight from Zovia."}
         </p>
         {turns.length > 0 ? (
           <Button variant="ghost" size="sm" className="ml-auto" onClick={reset}>

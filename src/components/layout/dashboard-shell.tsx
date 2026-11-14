@@ -77,7 +77,7 @@ export function DashboardShell({ area, children }: DashboardShellProps) {
       className="flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
     >
       <ArrowLeft className="size-4" aria-hidden />
-      Back to ZUVIO
+      Back to Zovia
     </Link>
   );
 

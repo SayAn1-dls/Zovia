@@ -115,5 +115,5 @@ export function contactWarning(result: { kinds: readonly string[]; restricted: b
       : "social media handles";
   return result.restricted
     ? `Not sent. You shared contact details several times, so messaging is paused for a while. You can appeal this decision.`
-    : `Not sent. For everyone's safety, ${what} and other contact details can't be shared in roommate chats. Meet on ZUVIO first.`;
+    : `Not sent. For everyone's safety, ${what} and other contact details can't be shared in roommate chats. Meet on Zovia first.`;
 }

@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Welcome", robots: { index: false } }
 export default function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
   return (
     <>
-      <h1 className="text-display-sm font-extrabold text-foreground">Welcome to ZUVIO.</h1>
+      <h1 className="text-display-sm font-extrabold text-foreground">Welcome to Zovia.</h1>
       <p className="mt-2 text-[0.9375rem] text-muted-foreground">Three quick questions and you are in.</p>
       <div className="mt-10">
         <Suspense fallback={<FormSkeleton count={6} />}>

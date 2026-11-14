@@ -82,7 +82,7 @@ export function whatsappSupportHref(message?: string): string | null {
  * is set: a number is never invented.
  */
 export function WhatsAppSupportButton({
-  message = "Hi ZUVIO, I need some help.",
+  message = "Hi Zovia, I need some help.",
   label = "Chat on WhatsApp",
   variant = "outline",
   size = "lg",

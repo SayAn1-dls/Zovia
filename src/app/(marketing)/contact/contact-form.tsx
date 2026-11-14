@@ -9,17 +9,15 @@ import { applyApiFieldErrors, FormField, FormMessage } from "@/components/form/f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { site } from "@/lib/site";
+import { sendMessage } from "@/lib/send-message";
 
 import {
-  apiEnvelopeSchema,
   contactFormDefaults,
   contactFormSchema,
   type ContactFormValues,
   toContactPayload,
 } from "./schema";
 
-const CONTACT_ENDPOINT = "/api/v1/contact";
 const FIELD_NAMES = ["name", "email", "phone", "subject", "message"] as const;
 
 type Failure = { title: string; detail: string; reference?: string };
@@ -41,17 +39,15 @@ function failureFor(status: number, code: string | undefined, requestId: string 
   }
   return {
     title: "Your message was not sent",
-    detail: "Something went wrong on our side. Your message is still here, so please try again in a moment.",
+    detail: "We couldn't deliver it just now. Your message is still here, so please try again in a moment.",
     reference: requestId,
   };
 }
 
 /**
- * Contact form. Posts JSON to /api/v1/contact and reads the API envelope
- * ({ ok: true, data } | { ok: false, error }). Success is shown ONLY for a 2xx
- * response whose body says ok: true; anything else (including a missing
- * endpoint or a non-JSON body) is reported as a failure and the typed message
- * is kept.
+ * Contact form: the visitor's name, e-mail, subject and message go to the developer's inbox with
+ * the visitor's address as Reply-To (see `sendMessage`). Success is shown only when the message
+ * was really delivered or stored; otherwise the typed message is kept and the reason shown.
  */
 export function ContactForm() {
   const form = useForm<ContactFormValues>({
@@ -71,33 +67,18 @@ export function ContactForm() {
 
   async function onSubmit(values: ContactFormValues) {
     setFailure(null);
-    let response: Response;
-    try {
-      response = await fetch(CONTACT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify(toContactPayload(values)),
-      });
-    } catch {
-      setFailure({
-        title: "You appear to be offline",
-        detail: "We could not reach ZUVIO. Check your connection and send again.",
-      });
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setFailure({ title: "You appear to be offline", detail: "Check your connection and send again." });
       return;
     }
-
-    const body: unknown = await response.json().catch(() => null);
-    const envelope = apiEnvelopeSchema.safeParse(body);
-
-    if (response.ok && envelope.success && envelope.data.ok) {
+    const result = await sendMessage(toContactPayload(values));
+    if (result.ok) {
       setSent(true);
       form.reset(contactFormDefaults);
       return;
     }
-
-    const error = envelope.success && !envelope.data.ok ? envelope.data.error : undefined;
-    if (error) applyApiFieldErrors(form.setError, error.details, FIELD_NAMES);
-    setFailure(failureFor(response.status, error?.code, error?.request_id));
+    applyApiFieldErrors(form.setError, result.details, FIELD_NAMES);
+    setFailure(failureFor(result.status, result.code, result.requestId));
   }
 
   if (sent) {
@@ -111,7 +92,8 @@ export function ContactForm() {
         <CircleCheck className="size-7 text-success-foreground" aria-hidden />
         <h2 className="mt-3 text-display-sm font-extrabold text-success-foreground">Message sent</h2>
         <p className="mt-2 max-w-sm text-[0.9375rem] text-success-foreground">
-          Thanks for writing in. We have your message and will reply by e-mail.
+          Thanks for writing in. Your message is in the developer&apos;s inbox, and the reply will come to the
+          e-mail address you entered.
         </p>
         <Button variant="outline" size="lg" className="mt-6" onClick={() => setSent(false)}>
           Send another message
@@ -126,15 +108,6 @@ export function ContactForm() {
         {failure ? (
           <FormMessage tone="danger" title={failure.title}>
             <p>{failure.detail}</p>
-            {site.supportEmail ? (
-              <p className="mt-1">
-                You can also e-mail{" "}
-                <a href={`mailto:${site.supportEmail}`} className="font-semibold underline underline-offset-4">
-                  {site.supportEmail}
-                </a>
-                .
-              </p>
-            ) : null}
             {failure.reference ? (
               <p className="mt-1 font-mono text-xs">Reference: {failure.reference}</p>
             ) : null}

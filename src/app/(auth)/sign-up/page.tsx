@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Create an account", alternates: { ca
 export default function SignUpPage() {
   return (
     <AuthCard
-      title="Join ZUVIO."
+      title="Join Zovia."
       description="Find your space. Find your people. It takes a minute."
       footer={
         <>

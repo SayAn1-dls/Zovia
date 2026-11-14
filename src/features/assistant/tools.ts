@@ -36,7 +36,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     name: "search_properties",
     description:
-      "Search published ZUVIO listings. Returns real listings with id, title, type, locality, city, monthly price_from in INR (the lowest bed/unit rent), bed availability, food, amenity codes and rating. Prices are monthly integer INR. Use the city name or slug (for example 'bengaluru', 'pune').",
+      "Search published Zovia listings. Returns real listings with id, title, type, locality, city, monthly price_from in INR (the lowest bed/unit rent), bed availability, food, amenity codes and rating. Prices are monthly integer INR. Use the city name or slug (for example 'bengaluru', 'pune').",
     input_schema: {
       type: "object",
       properties: {

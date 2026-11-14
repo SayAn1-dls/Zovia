@@ -8,7 +8,7 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "Safety guidelines",
   description:
-    "Community rules, roommate safety, and how reporting and appeals work on ZUVIO.",
+    "Community rules, roommate safety, and how reporting and appeals work on Zovia.",
   alternates: { canonical: "/safety" },
 };
 
@@ -26,7 +26,7 @@ export default function SafetyPage() {
     <LegalPage
       eyebrow="Safety"
       title="Safety guidelines"
-      summary="The rules everyone on ZUVIO agrees to, and what happens when you report something."
+      summary="The rules everyone on Zovia agrees to, and what happens when you report something."
       lastUpdated="11 November 2026"
       contents={contents}
     >
@@ -40,7 +40,7 @@ export default function SafetyPage() {
 
       <h2 id="roommates">Meeting a roommate</h2>
       <ul>
-        <li>Keep the conversation in ZUVIO at first, and swap numbers in person once you are comfortable.</li>
+        <li>Keep the conversation in Zovia at first, and swap numbers in person once you are comfortable.</li>
         <li>Meet somewhere public the first time, and tell a friend where you are going.</li>
         <li>See the place together, in daylight, and meet the owner or the current flatmates.</li>
         <li>Agree rent share, deposit, notice period and house rules in writing before anyone pays.</li>

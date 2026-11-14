@@ -17,7 +17,7 @@ export default function AssistantPage() {
     <>
       <PageHeader
         title="Assistant"
-        description="Describe the place you need. Answers use real ZUVIO listings only."
+        description="Describe the place you need. Answers use real Zovia listings only."
       />
       <Suspense fallback={<LoadingState variant="list" count={3} label="Loading the assistant" />}>
         <AssistantBody />

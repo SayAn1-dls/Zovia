@@ -32,7 +32,7 @@ export function OwnerBookingsList({ bookings }: { bookings: Booking[] }) {
                 {booking.property.title}
               </Link>
               <p className="text-sm text-muted-foreground">
-                {booking.seeker_name ?? "A ZUVIO member"} · {[booking.room_name, booking.bed_label].filter(Boolean).join(" · ") || "Whole home"}
+                {booking.seeker_name ?? "A Zovia member"} · {[booking.room_name, booking.bed_label].filter(Boolean).join(" · ") || "Whole home"}
               </p>
             </div>
             <BookingStatusBadge status={booking.status} />

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Admin overview", robots: { index: fa
 export default function AdminOverviewPage() {
   return (
     <>
-      <PageHeader title="Overview" description="What needs attention across ZUVIO." />
+      <PageHeader title="Overview" description="What needs attention across Zovia." />
       <Suspense fallback={<LoadingState variant="list" count={3} label="Loading overview" />}>
         <OverviewBody />
       </Suspense>

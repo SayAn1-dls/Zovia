@@ -36,7 +36,7 @@ const ROUNDING_PADDING_M = 120;
 
 function provider(): LocationProvider {
   const site = env().NEXT_PUBLIC_SITE_URL;
-  return createOpenStreetMapProvider({ userAgent: `ZUVIO/0.1 (+${site})`, referer: site });
+  return createOpenStreetMapProvider({ userAgent: `Zovia/0.1 (+${site})`, referer: site });
 }
 
 async function cachedGeocode(normalisedQuery: string): Promise<GeocodeResult[]> {
@@ -129,7 +129,7 @@ async function cachedHousingAround(lat: number, lng: number): Promise<OsmHousing
   cacheLife("days");
   cacheTag("osm-housing");
   const json = await fetchOverpass(buildHousingQuery({ lat, lng }), {
-    userAgent: `ZUVIO/0.1 (+${env().NEXT_PUBLIC_SITE_URL})`,
+    userAgent: `Zovia/0.1 (+${env().NEXT_PUBLIC_SITE_URL})`,
     timeoutMs: 30_000,
   });
   return parseHousingResponse(json);

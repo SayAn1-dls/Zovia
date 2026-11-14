@@ -95,7 +95,7 @@ export function OnboardingForm({ profile, cities, next }: { profile: OwnProfile;
       {failure ? <FormMessage tone="danger" title="Not saved yet">{failure}</FormMessage> : null}
 
       <fieldset className="space-y-4">
-        <legend className="text-lg font-bold text-foreground">What brings you to ZUVIO?</legend>
+        <legend className="text-lg font-bold text-foreground">What brings you to Zovia?</legend>
         <div className="grid gap-3 sm:grid-cols-2">
           {USER_INTENTS.map((value) => {
             const Icon = INTENT_ICONS[value];

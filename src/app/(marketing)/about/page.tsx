@@ -11,7 +11,7 @@ import { allPhotos } from "@/lib/photos";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "ZUVIO is one place to find a home, find a roommate, or list a property in India.",
+    "Zovia is one place to find a home, find a roommate, or list a property in India.",
   alternates: { canonical: "/about" },
 };
 
@@ -30,7 +30,7 @@ export default function AboutPage() {
       <Container className="py-12 sm:py-16">
         <div className="max-w-md space-y-3 text-lead">
           <p>Moving is hard enough.</p>
-          <p>So ZUVIO keeps homes and roommates in one place.</p>
+          <p>So Zovia keeps homes and roommates in one place.</p>
           <p>Owners list. We review. You choose.</p>
           <p>Nothing made up. No brokers in your inbox.</p>
         </div>

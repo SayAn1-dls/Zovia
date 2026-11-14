@@ -14,7 +14,7 @@ export default function NotFound() {
   return (
     <main id="main-content" tabIndex={-1} className="flex min-h-dvh flex-1 flex-col outline-none">
       <div className="px-5 pt-3 sm:px-8">
-        <Link href={routes.home} aria-label="ZUVIO home" className="inline-flex h-11 items-center rounded-lg">
+        <Link href={routes.home} aria-label="Zovia home" className="inline-flex h-11 items-center rounded-lg">
           <Logo size="md" />
         </Link>
       </div>

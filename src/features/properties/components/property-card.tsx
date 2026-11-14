@@ -70,9 +70,11 @@ export function PropertyCard({
         ) : (
           <NoPhotos compact />
         )}
-        <div className="absolute top-2 right-2 z-10">
-          <SaveButton propertyId={property.id} title={property.title} onChange={onSavedChange} />
-        </div>
+        {property.id.startsWith("catalog:") ? null : (
+          <div className="absolute top-2 right-2 z-10">
+            <SaveButton propertyId={property.id} title={property.title} onChange={onSavedChange} />
+          </div>
+        )}
         {property.recently_confirmed ? (
           <div className="absolute bottom-2 left-2">
             <VerifiedBadge kind="recently_confirmed" />

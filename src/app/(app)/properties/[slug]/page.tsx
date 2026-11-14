@@ -7,6 +7,9 @@ import { LoadingState } from "@/components/feedback/loading-state";
 import { Money } from "@/components/money";
 import { RatingStars } from "@/components/rating-stars";
 import { BookingCard } from "@/features/bookings/components/booking-card";
+import { CatalogListingView } from "@/features/catalog/components/catalog-listing-view";
+import { getCatalogListing, similarCatalogListings } from "@/features/catalog/listings";
+import { nearbyForListing } from "@/features/catalog/nearby";
 import { MapView } from "@/features/locations/components/map-view";
 import { NearbyPlaces } from "@/features/locations/components/nearby-places";
 import { InquiryForm } from "@/features/properties/components/inquiry-form";
@@ -40,9 +43,28 @@ import { getPublicPropertyBySlug } from "@/features/properties/service";
  * reveal, enquiries and nearby places load in the browser.
  */
 
+/** A database listing, or null when it doesn't exist or the database can't be reached. */
+async function findProperty(slug: string): Promise<PropertyDetail | null> {
+  try {
+    return await getPublicPropertyBySlug(slug);
+  } catch {
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }: PageProps<"/properties/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const property = await getPublicPropertyBySlug(slug);
+  const listing = getCatalogListing(slug);
+  if (listing) {
+    const description = `${listing.title}, ${listing.locality}, ${listing.city}. From ₹${listing.price_from.toLocaleString("en-IN")}/month. ${listing.about.slice(0, 120)}`;
+    return {
+      title: `${listing.title}, ${listing.locality}`,
+      description,
+      alternates: { canonical: `/properties/${listing.slug}` },
+      openGraph: { title: listing.title, description, type: "website", images: [{ url: listing.photos[0]!.url, alt: listing.photos[0]!.alt }] },
+    };
+  }
+  const property = await findProperty(slug);
   if (!property) return { title: "Listing not found", robots: { index: false } };
   const place = [property.locality, property.city].filter(Boolean).join(", ");
   const price =
@@ -77,7 +99,11 @@ export default function PropertyPage({ params }: PageProps<"/properties/[slug]">
 }
 
 async function PropertyContent({ slug }: { slug: string }) {
-  const property = await getPublicPropertyBySlug(slug);
+  const listing = getCatalogListing(slug);
+  if (listing) {
+    return <CatalogListingView listing={listing} similar={similarCatalogListings(listing)} nearby={nearbyForListing(listing)} />;
+  }
+  const property = await findProperty(slug);
   if (!property) notFound();
   return <PropertyView property={property} />;
 }

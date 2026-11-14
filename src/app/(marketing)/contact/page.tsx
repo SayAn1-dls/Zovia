@@ -11,7 +11,7 @@ import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: "Questions, feedback or a problem with ZUVIO? Send us a message.",
+  description: "Questions, feedback or a problem with Zovia? Send us a message.",
   alternates: { canonical: "/contact" },
 };
 

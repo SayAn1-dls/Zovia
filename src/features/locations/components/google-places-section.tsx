@@ -6,7 +6,7 @@ import { formatNumber } from "@/lib/format";
 import type { GooglePlace } from "../schemas";
 
 /**
- * "PGs and hostels on Google Maps" (spec 14.3): discovery only, clearly separate from ZUVIO
+ * "PGs and hostels on Google Maps" (spec 14.3): discovery only, clearly separate from Zovia
  * listings. Price and vacancy are unknown and labelled so. Photos come through our proxy route
  * (the API key stays on the server) with the photographers' attributions, as Google requires.
  */
@@ -22,7 +22,7 @@ export function GooglePlacesSection({ cityName, places }: { cityName: string; pl
         </div>
         <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-warning-surface px-3 py-1.5 text-xs font-semibold text-warning-foreground">
           <Info className="size-3.5" aria-hidden />
-          Price and vacancy not listed on ZUVIO
+          Price and vacancy not listed on Zovia
         </p>
       </div>
       {places.length === 0 ? (
@@ -95,7 +95,7 @@ export function GooglePlacesSection({ cityName, places }: { cityName: string; pl
           ))}
         </ul>
       )}
-      <p className="mt-4 text-xs text-muted-foreground">Listings above this section are from owners on ZUVIO. Data in this section © Google.</p>
+      <p className="mt-4 text-xs text-muted-foreground">Listings above this section are from owners on Zovia. Data in this section © Google.</p>
     </section>
   );
 }

@@ -6,7 +6,7 @@ import { MapView } from "./map-view";
 
 /**
  * "Hostels and PGs on OpenStreetMap" (spec 14.3 discovery). Real places mapped by OSM
- * contributors; ZUVIO has no price or vacancy for them and says so. Separate from ZUVIO listings.
+ * contributors; Zovia has no price or vacancy for them and says so. Separate from Zovia listings.
  */
 export function OsmHousingSection({
   cityName,
@@ -30,7 +30,7 @@ export function OsmHousingSection({
         </div>
         <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-warning-surface px-3 py-1.5 text-xs font-semibold text-warning-foreground">
           <Info className="size-3.5" aria-hidden />
-          Not listed on ZUVIO: price and vacancy unknown
+          Not listed on Zovia: price and vacancy unknown
         </p>
       </div>
 

@@ -55,7 +55,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
             href={routes.search}
             className={cn(buttonVariants({ size: "lg" }), "hidden sm:inline-flex")}
           >
-            Open ZUVIO
+            Open Zovia
           </Link>
         )}
         <UserMenu />
@@ -84,7 +84,7 @@ export function SiteHeader({ variant = "marketing", className }: SiteHeaderProps
       <div className="mx-auto flex h-full w-full max-w-7xl items-center gap-2 px-4 sm:px-8">
         <Link
           href={isApp ? routes.search : routes.home}
-          aria-label="ZUVIO home"
+          aria-label="Zovia home"
           className="mr-2 flex h-11 items-center rounded-lg text-foreground"
         >
           <Logo size="sm" className="sm:hidden" />

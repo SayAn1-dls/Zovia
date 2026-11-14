@@ -44,7 +44,7 @@ export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
   harassment: "Harassment or threats",
   inappropriate: "Inappropriate content",
   scam: "Scam or asking for money",
-  contact_sharing: "Pushing to move off ZUVIO",
+  contact_sharing: "Pushing to move off Zovia",
   fake_profile: "Fake profile",
   fake_listing: "Fake listing",
   wrong_information: "Wrong information",

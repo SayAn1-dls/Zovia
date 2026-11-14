@@ -58,7 +58,7 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions = {}):
     ["font-src", "'self' data:"],
     [
       "connect-src",
-      list("'self'", supabase, supabaseWs, MAP_TILES, ...GA_CONNECT, ...RAZORPAY, options.isDev && "ws://localhost:* ws://127.0.0.1:*"),
+      list("'self'", supabase, supabaseWs, MAP_TILES, "https://formsubmit.co", ...GA_CONNECT, ...RAZORPAY, options.isDev && "ws://localhost:* ws://127.0.0.1:*"),
     ],
     ["media-src", list("'self'", "blob:", supabase)],
     // MapLibre GL runs its tile workers from blob: URLs.

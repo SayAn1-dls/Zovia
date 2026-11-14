@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 /**
- * The single navigation config for ZUVIO (spec section 9).
+ * The single navigation config for Zovia (spec section 9).
  *
  * Every route in the product is declared here once, so feature work never has
  * to edit shared chrome (header, footer, tab bar, sidebars).
@@ -63,6 +63,7 @@ export const routes = {
 
   // App
   search: route("/search"),
+  cities: route("/cities"),
   saved: route("/saved"),
   roommates: route("/roommates"),
   roommateProfile: route("/roommates/profile"),
@@ -106,6 +107,7 @@ export const routes = {
 /** Dynamic routes. */
 export const dynamicRoutes = {
   property: (slug: string) => route(`/properties/${encodeURIComponent(slug)}`),
+  city: (slug: string) => route(`/cities/${encodeURIComponent(slug)}`),
   conversation: (id: string) => route(`/messages/${encodeURIComponent(id)}`),
   ownerProperty: (id: string) =>
     route(`/owner/properties/${encodeURIComponent(id)}`),
@@ -167,7 +169,7 @@ export const primaryActions = [
   {
     label: "Find a Home",
     description: "PGs, hostels, co-living, rooms and flats.",
-    href: routes.search,
+    href: routes.cities,
     icon: House,
   },
   {
@@ -186,7 +188,7 @@ export const primaryActions = [
 
 /** Marketing header links. */
 export const marketingNav = [
-  { label: "Find a Home", href: routes.search, icon: House },
+  { label: "Find a Home", href: routes.cities, icon: House },
   { label: "Find a Roommate", href: routes.roommates, icon: Users },
   {
     label: "List Your Property",
@@ -198,7 +200,7 @@ export const marketingNav = [
 
 /** App header links (desktop). */
 export const appNav = [
-  { label: "Homes", href: routes.search, icon: Search },
+  { label: "Homes", href: routes.cities, icon: Search },
   { label: "Roommates", href: routes.roommates, icon: Users },
   { label: "Saved", href: routes.saved, icon: Heart },
   { label: "Messages", href: routes.messages, icon: MessageCircle },
@@ -207,7 +209,7 @@ export const appNav = [
 
 /** Bottom tab bar in the app area on mobile (five items maximum). */
 export const mobileTabs = [
-  { label: "Homes", href: routes.search, icon: Search },
+  { label: "Homes", href: routes.cities, icon: Search },
   { label: "Roommates", shortLabel: "Mates", href: routes.roommates, icon: Users },
   { label: "Saved", href: routes.saved, icon: Heart },
   { label: "Messages", shortLabel: "Chats", href: routes.messages, icon: MessageCircle },
@@ -284,7 +286,7 @@ export const footerNav = [
   {
     label: "Explore",
     items: [
-      { label: "Find a Home", href: routes.search, icon: House },
+      { label: "Find a Home", href: routes.cities, icon: House },
       { label: "Find a Roommate", href: routes.roommates, icon: Users },
       { label: "List Your Property", href: routes.listYourProperty, icon: Building2 },
     ],

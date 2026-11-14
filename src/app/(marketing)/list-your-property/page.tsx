@@ -10,7 +10,7 @@ import { routes, withQuery } from "@/lib/navigation";
 export const metadata: Metadata = {
   title: "List your property",
   description:
-    "List PGs, hostels, co-living spaces, rooms and flats on ZUVIO. Manage rooms, beds, availability and enquiries in one place.",
+    "List PGs, hostels, co-living spaces, rooms and flats on Zovia. Manage rooms, beds, availability and enquiries in one place.",
   alternates: { canonical: "/list-your-property" },
 };
 

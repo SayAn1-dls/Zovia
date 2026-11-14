@@ -6,6 +6,7 @@ import { type ReactNode, useState } from "react";
 
 import { CookieConsentProvider } from "@/components/consent/cookie-consent";
 import SessionProvider, { type SessionAdapter } from "@/components/session/session-context";
+import { ServiceWorkerRegistration } from "@/components/pwa/install-app";
 import { Toaster } from "@/components/ui/sonner";
 import { supabaseSessionAdapter } from "@/features/auth/session-adapter";
 
@@ -41,6 +42,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <CookieConsentProvider>
             {children}
             <Toaster position="top-center" closeButton />
+            <ServiceWorkerRegistration />
           </CookieConsentProvider>
         </SessionProvider>
       </NuqsAdapter>

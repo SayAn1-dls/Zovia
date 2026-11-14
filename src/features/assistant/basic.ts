@@ -32,7 +32,7 @@ const GUIDANCE: Record<GuidanceTopic, { pattern: RegExp; text: string }> = {
   },
   safety: {
     pattern: /\b(safe|safety|unsafe|scams?|fraud|fake)\b/,
-    text: "Visit before paying anything, never pay a token amount to hold a place you have not seen, and keep all payments on record. Look for CCTV, a guard or reception, working locks and good lighting on the way home. On ZUVIO, verified badges mean staff reviewed the owner's documents.",
+    text: "Visit before paying anything, never pay a token amount to hold a place you have not seen, and keep all payments on record. Look for CCTV, a guard or reception, working locks and good lighting on the way home. On Zovia, verified badges mean staff reviewed the owner's documents.",
   },
 };
 

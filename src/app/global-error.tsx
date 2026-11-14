@@ -32,14 +32,14 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
           textAlign: "center",
         }}
       >
-        <title>Something went wrong · ZUVIO</title>
+        <title>Something went wrong · Zovia</title>
         <main style={{ maxWidth: 440 }}>
-          <p style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.06em" }}>zuvio</p>
+          <p style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.06em" }}>zovia</p>
           <h1 style={{ margin: "24px 0 0", fontSize: 32, lineHeight: 1.1, letterSpacing: "-0.03em" }}>
             Something went wrong
           </h1>
           <p style={{ margin: "16px 0 0", fontSize: 17, lineHeight: 1.55, color: "#b9b6ae" }}>
-            ZUVIO could not load. Please try again in a moment.
+            Zovia could not load. Please try again in a moment.
           </p>
           {digest ? (
             <p style={{ margin: "12px 0 0", fontSize: 12, fontFamily: "ui-monospace, monospace", color: "#b9b6ae" }}>

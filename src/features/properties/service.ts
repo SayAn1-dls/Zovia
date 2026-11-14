@@ -53,13 +53,22 @@ function numberOrNull(value: number | string | null | undefined): number | null 
 
 // ───────────────────────────── reference data ─────────────────────────────
 
-/** Active cities (with centres) and the amenity catalogue, for filters and map centring. */
+/** Active cities (with centres) and the amenity catalogue, for filters and map centring; empty when the database is unreachable. */
 export async function getSearchReferenceData(): Promise<{ cities: CityOption[]; amenities: AmenityOption[] }> {
   "use cache";
   cacheLife("days");
   cacheTag(PROPERTY_CACHE_TAGS.reference);
   const { supabase } = cacheScopedPublicContext();
-  const [cities, amenities] = await Promise.all([repo.listCities(supabase), repo.listAmenities(supabase)]);
+  let cities: Awaited<ReturnType<typeof repo.listCities>>;
+  let amenities: AmenityOption[];
+  try {
+    [cities, amenities] = await Promise.all([repo.listCities(supabase), repo.listAmenities(supabase)]);
+  } catch {
+    // Database unreachable (also at build time): callers fall back to the city catalogue. Cache
+    // the empty answer only briefly so the real lists come back as soon as the database does.
+    cacheLife("seconds");
+    return { cities: [], amenities: [] };
+  }
   return {
     cities: cities.flatMap((city) => {
       const point = parsePoint(city.location);
@@ -209,7 +218,7 @@ export async function getPublicPropertyBySlug(slug: string): Promise<PropertyDet
       title: review.title,
       body: review.body,
       created_at: review.created_at,
-      author_name: authors.get(review.author_id) ?? "ZUVIO member",
+      author_name: authors.get(review.author_id) ?? "Zovia member",
       owner_reply: reply ? { body: reply.body, created_at: reply.created_at } : null,
     };
   });

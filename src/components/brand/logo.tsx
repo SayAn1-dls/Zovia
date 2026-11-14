@@ -11,7 +11,7 @@ export const LOGO_MARK_PATH =
   "M3 29V15a13 13 0 0 1 26 0v14h-5.5V15a7.5 7.5 0 0 0-15 0v14zM16 13.5a4 4 0 1 1 0 8a4 4 0 0 1 0-8z";
 
 /**
- * The ZUVIO mark: a doorway with someone in it (a space, and a person).
+ * The Zovia mark: a doorway with someone in it (a space, and a person).
  * A single path in one flat colour (`currentColor`), with no container: ink
  * on paper, white on ink, crisp at 16 px.
  */
@@ -44,14 +44,14 @@ const sizes = {
 } as const;
 
 /**
- * ZUVIO logo: mark + tight lowercase wordmark set in Unbounded. Inherits text colour, so it
+ * Zovia logo: mark + tight lowercase wordmark set in Unbounded. Inherits text colour, so it
  * works on paper and reversed on ink. Wrap it in a link yourself (SiteHeader
  * and SiteFooter already do).
  */
 export function Logo({ className, variant = "full", size = "md" }: LogoProps) {
   const s = sizes[size];
   if (variant === "mark") {
-    return <LogoMark className={cn(s.mark, className)} title="ZUVIO" />;
+    return <LogoMark className={cn(s.mark, className)} title="Zovia" />;
   }
   return (
     <span className={cn("inline-flex items-center", s.gap, className)}>
@@ -59,7 +59,7 @@ export function Logo({ className, variant = "full", size = "md" }: LogoProps) {
       <span
         className={cn("font-heading leading-none font-bold tracking-[-0.04em]", s.word)}
       >
-        zuvio
+        zovia
       </span>
     </span>
   );

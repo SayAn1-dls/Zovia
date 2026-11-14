@@ -7,12 +7,12 @@ import { LegalPage } from "../_components/legal-page";
 
 export const metadata: Metadata = {
   title: "Terms of use",
-  description: "The rules for using ZUVIO as a seeker, a roommate or an owner.",
+  description: "The rules for using Zovia as a seeker, a roommate or an owner.",
   alternates: { canonical: "/terms" },
 };
 
 const contents = [
-  ["what-zuvio-is", "What ZUVIO is"],
+  ["what-zuvio-is", "What Zovia is"],
   ["your-account", "Your account"],
   ["seekers", "Finding a home"],
   ["roommates", "Finding a roommate"],
@@ -21,7 +21,7 @@ const contents = [
   ["content", "Your content and reviews"],
   ["not-allowed", "What is not allowed"],
   ["enforcement", "Enforcement and appeals"],
-  ["leaving", "Leaving ZUVIO"],
+  ["leaving", "Leaving Zovia"],
   ["liability", "Our responsibility"],
   ["changes", "Changes and contact"],
 ] as const;
@@ -31,19 +31,19 @@ export default function TermsPage() {
     <LegalPage
       eyebrow="Legal"
       title="Terms of use"
-      summary="ZUVIO introduces people to homes and to each other. Here is what you can expect from us, and what we expect from you."
+      summary="Zovia introduces people to homes and to each other. Here is what you can expect from us, and what we expect from you."
       lastUpdated="11 November 2026"
       draft
       contents={contents}
     >
-      <h2 id="what-zuvio-is">What ZUVIO is</h2>
+      <h2 id="what-zuvio-is">What Zovia is</h2>
       <p>
-        ZUVIO is a discovery platform. It helps people find accommodation (PGs, hostels, co-living
+        Zovia is a discovery platform. It helps people find accommodation (PGs, hostels, co-living
         spaces, rooms and flats), find compatible roommates, and helps owners list and manage their
         properties.
       </p>
       <p>
-        <strong>ZUVIO is not a broker, landlord or booking service.</strong> We do not take
+        <strong>Zovia is not a broker, landlord or booking service.</strong> We do not take
         payments or deposits and we do not hold a room for you. An enquiry or a roommate match is
         an introduction, never a booking. Any rental agreement is between you and the owner or
         your roommate.
@@ -82,7 +82,7 @@ export default function TermsPage() {
       </ul>
 
       <h2 id="verification">What verification means</h2>
-      <p>ZUVIO shows three separate signals. Each one means only what it says:</p>
+      <p>Zovia shows three separate signals. Each one means only what it says:</p>
       <ul>
         <li><strong>Owner verified:</strong> our team reviewed the owner&apos;s identity documents.</li>
         <li><strong>Authorisation verified:</strong> our team checked that the lister has the right to let that property.</li>
@@ -95,7 +95,7 @@ export default function TermsPage() {
 
       <h2 id="content">Your content and reviews</h2>
       <ul>
-        <li>You keep ownership of what you post. You give ZUVIO permission to store and display it to run the service.</li>
+        <li>You keep ownership of what you post. You give Zovia permission to store and display it to run the service.</li>
         <li>Post only content you have the right to share.</li>
         <li>You can review a property only after you have sent an enquiry about it, once per property. Reviews must be honest and based on your own experience. Owners can reply publicly.</li>
       </ul>
@@ -119,7 +119,7 @@ export default function TermsPage() {
         suspension from your account. See the <Link href={routes.safety}>safety guidelines</Link> for details.
       </p>
 
-      <h2 id="leaving">Leaving ZUVIO</h2>
+      <h2 id="leaving">Leaving Zovia</h2>
       <p>
         You can delete your account at any time from Settings. Your profile is anonymised, your
         listings and roommate profile are paused and your matches end. The account is permanently
@@ -129,7 +129,7 @@ export default function TermsPage() {
 
       <h2 id="liability">Our responsibility</h2>
       <p>
-        We work to keep ZUVIO accurate, available and safe, but the service is provided as it is.
+        We work to keep Zovia accurate, available and safe, but the service is provided as it is.
         We are not a party to agreements between users, and we are not responsible for the conduct
         of owners, seekers or roommates, or for the condition of any property. Nothing in these
         terms limits rights you have under Indian law that cannot be limited.
@@ -137,7 +137,7 @@ export default function TermsPage() {
 
       <h2 id="changes">Changes and contact</h2>
       <p>
-        We will update these terms as ZUVIO changes and will tell you about significant changes
+        We will update these terms as Zovia changes and will tell you about significant changes
         before they take effect. <ContactLine prefix="Questions? Contact us" />
       </p>
     </LegalPage>

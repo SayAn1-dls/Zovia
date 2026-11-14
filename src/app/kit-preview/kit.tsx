@@ -48,7 +48,7 @@ export function Kit() {
       <Pagination page={6} totalPages={20} hrefForPage={(p) => withQuery(routes.search, { page: p })} />
       <div className="flex flex-wrap gap-3">
         <ConfirmDialog title="Delete this listing?" description="This cannot be undone." confirmLabel="Delete" destructive onConfirm={() => {}} trigger={<Button variant="outline" size="lg">Open confirm dialog</Button>} />
-        <WhatsAppShareButton text="Look at this on ZUVIO" url="https://example.com/x" />
+        <WhatsAppShareButton text="Look at this on Zovia" url="https://example.com/x" />
       </div>
       <ImageUploader maxBytes={8 * 1024 * 1024} upload={async (_f, ctx) => { for (let i = 1; i <= 10; i++) { await new Promise((r) => setTimeout(r, 150)); ctx.onProgress(i / 10); } return null; }} />
     </div>

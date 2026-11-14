@@ -144,7 +144,7 @@ async function basicReply(
         message:
           prefix +
           (guidance ??
-            "I can find places to stay from ZUVIO listings. Tell me the city, your monthly budget and what you need, for example \"PG in Bengaluru under ₹8000 with food and Wi-Fi\"."),
+            "I can find places to stay from Zovia listings. Tell me the city, your monthly budget and what you need, for example \"PG in Bengaluru under ₹8000 with food and Wi-Fi\"."),
         follow_up_question: guidance ? null : "Which city are you looking in, and what's your monthly budget?",
       },
     };
@@ -209,7 +209,7 @@ async function basicReply(
     searched: { filters, total: 0 },
     reply: {
       ...base,
-      message: `${prefix}There are no listings for ${wanted} on ZUVIO yet, and nothing close in ${cityName} either.`,
+      message: `${prefix}There are no listings for ${wanted} on Zovia yet, and nothing close in ${cityName} either.`,
       follow_up_question: "Would you like to try another city or a different budget?",
       search_query: toQuery(filters),
     },

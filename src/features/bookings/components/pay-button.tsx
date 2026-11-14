@@ -48,7 +48,7 @@ export function PayButton({ bookingId, prefill }: { bookingId: string; prefill?:
     try {
       const order = await apiFetch<PaymentOrder>(`/bookings/${bookingId}/payment-order`, { method: "POST" });
       if (order.status === "not_configured") {
-        setMessage({ tone: "info", text: "Online payment is not set up on ZUVIO yet. The owner can still see your accepted booking." });
+        setMessage({ tone: "info", text: "Online payment is not set up on Zovia yet. The owner can still see your accepted booking." });
         setBusy(false);
         return;
       }
@@ -62,7 +62,7 @@ export function PayButton({ bookingId, prefill }: { bookingId: string; prefill?:
         order_id: order.order_id,
         amount: order.amount_paise,
         currency: order.currency,
-        name: "ZUVIO",
+        name: "Zovia",
         description: order.description,
         prefill,
         theme: { color: "#6D4AFF" },

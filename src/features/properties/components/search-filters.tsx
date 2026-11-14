@@ -219,7 +219,7 @@ export function SearchFilters({ cities, amenities }: { cities: CityOption[]; ame
         const lat = Math.round(position.coords.latitude * 1e5) / 1e5;
         const lng = Math.round(position.coords.longitude * 1e5) / 1e5;
         if (lat < 6 || lat > 38 || lng < 68 || lng > 98) {
-          toast.error("ZUVIO lists places in India only, and your location looks to be outside it.");
+          toast.error("Zovia lists places in India only, and your location looks to be outside it.");
           return;
         }
         void setFilters({ lat, lng, sort: "distance", page: null });

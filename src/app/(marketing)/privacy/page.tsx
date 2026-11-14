@@ -8,7 +8,7 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "Privacy policy",
   description:
-    "What ZUVIO collects, why, who can see it, and how to delete your account.",
+    "What Zovia collects, why, who can see it, and how to delete your account.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -80,7 +80,7 @@ export default function PrivacyPage() {
         <li><strong>Signed-in people with an active roommate profile</strong> can see other active roommate profiles in their candidate pool.</li>
         <li><strong>People you share a conversation with</strong> can see your profile details.</li>
         <li><strong>Owner contact details</strong> are not shown publicly. They are released to a signed-in person who asks to see them or sends an enquiry, and we record that request.</li>
-        <li><strong>Your e-mail address, phone number and date of birth</strong> are visible only to you and to ZUVIO staff who need them to support or moderate the service.</li>
+        <li><strong>Your e-mail address, phone number and date of birth</strong> are visible only to you and to Zovia staff who need them to support or moderate the service.</li>
         <li><strong>Verification documents</strong> are stored privately and are visible only to you and to staff reviewing them.</li>
       </ul>
 
@@ -112,7 +112,7 @@ export default function PrivacyPage() {
       </ul>
 
       <h2 id="service-providers">Service providers</h2>
-      <p>We use a small number of providers to run ZUVIO. They process data on our behalf:</p>
+      <p>We use a small number of providers to run Zovia. They process data on our behalf:</p>
       <ul>
         <li>Database, authentication and file storage.</li>
         <li>Web hosting.</li>

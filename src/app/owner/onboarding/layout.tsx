@@ -8,7 +8,7 @@ export default function OwnerOnboardingLayout({ children }: LayoutProps<"/owner/
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="px-4 pt-6 sm:px-8">
-        <Link href={routes.home} aria-label="ZUVIO home" className="inline-flex rounded-md text-foreground">
+        <Link href={routes.home} aria-label="Zovia home" className="inline-flex rounded-md text-foreground">
           <Logo />
         </Link>
       </header>

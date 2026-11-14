@@ -124,7 +124,7 @@ export async function apiFetchWithMeta<T, M extends ApiMeta = ApiMeta>(
     if (cause instanceof DOMException && cause.name === "AbortError") throw cause;
     throw new ApiError({
       code: "network",
-      message: "We could not reach ZUVIO. Check your connection and try again.",
+      message: "We could not reach Zovia. Check your connection and try again.",
       status: 0,
       cause,
     });

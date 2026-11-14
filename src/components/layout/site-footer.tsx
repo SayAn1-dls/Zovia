@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Logo } from "@/components/brand/logo";
 import { CookieSettingsButton } from "@/components/consent/cookie-consent";
+import { InstallAppButton } from "@/components/pwa/install-app";
 import { WhatsAppSupportButton } from "@/components/whatsapp/whatsapp-buttons";
 import { footerNav, routes } from "@/lib/navigation";
 import { site } from "@/lib/site";
@@ -20,13 +21,14 @@ export function SiteFooter() {
       <div className="mx-auto w-full max-w-6xl px-5 pt-14 pb-10 sm:px-8 sm:pt-16">
         <div className="grid gap-12 lg:grid-cols-[1.3fr_2fr]">
           <div>
-            <Link href={routes.home} aria-label="ZUVIO home" className="inline-flex h-11 items-center rounded-lg">
+            <Link href={routes.home} aria-label="Zovia home" className="inline-flex h-11 items-center rounded-lg">
               <Logo size="md" />
             </Link>
             <p className="mt-3 max-w-xs text-[0.9375rem] leading-relaxed text-muted-foreground">
               {site.tagline}
             </p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
+              <InstallAppButton />
               <WhatsAppSupportButton variant="inverse" size="lg" />
               {site.supportEmail ? (
                 <a href={`mailto:${site.supportEmail}`} className={linkClass}>
@@ -61,7 +63,7 @@ export function SiteFooter() {
 
         <div className="mt-12 flex flex-col gap-2 border-t pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {site.name}. Made in India.</p>
-          <p>A match or an enquiry on ZUVIO is never a booking.</p>
+          <p>A match or an enquiry on Zovia is never a booking.</p>
         </div>
       </div>
     </footer>

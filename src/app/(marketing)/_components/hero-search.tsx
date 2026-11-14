@@ -6,8 +6,8 @@ import { useId, useState } from "react";
 
 import { buttonVariants } from "@/components/ui/button";
 import { formatINRCompact } from "@/lib/format";
-import { searchHref } from "@/lib/navigation";
-import { launchCities } from "@/lib/site";
+import { CATALOG_CITIES } from "@/features/catalog/cities";
+import { dynamicRoutes, searchHref, withQuery } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 /** Monthly budget bands (integer INR). Labels are derived, not hand-typed. */
@@ -26,7 +26,7 @@ function bandLabel(band: (typeof budgetBands)[number]): string {
 
 /**
  * Hero search bar: pick a city and (optionally) a monthly budget, then go to
- * /search with those filters in the URL. The submit control is a real link,
+ * that city's PG page (or /search for any city) with the budget in the URL. The submit control is a real link,
  * so it can be opened in a new tab and works with assistive tech.
  */
 export function HeroSearch() {
@@ -35,11 +35,10 @@ export function HeroSearch() {
   const [bandId, setBandId] = useState<string | null>(null);
   const band = budgetBands.find((entry) => entry.id === bandId);
 
-  const href = searchHref({
-    city: city || null,
-    budget_min: band?.budget_min ?? null,
-    budget_max: band?.budget_max ?? null,
-  });
+  // A chosen city opens its PG page (filters, photos, map); "Any city" searches everywhere.
+  const href = city
+    ? withQuery(dynamicRoutes.city(city), { budget: band?.budget_max ?? null })
+    : searchHref({ budget_min: band?.budget_min ?? null, budget_max: band?.budget_max ?? null });
 
   return (
     <div className="rounded-3xl border border-foreground bg-card p-2.5 sm:p-3">
@@ -58,7 +57,7 @@ export function HeroSearch() {
             )}
           >
             <option value="">Any city</option>
-            {launchCities.map((entry) => (
+            {CATALOG_CITIES.map((entry) => (
               <option key={entry.slug} value={entry.slug}>
                 {entry.name}
               </option>

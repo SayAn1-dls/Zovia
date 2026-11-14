@@ -8,12 +8,20 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { Pagination } from "@/components/pagination";
 import { buttonVariants } from "@/components/ui/button";
 import { INDIA_CENTER } from "@/features/locations/components/location-picker";
-import { MapView, type MapMarker } from "@/features/locations/components/map-view";
-import { formatINRCompact, pluralize } from "@/lib/format";
+import {
+  MapPanel,
+  type MapPanelItem,
+} from "@/features/locations/components/map-panel";
+import { pluralize } from "@/lib/format";
 import { dynamicRoutes, routes, withQuery } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-import { searchFiltersToQuery, type SearchFilters, type SearchResponse } from "../schemas";
+import {
+  PROPERTY_TYPE_LABELS,
+  searchFiltersToQuery,
+  type SearchFilters,
+  type SearchResponse,
+} from "../schemas";
 import { PropertyCard } from "./property-card";
 import { useSearchTransition } from "./search-transition";
 
@@ -38,13 +46,19 @@ function useIsDesktop(): boolean {
  * Results grid + price map. Desktop shows both side by side; phones switch between list and
  * map. Old results stay (dimmed) while a new page loads.
  */
-export function SearchResultsView({ response, filters }: { response: SearchResponse; filters: SearchFilters }) {
+export function SearchResultsView({
+  response,
+  filters,
+}: {
+  response: SearchResponse;
+  filters: SearchFilters;
+}) {
   const { isPending } = useSearchTransition();
   const [view, setView] = useState<"list" | "map">("list");
   const isDesktop = useIsDesktop();
   const totalPages = Math.max(1, Math.ceil(response.total / response.limit));
 
-  const markers = useMemo<MapMarker[]>(
+  const markers = useMemo<MapPanelItem[]>(
     () =>
       response.items.flatMap((item) =>
         item.lat !== null && item.lng !== null
@@ -53,9 +67,20 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
                 id: item.id,
                 lat: item.lat,
                 lng: item.lng,
-                label: item.price_from !== null ? formatINRCompact(item.price_from) : "—",
                 title: item.title,
+                place: [item.locality, item.city].filter(Boolean).join(", "),
+                price: item.price_from,
+                photo: item.cover_url
+                  ? { src: item.cover_url, alt: item.title }
+                  : null,
                 href: dynamicRoutes.property(item.slug),
+                tags: [
+                  PROPERTY_TYPE_LABELS[item.property_type],
+                  ...(item.listing_mode === "per_bed" &&
+                  item.available_beds !== null
+                    ? [`${item.available_beds} beds free`]
+                    : []),
+                ],
               },
             ]
           : [],
@@ -70,9 +95,14 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
   const heading = `${pluralize(response.total, "place")}${place ? ` in ${place}` : ""}`;
 
   if (response.total === 0 || response.items.length === 0) {
-    const clearHref = withQuery(routes.search, { city: response.city?.slug ?? filters.city });
+    const clearHref = withQuery(routes.search, {
+      city: response.city?.slug ?? filters.city,
+    });
     return (
-      <div className={cn("transition-opacity", isPending && "opacity-60")} aria-busy={isPending}>
+      <div
+        className={cn("transition-opacity", isPending && "opacity-60")}
+        aria-busy={isPending}
+      >
         <EmptyState
           icon={SearchX}
           title="No listings match yet"
@@ -97,7 +127,11 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
         <h2 className="text-lg font-semibold" aria-live="polite">
           {heading}
         </h2>
-        <div className="flex rounded-full bg-muted p-1 lg:hidden" role="group" aria-label="Show results as">
+        <div
+          className="flex rounded-full bg-muted p-1 lg:hidden"
+          role="group"
+          aria-label="Show results as"
+        >
           {(
             [
               { value: "list", label: "List", icon: List },
@@ -122,7 +156,13 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_26rem]">
-        <div className={cn("transition-opacity", isPending && "opacity-60", view === "map" && "hidden lg:block")}>
+        <div
+          className={cn(
+            "transition-opacity",
+            isPending && "opacity-60",
+            view === "map" && "hidden lg:block",
+          )}
+        >
           <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2">
             {response.items.map((item, index) => (
               <li key={item.id} className="flex">
@@ -136,23 +176,30 @@ export function SearchResultsView({ response, filters }: { response: SearchRespo
             className="mt-8"
             page={response.page}
             totalPages={totalPages}
-            hrefForPage={(page) => withQuery(routes.search, searchFiltersToQuery({ ...filters, page }))}
+            hrefForPage={(page) =>
+              withQuery(
+                routes.search,
+                searchFiltersToQuery({ ...filters, page }),
+              )
+            }
           />
         </div>
         <div className={cn(view === "list" && "hidden lg:block")}>
           <div className="lg:sticky lg:top-24">
             {isDesktop || view === "map" ? (
-            <MapView
-              center={center}
-              zoom={zoom}
-              markers={markers}
-              fitToMarkers
-              label={`Map of ${heading}`}
-              className="h-[calc(100dvh-16rem)] min-h-80 lg:h-[calc(100dvh-8rem)]"
-            />
+              <MapPanel
+                items={markers}
+                center={center}
+                zoom={zoom}
+                label={`Map of ${heading}`}
+                className="h-[calc(100dvh-16rem)] min-h-96 lg:h-[calc(100dvh-8rem)]"
+              />
             ) : null}
             <p className="mt-2 text-xs text-muted-foreground">
-              Pins show the lowest monthly rent. {markers.length < response.items.length ? "Some listings have no map pin." : ""}
+              Pins show the lowest monthly rent.{" "}
+              {markers.length < response.items.length
+                ? "Some listings have no map pin."
+                : ""}
             </p>
           </div>
         </div>

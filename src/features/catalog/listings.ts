@@ -1,6 +1,10 @@
 import { roomPhotos, type RoomPhotoKey } from "@/lib/photos";
 
-import type { PropertyType, SearchResultItem, TenantGender } from "@/features/properties/schemas";
+import type {
+  PropertyType,
+  SearchResultItem,
+  TenantGender,
+} from "@/features/properties/schemas";
 
 import { CATALOG_CITIES, getCatalogCity, type CatalogCity } from "./cities";
 
@@ -63,13 +67,20 @@ export const AMENITY_LABELS: Record<AmenityCode, string> = {
   common_lounge: "Common lounge",
 };
 
-export const KIND_LABELS: Record<CatalogKind, string> = { pg: "PG", hostel: "Hostel", co_living: "Co-living" };
+export const KIND_LABELS: Record<CatalogKind, string> = {
+  pg: "PG",
+  hostel: "Hostel",
+  co_living: "Co-living",
+};
 export const SHARING_LABELS: Record<SharingType, string> = {
   single: "Single room",
   double: "Double sharing",
   triple: "Triple sharing",
 };
-export const DIET_LABELS: Record<Diet, string> = { veg: "Pure veg", veg_nonveg: "Veg & non-veg" };
+export const DIET_LABELS: Record<Diet, string> = {
+  veg: "Pure veg",
+  veg_nonveg: "Veg & non-veg",
+};
 export const SMOKING_LABELS: Record<SmokingRule, string> = {
   allowed: "Smoking allowed",
   outside_only: "Smoking only in the open area",
@@ -114,7 +125,12 @@ export type CatalogListing = {
   price_from: number;
   total_beds: number;
   available_beds: number;
-  food: { provided: boolean; diet: Diet | null; meals: string[]; kitchen_access: boolean };
+  food: {
+    provided: boolean;
+    diet: Diet | null;
+    meals: string[];
+    kitchen_access: boolean;
+  };
   rules: {
     smoking: SmokingRule;
     alcohol: boolean;
@@ -150,10 +166,12 @@ function rng(seed: string) {
   };
   return {
     next,
-    int: (min: number, max: number) => min + Math.floor(next() * (max - min + 1)),
-    pick: <T,>(items: readonly T[]): T => items[Math.floor(next() * items.length)]!,
+    int: (min: number, max: number) =>
+      min + Math.floor(next() * (max - min + 1)),
+    pick: <T>(items: readonly T[]): T =>
+      items[Math.floor(next() * items.length)]!,
     chance: (p: number) => next() < p,
-    shuffle: <T,>(items: readonly T[]): T[] => {
+    shuffle: <T>(items: readonly T[]): T[] => {
       const copy = [...items];
       for (let i = copy.length - 1; i > 0; i--) {
         const j = Math.floor(next() * (i + 1));
@@ -230,7 +248,13 @@ const ROOM_PHOTOS: RoomPhotoKey[] = [
   "room-budget",
   "room-dorm-six",
 ];
-const COMMON_PHOTOS: RoomPhotoKey[] = ["kitchen-plant", "kitchen-fitted", "kitchen-apartment", "lounge-plants", "lounge-modern"];
+const COMMON_PHOTOS: RoomPhotoKey[] = [
+  "kitchen-plant",
+  "kitchen-fitted",
+  "kitchen-apartment",
+  "lounge-plants",
+  "lounge-modern",
+];
 
 const MEAL_SETS = [
   ["Breakfast", "Dinner"],
@@ -251,24 +275,49 @@ const VARIANTS: Variant[] = [
 ];
 
 function propertyType({ kind, gender }: Variant): PropertyType {
-  if (kind === "pg") return gender === "male" ? "boys_pg" : gender === "female" ? "girls_pg" : "pg";
+  if (kind === "pg")
+    return gender === "male"
+      ? "boys_pg"
+      : gender === "female"
+        ? "girls_pg"
+        : "pg";
   return kind;
 }
 
 function titleFor(stem: string, { kind, gender }: Variant): string {
   if (kind === "co_living") return `${stem} Co-living`;
-  if (kind === "hostel") return `${stem} ${gender === "female" ? "Girls" : "Boys"} Hostel`;
-  return `${stem} ${gender === "female" ? "Girls" : gender === "male" ? "Boys" : ""} PG`.replace("  ", " ");
+  if (kind === "hostel")
+    return `${stem} ${gender === "female" ? "Girls" : "Boys"} Hostel`;
+  return `${stem} ${gender === "female" ? "Girls" : gender === "male" ? "Boys" : ""} PG`.replace(
+    "  ",
+    " ",
+  );
 }
 
-const STREETS = ["Main Road", "Cross Road", "1st Main", "2nd Cross", "Link Road", "Station Road", "Market Road", "Park Street"];
+const STREETS = [
+  "Main Road",
+  "Cross Road",
+  "1st Main",
+  "2nd Cross",
+  "Link Road",
+  "Station Road",
+  "Market Road",
+  "Park Street",
+];
 
-function buildListing(city: CatalogCity, localityIndex: number, slot: number, usedStems: Set<string>): CatalogListing {
+function buildListing(
+  city: CatalogCity,
+  localityIndex: number,
+  slot: number,
+  usedStems: Set<string>,
+): CatalogListing {
   const locality = city.localities[localityIndex]!;
   const r = rng(`${city.slug}|${locality.name}|${slot}`);
-  const variant = VARIANTS[(localityIndex * 2 + slot + hash(city.slug)) % VARIANTS.length]!;
+  const variant =
+    VARIANTS[(localityIndex * 2 + slot + hash(city.slug)) % VARIANTS.length]!;
   let stem = r.pick(NAME_STEMS);
-  while (usedStems.has(stem)) stem = NAME_STEMS[(NAME_STEMS.indexOf(stem) + 1) % NAME_STEMS.length]!;
+  while (usedStems.has(stem))
+    stem = NAME_STEMS[(NAME_STEMS.indexOf(stem) + 1) % NAME_STEMS.length]!;
   usedStems.add(stem);
 
   const title = titleFor(stem, variant);
@@ -277,15 +326,28 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
   // About 150–700 m from the neighbourhood centre, so pins don't stack.
   const angle = r.next() * Math.PI * 2;
   const metres = 150 + r.next() * 550;
-  const lat = Math.round((locality.lat + (Math.cos(angle) * metres) / 111_000) * 1e5) / 1e5;
-  const lng =
-    Math.round((locality.lng + (Math.sin(angle) * metres) / (111_000 * Math.cos((locality.lat * Math.PI) / 180))) * 1e5) /
+  const lat =
+    Math.round((locality.lat + (Math.cos(angle) * metres) / 111_000) * 1e5) /
     1e5;
+  const lng =
+    Math.round(
+      (locality.lng +
+        (Math.sin(angle) * metres) /
+          (111_000 * Math.cos((locality.lat * Math.PI) / 180))) *
+        1e5,
+    ) / 1e5;
 
-  const base = (SINGLE_RENT[city.slug] ?? TIER_2_SINGLE_RENT) * (0.85 + r.next() * 0.4) * (variant.kind === "co_living" ? 1.2 : 1);
+  const base =
+    (SINGLE_RENT[city.slug] ?? TIER_2_SINGLE_RENT) *
+    (0.85 + r.next() * 0.4) *
+    (variant.kind === "co_living" ? 1.2 : 1);
   const premium = variant.kind === "co_living" || r.chance(0.45);
   const sharingTypes: SharingType[] =
-    variant.kind === "co_living" ? ["single", "double"] : variant.kind === "hostel" ? ["double", "triple"] : ["single", "double", "triple"];
+    variant.kind === "co_living"
+      ? ["single", "double"]
+      : variant.kind === "hostel"
+        ? ["double", "triple"]
+        : ["single", "double", "triple"];
   const sharing: SharingOption[] = sharingTypes.map((type) => {
     const factor = type === "single" ? 1 : type === "double" ? 0.72 : 0.58;
     const rent = roundTo(base * factor, 500);
@@ -298,10 +360,15 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
       attached_bathroom: premium || type === "single",
     };
   });
-  if (sharing.every((option) => option.beds_left === 0)) sharing[sharing.length - 1]!.beds_left = 1;
+  if (sharing.every((option) => option.beds_left === 0))
+    sharing[sharing.length - 1]!.beds_left = 1;
 
   const provided = variant.kind !== "co_living" || r.chance(0.5);
-  const diet: Diet | null = provided ? (r.chance(0.4) ? "veg" : "veg_nonveg") : null;
+  const diet: Diet | null = provided
+    ? r.chance(0.4)
+      ? "veg"
+      : "veg_nonveg"
+    : null;
   const food = {
     provided,
     diet,
@@ -311,11 +378,25 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
 
   const strict = variant.kind === "hostel" || variant.gender === "female";
   const rules = {
-    smoking: (variant.kind === "co_living" ? r.pick(["allowed", "outside_only"] as const) : strict ? "not_allowed" : r.pick(["outside_only", "not_allowed"] as const)) as SmokingRule,
+    smoking: (variant.kind === "co_living"
+      ? r.pick(["allowed", "outside_only"] as const)
+      : strict
+        ? "not_allowed"
+        : r.pick(["outside_only", "not_allowed"] as const)) as SmokingRule,
     alcohol: variant.kind === "co_living" && r.chance(0.6),
-    non_veg_cooking: diet !== "veg" && (food.kitchen_access ? r.chance(0.7) : false),
-    guests: (variant.kind === "co_living" ? "allowed" : strict ? "not_allowed" : "day_only") as GuestRule,
-    gate_closes: variant.kind === "co_living" ? null : strict ? r.pick(["9:30 pm", "10:00 pm"]) : r.pick(["10:30 pm", "11:00 pm", "11:30 pm"]),
+    non_veg_cooking:
+      diet !== "veg" && (food.kitchen_access ? r.chance(0.7) : false),
+    guests: (variant.kind === "co_living"
+      ? "allowed"
+      : strict
+        ? "not_allowed"
+        : "day_only") as GuestRule,
+    gate_closes:
+      variant.kind === "co_living"
+        ? null
+        : strict
+          ? r.pick(["9:30 pm", "10:00 pm"])
+          : r.pick(["10:30 pm", "11:00 pm", "11:30 pm"]),
     pets: variant.kind === "co_living" && r.chance(0.3),
     notice_days: r.pick([15, 30, 30]),
   };
@@ -349,15 +430,36 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
     }
   });
 
-  const total_beds = r.int(variant.kind === "hostel" ? 40 : 12, variant.kind === "hostel" ? 90 : 36);
-  const available_beds = sharing.reduce((sum, option) => sum + option.beds_left, 0);
-  const photoKeys = [...r.shuffle(ROOM_PHOTOS).slice(0, 3), ...r.shuffle(COMMON_PHOTOS).slice(0, 2)];
+  const total_beds = r.int(
+    variant.kind === "hostel" ? 40 : 12,
+    variant.kind === "hostel" ? 90 : 36,
+  );
+  const available_beds = sharing.reduce(
+    (sum, option) => sum + option.beds_left,
+    0,
+  );
+  const photoKeys = [
+    ...r.shuffle(ROOM_PHOTOS).slice(0, 3),
+    ...r.shuffle(COMMON_PHOTOS).slice(0, 2),
+  ];
   const kindLabel = KIND_LABELS[variant.kind];
   const best_for = r.pick(
-    variant.kind === "hostel" ? ["Students", "Students and interns"] : ["Working professionals", "Students and working professionals", "Students"],
+    variant.kind === "hostel"
+      ? ["Students", "Students and interns"]
+      : [
+          "Working professionals",
+          "Students and working professionals",
+          "Students",
+        ],
   );
-  const furnishing = premium || r.chance(0.6) ? "fully_furnished" : "semi_furnished";
-  const genderPhrase = variant.gender === "male" ? "for men" : variant.gender === "female" ? "for women" : "for men and women";
+  const furnishing =
+    premium || r.chance(0.6) ? "fully_furnished" : "semi_furnished";
+  const genderPhrase =
+    variant.gender === "male"
+      ? "for men"
+      : variant.gender === "female"
+        ? "for women"
+        : "for men and women";
   const foodPhrase = provided
     ? `${food.meals.length === 3 ? "Three" : "Two"} home-style ${diet === "veg" ? "vegetarian " : ""}meals a day are included in the rent (${food.meals.join(", ").toLowerCase()}).`
     : "Meals aren't included; residents share a fully equipped kitchen.";
@@ -376,7 +478,10 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
     address: `${r.int(3, 240)}, ${r.pick(STREETS)}, ${locality.name}, ${city.name}, ${city.state}`,
     lat,
     lng,
-    photos: photoKeys.map((key) => ({ url: roomPhotos[key].src, alt: roomPhotos[key].alt })),
+    photos: photoKeys.map((key) => ({
+      url: roomPhotos[key].src,
+      alt: roomPhotos[key].alt,
+    })),
     about: [
       `${title} is a ${furnishing === "fully_furnished" ? "fully furnished" : "semi-furnished"} ${kindLabel.toLowerCase()} ${genderPhrase} in ${locality.name}, ${city.name}, popular with ${best_for.toLowerCase()}.`,
       foodPhrase,
@@ -386,7 +491,9 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
     highlights: [
       provided ? `${DIET_LABELS[diet!]} meals included` : "Shared kitchen",
       sharing.some((s) => s.ac) ? "AC rooms" : "Airy non-AC rooms",
-      amenities.includes("housekeeping") ? "Daily housekeeping" : "Weekly cleaning",
+      amenities.includes("housekeeping")
+        ? "Daily housekeeping"
+        : "Weekly cleaning",
       rules.gate_closes ? `Gate closes ${rules.gate_closes}` : "No curfew",
     ],
     best_for,
@@ -403,15 +510,23 @@ function buildListing(city: CatalogCity, localityIndex: number, slot: number, us
 
 function buildCity(city: CatalogCity): CatalogListing[] {
   const used = new Set<string>();
-  return city.localities.flatMap((_, index) => [0, 1].map((slot) => buildListing(city, index, slot, used)));
+  return city.localities.flatMap((_, index) =>
+    [0, 1].map((slot) => buildListing(city, index, slot, used)),
+  );
 }
 
-let cache: { all: CatalogListing[]; bySlug: Map<string, CatalogListing> } | null = null;
+let cache: {
+  all: CatalogListing[];
+  bySlug: Map<string, CatalogListing>;
+} | null = null;
 
 function catalogue() {
   if (!cache) {
     const all = CATALOG_CITIES.flatMap(buildCity);
-    cache = { all, bySlug: new Map(all.map((listing) => [listing.slug, listing])) };
+    cache = {
+      all,
+      bySlug: new Map(all.map((listing) => [listing.slug, listing])),
+    };
   }
   return cache;
 }
@@ -424,7 +539,9 @@ export function getCatalogListing(slug: string): CatalogListing | null {
 
 export function catalogListingsForCity(citySlug: string): CatalogListing[] {
   const city = getCatalogCity(citySlug);
-  return city ? catalogue().all.filter((listing) => listing.city_slug === city.slug) : [];
+  return city
+    ? catalogue().all.filter((listing) => listing.city_slug === city.slug)
+    : [];
 }
 
 export function allCatalogListings(): CatalogListing[] {
@@ -432,10 +549,17 @@ export function allCatalogListings(): CatalogListing[] {
 }
 
 /** Other places in the same city, nearest neighbourhood first. */
-export function similarCatalogListings(listing: CatalogListing, count = 3): CatalogListing[] {
+export function similarCatalogListings(
+  listing: CatalogListing,
+  count = 3,
+): CatalogListing[] {
   return catalogListingsForCity(listing.city_slug)
     .filter((other) => other.slug !== listing.slug)
-    .sort((a, b) => Math.hypot(a.lat - listing.lat, a.lng - listing.lng) - Math.hypot(b.lat - listing.lat, b.lng - listing.lng))
+    .sort(
+      (a, b) =>
+        Math.hypot(a.lat - listing.lat, a.lng - listing.lng) -
+        Math.hypot(b.lat - listing.lat, b.lng - listing.lng),
+    )
     .slice(0, count);
 }
 
@@ -447,6 +571,16 @@ export type CatalogSearch = {
   budget_min?: number;
   budget_max?: number;
   food?: boolean;
+  /** "veg": pure-veg meals only; "nonveg": non-veg served or allowed in the kitchen. */
+  diet?: "veg" | "nonveg";
+  /** "allowed": smoking allowed somewhere on the premises; "free": a smoke-free building. */
+  smoking?: "allowed" | "free";
+  sharing?: SharingType;
+  /** Amenity codes that must all be present (AC also counts when a room type has AC). */
+  amenities?: readonly string[];
+  available_only?: boolean;
+  /** Exact neighbourhood name, e.g. "Kothrud". */
+  locality?: string;
 };
 
 const TYPE_TO_KIND: Partial<Record<PropertyType, CatalogKind>> = {
@@ -467,16 +601,82 @@ export function searchCatalog(filters: CatalogSearch): CatalogListing[] {
   return catalogue().all.filter((listing) => {
     if (city && listing.city_slug !== city.slug) return false;
     if (filters.types && filters.types.length > 0) {
-      const matches = filters.types.some((type) =>
-        type === listing.property_type || (type === "pg" ? listing.kind === "pg" : TYPE_TO_KIND[type] === listing.kind && !type.endsWith("_pg")),
+      const matches = filters.types.some(
+        (type) =>
+          type === listing.property_type ||
+          (type === "pg"
+            ? listing.kind === "pg"
+            : TYPE_TO_KIND[type] === listing.kind && !type.endsWith("_pg")),
       );
       if (!matches) return false;
     }
-    if (filters.gender && listing.gender !== "any" && listing.gender !== filters.gender) return false;
-    if (filters.budget_min !== undefined && listing.price_from < filters.budget_min) return false;
-    if (filters.budget_max !== undefined && listing.price_from > filters.budget_max) return false;
+    if (
+      filters.gender &&
+      listing.gender !== "any" &&
+      listing.gender !== filters.gender
+    )
+      return false;
+    if (
+      filters.budget_min !== undefined &&
+      listing.price_from < filters.budget_min
+    )
+      return false;
+    if (
+      filters.budget_max !== undefined &&
+      listing.price_from > filters.budget_max
+    )
+      return false;
     if (filters.food && !listing.food.provided) return false;
-    if (q && ![listing.title, listing.locality, listing.city].some((field) => field.toLowerCase().includes(q))) return false;
+    if (filters.diet === "veg" && listing.food.diet !== "veg") return false;
+    if (
+      filters.diet === "nonveg" &&
+      listing.food.diet !== "veg_nonveg" &&
+      !listing.rules.non_veg_cooking
+    )
+      return false;
+    if (
+      filters.smoking === "allowed" &&
+      listing.rules.smoking === "not_allowed"
+    )
+      return false;
+    if (filters.smoking === "free" && listing.rules.smoking !== "not_allowed")
+      return false;
+    const options = filters.sharing
+      ? listing.sharing.filter((option) => option.type === filters.sharing)
+      : listing.sharing;
+    if (options.length === 0) return false;
+    if (
+      filters.sharing &&
+      filters.budget_max !== undefined &&
+      !options.some((option) => option.rent <= filters.budget_max!)
+    )
+      return false;
+    if (
+      filters.available_only &&
+      !options.some((option) => option.beds_left > 0)
+    )
+      return false;
+    for (const code of filters.amenities ?? []) {
+      const has =
+        (listing.amenities as readonly string[]).includes(code) ||
+        (code === "ac" && options.some((option) => option.ac)) ||
+        (code === "attached_bathroom" &&
+          options.some((option) => option.attached_bathroom)) ||
+        (code === "geyser" && listing.amenities.includes("hot_water"));
+      if (!has) return false;
+    }
+    if (
+      filters.locality &&
+      listing.locality.toLowerCase() !== filters.locality.toLowerCase()
+    )
+      return false;
+    if (
+      q &&
+      ![listing.title, listing.locality, listing.city].some((field) =>
+        field.toLowerCase().includes(q),
+      )
+    )
+      return false;
     return true;
   });
 }
@@ -515,6 +715,8 @@ export function isCatalogId(id: string): boolean {
 }
 
 /** Google Maps directions to a listing's pin (opens the app on phones). */
-export function directionsUrl(listing: Pick<CatalogListing, "lat" | "lng">): string {
+export function directionsUrl(
+  listing: Pick<CatalogListing, "lat" | "lng">,
+): string {
   return `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`;
 }

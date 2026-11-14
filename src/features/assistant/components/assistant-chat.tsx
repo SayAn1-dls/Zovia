@@ -27,9 +27,10 @@ type Turn =
   | { id: number; role: "assistant"; reply: AssistantReply };
 
 const SUGGESTIONS = [
-  "PG in Bengaluru under ₹8000 with food and Wi-Fi",
-  "Girls hostel in Pune under ₹10k",
-  "1 BHK in Hyderabad between ₹12000 and ₹18000",
+  "Pure veg PG in Pune under ₹10k, no smoking",
+  "Cheapest girls PG in Kothrud",
+  "Average PG rent in Bengaluru?",
+  "Single room with AC in Gurugram under ₹20k",
   "What should I check when I visit a PG?",
   "How much security deposit is normal?",
 ];
@@ -217,7 +218,7 @@ export function AssistantChat({ initialMode }: { initialMode: AssistantMode }) {
           onKeyDown={onKeyDown}
           maxLength={MAX_MESSAGE_CHARS}
           rows={1}
-          placeholder="e.g. PG near Koramangala under ₹9000 with food"
+          placeholder="e.g. Veg PG in Koramangala under ₹12k with AC"
           className="max-h-40 min-h-11 resize-none border-0 bg-transparent py-2.5 shadow-none focus-visible:ring-0"
           aria-describedby="assistant-input-hint"
         />

@@ -36,31 +36,82 @@ type MapViewProps = {
   className?: string;
   /** Accessible description of what the map shows. */
   label: string;
+  /** With a click handler, pins are buttons (no navigation) and the handler decides what to show. */
   onMarkerClick?: (id: string) => void;
+  /** Pin drawn highlighted and above the others (e.g. the card being hovered). */
+  activeId?: string | null;
+  /** Pin the map glides to whenever it changes. */
+  focusId?: string | null;
 };
 
-function markerElement(marker: MapMarker, onClick?: (id: string) => void): HTMLElement {
-  const el = document.createElement(marker.href ? "a" : "button");
-  if (marker.href) (el as HTMLAnchorElement).href = marker.href;
+function markerElement(
+  marker: MapMarker,
+  onClick?: (id: string) => void,
+): HTMLElement {
+  const el: HTMLElement = document.createElement(marker.href && !onClick ? "a" : "button");
+  if (marker.href && !onClick) (el as HTMLAnchorElement).href = marker.href;
   else (el as HTMLButtonElement).type = "button";
   el.setAttribute("aria-label", marker.title ?? marker.label ?? "Location");
   if (marker.title) el.title = marker.title;
   el.className = cn(
-    "flex items-center justify-center rounded-full border-2 border-white font-semibold shadow-md outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    "flex cursor-pointer items-center justify-center rounded-full border-2 border-white font-semibold shadow-md transition-[scale,background-color] duration-150 outline-none hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring data-[active=true]:scale-125 data-[active=true]:bg-ink data-[active=true]:text-lime",
     marker.label ? "h-7 px-2.5 text-xs" : "size-4",
-    marker.tone === "muted" ? "bg-foreground/70 text-white" : "bg-primary text-primary-foreground",
+    marker.tone === "muted"
+      ? "bg-foreground/70 text-white"
+      : "bg-primary text-primary-foreground",
   );
   if (marker.label) el.textContent = marker.label;
-  if (onClick) el.addEventListener("click", () => onClick(marker.id));
+  el.dataset.markerId = marker.id;
+  if (onClick) {
+    // MapLibre captures the pointer on press, so the release (and the click) lands on the map, not
+    // the pin. Treat press + release without dragging as a tap; keyboard activation still clicks.
+    el.addEventListener("pointerdown", (down: PointerEvent) => {
+      down.stopPropagation();
+      window.addEventListener(
+        "pointerup",
+        (up: PointerEvent) => {
+          if (
+            Math.hypot(up.clientX - down.clientX, up.clientY - down.clientY) < 6
+          )
+            onClick(marker.id);
+        },
+        { once: true },
+      );
+    });
+    el.addEventListener("click", (event: MouseEvent) => {
+      event.stopPropagation();
+      if (event.detail === 0) onClick(marker.id);
+    });
+  }
   return el;
 }
 
-export function MapView({ center, zoom = 13, markers = [], fitToMarkers = false, className, label, onMarkerClick }: MapViewProps) {
+function highlight(markers: Marker[], activeId: string | null) {
+  for (const marker of markers) {
+    const el = marker.getElement();
+    const active = el.dataset.markerId === activeId;
+    el.dataset.active = String(active);
+    el.style.zIndex = active ? "10" : "";
+  }
+}
+
+export function MapView({
+  center,
+  zoom = 13,
+  markers = [],
+  fitToMarkers = false,
+  className,
+  label,
+  onMarkerClick,
+  activeId = null,
+  focusId = null,
+}: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const markerRefs = useRef<Marker[]>([]);
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false);
+  const activeRef = useRef(activeId);
 
   // Create the map once.
   useEffect(() => {
@@ -77,7 +128,10 @@ export function MapView({ center, zoom = 13, markers = [], fitToMarkers = false,
             attributionControl: { compact: true },
             cooperativeGestures: true,
           });
-          map.addControl(new maplibre.NavigationControl({ showCompass: false }), "top-right");
+          map.addControl(
+            new maplibre.NavigationControl({ showCompass: false }),
+            "top-right",
+          );
           map.on("load", () => setReady(true));
           mapRef.current = map;
         } catch {
@@ -107,8 +161,11 @@ export function MapView({ center, zoom = 13, markers = [], fitToMarkers = false,
       if (cancelled) return;
       for (const m of markerRefs.current) m.remove();
       markerRefs.current = markers.map((marker) =>
-        new maplibre.Marker({ element: markerElement(marker, onMarkerClick) }).setLngLat([marker.lng, marker.lat]).addTo(map),
+        new maplibre.Marker({ element: markerElement(marker, onMarkerClick) })
+          .setLngLat([marker.lng, marker.lat])
+          .addTo(map),
       );
+      highlight(markerRefs.current, activeRef.current);
       if (fitToMarkers && markers.length > 1) {
         const bounds = new maplibre.LngLatBounds();
         for (const marker of markers) bounds.extend([marker.lng, marker.lat]);
@@ -120,9 +177,34 @@ export function MapView({ center, zoom = 13, markers = [], fitToMarkers = false,
     };
   }, [markers, ready, fitToMarkers, onMarkerClick]);
 
+  // Highlight the active pin and lift it above its neighbours.
+  useEffect(() => {
+    activeRef.current = activeId;
+    highlight(markerRefs.current, activeId);
+  }, [activeId]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    const target = focusId
+      ? markers.find((marker) => marker.id === focusId)
+      : undefined;
+    if (!map || !ready || !target) return;
+    map.easeTo({
+      center: [target.lng, target.lat],
+      zoom: Math.max(map.getZoom(), 14),
+      duration: 600,
+    });
+  }, [focusId, markers, ready]);
+
   return (
-    <div role="region" aria-label={label} className={cn("relative overflow-hidden rounded-2xl bg-muted", className)}>
-      <div ref={containerRef} className="absolute inset-0" />
+    <div
+      role="region"
+      aria-label={label}
+      className={cn("relative overflow-hidden rounded-2xl bg-muted", className)}
+    >
+      {/* Inline position: maplibre-gl.css sets .maplibregl-map { position: relative } outside Tailwind's
+          layers, which would beat an `absolute` class and collapse the map to 0 px tall. */}
+      <div ref={containerRef} style={{ position: "absolute", inset: 0 }} />
       {failed ? (
         <p className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-muted-foreground">
           The map could not load on this device.

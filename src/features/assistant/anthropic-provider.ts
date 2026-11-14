@@ -23,7 +23,7 @@ const REQUEST_TIMEOUT_MS = 45_000;
 /** Models that accept the server-side refusal fallback (`fallbacks: "default"`) on the Claude API. */
 const FALLBACK_MODELS = new Set(["claude-sonnet-5-5", "claude-opus-5-5", "claude-opus-5", "claude-fable-5-1"]);
 
-export const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-5-5";
+export const DEFAULT_ANTHROPIC_MODEL = "claude-opus-5-5";
 
 export const PRESENT_RESULTS_DEFINITION: ToolDefinition = {
   name: PRESENT_RESULTS_TOOL,

@@ -39,8 +39,6 @@ export const site = {
   themeColor: "#f6f4ee",
   /** null when NEXT_PUBLIC_SUPPORT_EMAIL is unset: hide the e-mail, never invent one. */
   supportEmail: optional(process.env.NEXT_PUBLIC_SUPPORT_EMAIL),
-  /** Inbox that receives contact-form messages and visit requests (the developer's address by default). */
-  contactInbox: optional(process.env.NEXT_PUBLIC_CONTACT_INBOX) ?? "sayanbhattacharya2024@gmail.com",
   /** null when NEXT_PUBLIC_WHATSAPP_NUMBER is unset: the support button is hidden. */
   whatsappNumber: normaliseWhatsAppNumber(
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,

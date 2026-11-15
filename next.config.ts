@@ -56,6 +56,19 @@ const nextConfig: NextConfig = {
           isDev: process.env.NODE_ENV === "development",
         }),
       },
+      // Private areas and the API are never indexed by search engines.
+      ...[
+        "/admin/:path*",
+        "/owner/:path*",
+        "/api/:path*",
+        "/account/:path*",
+        "/settings/:path*",
+      ].map((source) => ({
+        source,
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+        ],
+      })),
     ];
   },
   turbopack: {

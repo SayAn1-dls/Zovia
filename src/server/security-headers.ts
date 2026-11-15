@@ -31,34 +31,72 @@ const GA_CONNECT = [
   "https://*.analytics.google.com",
   GTM,
 ];
-const GA_IMG = ["https://www.google-analytics.com", "https://*.google-analytics.com", GTM];
+const GA_IMG = [
+  "https://www.google-analytics.com",
+  "https://*.google-analytics.com",
+  GTM,
+];
 
 function httpOrigin(value: string | undefined): string | null {
   if (!value) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.origin : null;
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.origin
+      : null;
   } catch {
     return null;
   }
 }
 
-export function buildContentSecurityPolicy(options: SecurityHeaderOptions = {}): string {
+export function buildContentSecurityPolicy(
+  options: SecurityHeaderOptions = {},
+): string {
   const supabase = httpOrigin(options.supabaseUrl);
   const supabaseWs = supabase ? supabase.replace(/^http/, "ws") : null;
-  const siteIsHttps = httpOrigin(options.siteUrl)?.startsWith("https://") ?? false;
+  const siteIsHttps =
+    httpOrigin(options.siteUrl)?.startsWith("https://") ?? false;
   const list = (...sources: (string | null | false | undefined)[]) =>
     sources.filter((source): source is string => Boolean(source)).join(" ");
 
   const directives: [string, string][] = [
     ["default-src", "'self'"],
-    ["script-src", list("'self'", "'unsafe-inline'", options.isDev && "'unsafe-eval'", GTM, RAZORPAY_SCRIPT)],
+    [
+      "script-src",
+      list(
+        "'self'",
+        "'unsafe-inline'",
+        options.isDev && "'unsafe-eval'",
+        GTM,
+        RAZORPAY_SCRIPT,
+      ),
+    ],
     ["style-src", "'self' 'unsafe-inline'"],
-    ["img-src", list("'self'", "data:", "blob:", supabase, UNSPLASH, MAP_TILES, ...GA_IMG, ...RAZORPAY)],
+    [
+      "img-src",
+      list(
+        "'self'",
+        "data:",
+        "blob:",
+        supabase,
+        UNSPLASH,
+        MAP_TILES,
+        ...GA_IMG,
+        ...RAZORPAY,
+      ),
+    ],
     ["font-src", "'self' data:"],
     [
       "connect-src",
-      list("'self'", supabase, supabaseWs, MAP_TILES, "https://formsubmit.co", ...GA_CONNECT, ...RAZORPAY, options.isDev && "ws://localhost:* ws://127.0.0.1:*"),
+      list(
+        "'self'",
+        supabase,
+        supabaseWs,
+        MAP_TILES,
+        ...GA_CONNECT,
+        ...RAZORPAY,
+        options.isDev && "ws://localhost:* ws://127.0.0.1:*",
+      ),
     ],
     ["media-src", list("'self'", "blob:", supabase)],
     // MapLibre GL runs its tile workers from blob: URLs.
@@ -76,19 +114,34 @@ export function buildContentSecurityPolicy(options: SecurityHeaderOptions = {}):
   return policy.join("; ");
 }
 
-export function buildSecurityHeaders(options: SecurityHeaderOptions = {}): { key: string; value: string }[] {
+export function buildSecurityHeaders(
+  options: SecurityHeaderOptions = {},
+): { key: string; value: string }[] {
   return [
-    { key: "Content-Security-Policy", value: buildContentSecurityPolicy(options) },
+    {
+      key: "Content-Security-Policy",
+      value: buildContentSecurityPolicy(options),
+    },
     // Two years, subdomains, preload-eligible. Browsers ignore it over plain http (local).
-    { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+    {
+      key: "Strict-Transport-Security",
+      value: "max-age=63072000; includeSubDomains; preload",
+    },
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     // Geolocation for this origin only ("near me" search); everything else off.
     {
       key: "Permissions-Policy",
-      value: "geolocation=(self), camera=(), microphone=(), payment=(), usb=(), browsing-topics=()",
+      value:
+        "geolocation=(self), camera=(), microphone=(), payment=(), usb=(), browsing-topics=()",
     },
     // Legacy equivalent of frame-ancestors 'none'.
     { key: "X-Frame-Options", value: "DENY" },
+    // Other sites' windows cannot script ours (Razorpay checkout opens as a popup, so allow-popups).
+    { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+    // Our resources may be embedded only by same-site pages.
+    { key: "Cross-Origin-Resource-Policy", value: "same-site" },
+    { key: "X-DNS-Prefetch-Control", value: "off" },
+    { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   ];
 }

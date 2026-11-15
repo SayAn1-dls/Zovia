@@ -18,3 +18,13 @@ export function dataBackend(): DataBackend {
 export function usesSupabase(): boolean {
   return dataBackend() === "supabase";
 }
+
+/** Auth cookies get the Secure flag whenever the site is served over https (never sent over http). */
+export function secureCookies(): boolean {
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "").startsWith("https://");
+}
+
+/** Options for every auth cookie: unreadable by scripts, same-site, https-only on a live site. */
+export function authCookieOptions() {
+  return { path: "/", sameSite: "lax" as const, secure: secureCookies() };
+}

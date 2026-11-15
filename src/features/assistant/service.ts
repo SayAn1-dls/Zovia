@@ -614,15 +614,17 @@ export async function chat(
   input: ChatInput,
   options: { provider?: AIProvider | null } = {},
 ): Promise<AssistantReply> {
-  const provider =
-    options.provider === undefined ? getAIProvider() : options.provider;
+  // The paid AI model only for signed-in accounts (daily quota + usage log); visitors who are
+  // not signed in get the free rule-based assistant, so nobody can run up AI costs anonymously.
+  const provider = options.provider === undefined ? (ctx.user ? getAIProvider() : null) : options.provider;
   const started = performance.now();
   const elapsed = () => performance.now() - started;
   const providerName = provider?.name ?? BASIC_PROVIDER.provider;
   const model = provider?.model ?? BASIC_PROVIDER.model;
 
   if (ctx.user) {
-    let allowed = true;
+    // Fail closed: if the quota cannot be checked, do not hand out free AI turns.
+    let allowed = false;
     try {
       allowed = await repo.consumeQuota(
         ctx.supabase,

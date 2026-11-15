@@ -1,12 +1,15 @@
 import "server-only";
 
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import fs from "node:fs";
+
+import { AuthApiError } from "@supabase/supabase-js";
 
 import { CATALOG_CITIES } from "@/features/catalog/cities";
 import { getCatalogListing } from "@/features/catalog/listings";
 import { LIFESTYLE_QUESTIONS, type QuestionCode } from "@/features/roommates/compatibility/questions";
 
+import { isDeveloperEmail } from "../auth/developer-access";
 import type { AppSupabaseClient } from "./types";
 
 export const MEMORY_SESSION_COOKIE = "zovia_session";
@@ -17,7 +20,10 @@ type Row = Record<string, unknown>;
 interface AuthUserRecord {
   id: string;
   email: string;
-  password: string;
+  /** scrypt$<salt hex>$<hash hex>. Plain passwords are never stored. */
+  passwordHash: string;
+  /** Legacy plain-text field from older store files; hashed and removed on load. */
+  password?: string;
   fullName: string;
   createdAt: string;
 }
@@ -27,7 +33,8 @@ interface MemoryStore {
   updatedAt: number;
   authUsersById: Record<string, AuthUserRecord>;
   authUserIdByEmail: Record<string, string>;
-  sessionsByToken: Record<string, string>; // token -> userId
+  /** SHA-256 of the session token -> user and expiry. The raw token exists only in the cookie. */
+  sessionsByToken: Record<string, string | { userId: string; expiresAt: number }>;
   tables: Record<string, Row[]>;
   storage: Record<string, Record<string, string>>; // bucket -> path -> url
 }
@@ -519,6 +526,7 @@ function getStore(): MemoryStore {
       globalThis.__zoviaMemoryStore = createInitialStore();
       persistStore(globalThis.__zoviaMemoryStore);
     }
+    secureLegacyStore(globalThis.__zoviaMemoryStore);
   } else {
     try {
       if (fs.existsSync(MEMORY_STORE_FILE)) {
@@ -526,6 +534,7 @@ function getStore(): MemoryStore {
         if (stat.mtimeMs > globalThis.__zoviaMemoryStore.updatedAt + 5) {
           const raw = fs.readFileSync(MEMORY_STORE_FILE, "utf8");
           globalThis.__zoviaMemoryStore = JSON.parse(raw) as MemoryStore;
+          secureLegacyStore(globalThis.__zoviaMemoryStore);
         }
       }
     } catch {
@@ -535,10 +544,58 @@ function getStore(): MemoryStore {
   return globalThis.__zoviaMemoryStore;
 }
 
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16);
+  const hash = scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 });
+  return `scrypt$${salt.toString("hex")}$${hash.toString("hex")}`;
+}
+
+function verifyPassword(password: string, stored: string | undefined): boolean {
+  const [scheme, saltHex, hashHex] = (stored ?? "").split("$");
+  if (scheme !== "scrypt" || !saltHex || !hashHex) {
+    // Still spend the same time so response timing does not reveal unknown accounts.
+    scryptSync(password, "zovia-dummy-salt", 64, { N: 16384, r: 8, p: 1 });
+    return false;
+  }
+  const expected = Buffer.from(hashHex, "hex");
+  const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length, { N: 16384, r: 8, p: 1 });
+  return actual.length === expected.length && timingSafeEqual(actual, expected);
+}
+
+function tokenKey(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+/** Upgrades store files written before hashing: plain passwords and raw-id sessions. */
+function secureLegacyStore(store: MemoryStore): void {
+  let changed = false;
+  for (const user of Object.values(store.authUsersById)) {
+    if (!user.passwordHash) {
+      user.passwordHash = hashPassword(user.password ?? randomBytes(24).toString("hex"));
+      changed = true;
+    }
+    if ("password" in user) {
+      delete user.password;
+      changed = true;
+    }
+  }
+  for (const [key, value] of Object.entries(store.sessionsByToken)) {
+    if (typeof value === "string") {
+      delete store.sessionsByToken[key];
+      changed = true;
+    }
+  }
+  if (changed) persistStore(store);
+}
+
 function persistStore(store: MemoryStore): void {
   store.updatedAt = Date.now();
   try {
-    fs.writeFileSync(MEMORY_STORE_FILE, JSON.stringify(store), "utf8");
+    // Owner-only file: it holds password hashes and session hashes.
+    fs.writeFileSync(MEMORY_STORE_FILE, JSON.stringify(store), { encoding: "utf8", mode: 0o600 });
+    fs.chmodSync(MEMORY_STORE_FILE, 0o600);
   } catch {
     // Ignore filesystem errors in restricted environments
   }
@@ -575,7 +632,9 @@ function ensureUserProvisioned(
   const authUser: AuthUserRecord = {
     id: userId,
     email: normalizedEmail,
-    password: params.password ?? store.authUsersById[userId]?.password ?? "password123",
+    passwordHash: params.password
+      ? hashPassword(params.password)
+      : (store.authUsersById[userId]?.passwordHash ?? hashPassword(randomBytes(24).toString("hex"))),
     fullName: displayName,
     createdAt: store.authUsersById[userId]?.createdAt ?? now,
   };
@@ -656,7 +715,8 @@ function ensureUserProvisioned(
   if (!hasOwner) {
     roles.push({ user_id: userId, role: "owner", granted_at: now });
   }
-  if (normalizedEmail.includes("admin")) {
+  // Admin only for the developer allowlist (ADMIN_EMAILS), never from the e-mail's wording.
+  if (isDeveloperEmail(normalizedEmail)) {
     const hasAdmin = roles.some((r) => r.user_id === userId && r.role === "admin");
     if (!hasAdmin) {
       roles.push({ user_id: userId, role: "admin", granted_at: now });
@@ -2015,16 +2075,20 @@ export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter):
   const resolveCurrentUserId = (): string | null => {
     const token = cookieAdapter?.getSessionToken() ?? null;
     if (!token) return null;
-    const mapped = store.sessionsByToken[token] ?? (store.authUsersById[token] ? token : null);
-    if (mapped && store.authUsersById[mapped]) {
-      return mapped;
+    const session = store.sessionsByToken[tokenKey(token)];
+    if (!session || typeof session === "string") return null;
+    if (session.expiresAt < Date.now()) {
+      delete store.sessionsByToken[tokenKey(token)];
+      persistStore(store);
+      return null;
     }
-    return null;
+    return store.authUsersById[session.userId] ? session.userId : null;
   };
 
   const issueSessionForUser = (user: AuthUserRecord) => {
-    const token = user.id;
-    store.sessionsByToken[token] = user.id;
+    // 256-bit random token; only its hash is stored, so the store file cannot be replayed.
+    const token = randomBytes(32).toString("base64url");
+    store.sessionsByToken[tokenKey(token)] = { userId: user.id, expiresAt: Date.now() + SESSION_TTL_MS };
     persistStore(store);
     cookieAdapter?.setSessionToken(token);
     return {
@@ -2098,6 +2162,12 @@ export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter):
         password: string;
         options?: { data?: { full_name?: string } };
       }) {
+        if (store.authUserIdByEmail[params.email.trim().toLowerCase()]) {
+          return {
+            data: { user: null, session: null },
+            error: new AuthApiError("User already registered", 422, "user_already_exists"),
+          };
+        }
         const user = ensureUserProvisioned(store, {
           email: params.email,
           password: params.password,
@@ -2117,22 +2187,14 @@ export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter):
         const normalizedEmail = params.email.trim().toLowerCase();
         const existingId = store.authUserIdByEmail[normalizedEmail];
         const existingUser = existingId ? store.authUsersById[existingId] : undefined;
-        let user: AuthUserRecord;
-
-        if (existingUser) {
-          existingUser.password = params.password;
-          user = ensureUserProvisioned(store, {
-            id: existingUser.id,
-            email: normalizedEmail,
-            password: params.password,
-            fullName: existingUser.fullName,
-          });
-        } else {
-          user = ensureUserProvisioned(store, {
-            email: normalizedEmail,
-            password: params.password,
-          });
+        // Same generic answer (and the same scrypt cost) for unknown e-mails and wrong passwords.
+        if (!verifyPassword(params.password, existingUser?.passwordHash) || !existingUser) {
+          return {
+            data: { user: null, session: null },
+            error: new AuthApiError("Invalid login credentials", 400, "invalid_credentials"),
+          };
         }
+        const user = existingUser;
 
         const session = issueSessionForUser(user);
         return {
@@ -2147,7 +2209,7 @@ export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter):
       async signOut() {
         const token = cookieAdapter?.getSessionToken() ?? null;
         if (token) {
-          delete store.sessionsByToken[token];
+          delete store.sessionsByToken[tokenKey(token)];
           persistStore(store);
         }
         cookieAdapter?.setSessionToken(null);
@@ -2169,7 +2231,14 @@ export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter):
           return { data: { user: null }, error: null };
         }
         if (attributes.password) {
-          user.password = attributes.password;
+          user.passwordHash = hashPassword(attributes.password);
+          // A password change signs out every other session of this account.
+          const current = cookieAdapter?.getSessionToken();
+          for (const [key, value] of Object.entries(store.sessionsByToken)) {
+            if (typeof value !== "string" && value.userId === user.id && key !== (current ? tokenKey(current) : "")) {
+              delete store.sessionsByToken[key];
+            }
+          }
         }
         if (attributes.data?.full_name) {
           user.fullName = attributes.data.full_name;

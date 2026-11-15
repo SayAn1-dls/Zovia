@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import type { Database } from "@/lib/database.types";
-import { usesSupabase } from "@/lib/supabase/backend";
+import { authCookieOptions, secureCookies, usesSupabase } from "@/lib/supabase/backend";
 import { env } from "@/server/env";
 
 import { createMemorySupabaseClient, MEMORY_SESSION_COOKIE } from "./memory";
@@ -34,6 +34,7 @@ async function createRealServerClient(): Promise<AppSupabaseClient> {
   const { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } = env();
 
   return createServerClient<Database>(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, {
+    cookieOptions: authCookieOptions(),
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -69,6 +70,7 @@ async function createMemoryServerClient(): Promise<AppSupabaseClient> {
             path: "/",
             httpOnly: true,
             sameSite: "lax",
+            secure: secureCookies(),
             maxAge: 60 * 60 * 24 * 30,
           });
         } else {

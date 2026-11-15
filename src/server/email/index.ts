@@ -94,9 +94,12 @@ export function getEmailProvider(): EmailProvider {
   return apiKey && from ? new ResendEmailProvider(apiKey, from) : new NoopEmailProvider();
 }
 
-/** Inbox that receives contact-form messages and visit requests (NEXT_PUBLIC_CONTACT_INBOX). */
+/**
+ * Inbox that receives contact-form messages and visit requests. Server-only (CONTACT_INBOX), so the
+ * developer's address never appears in the browser bundle.
+ */
 export function contactInbox(): string {
-  return site.contactInbox;
+  return process.env.CONTACT_INBOX?.trim() || "sayanbhattacharya2024@gmail.com";
 }
 
 const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/";

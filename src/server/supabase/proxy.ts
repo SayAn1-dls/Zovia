@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import type { Database } from "@/lib/database.types";
-import { usesSupabase } from "@/lib/supabase/backend";
+import { authCookieOptions, secureCookies, usesSupabase } from "@/lib/supabase/backend";
 import { env } from "@/server/env";
 
 import { createMemorySupabaseClient, MEMORY_SESSION_COOKIE } from "./memory";
@@ -49,6 +49,7 @@ async function createRealProxySession(request: NextRequest): Promise<ProxySessio
     NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
+      cookieOptions: authCookieOptions(),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -100,14 +101,14 @@ async function createMemoryProxySession(request: NextRequest): Promise<ProxySess
         pendingCookies.push({
           name: MEMORY_SESSION_COOKIE,
           value: token,
-          options: { path: "/", httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 30 },
+          options: { path: "/", httpOnly: true, sameSite: "lax", secure: secureCookies(), maxAge: 60 * 60 * 24 * 30 },
         });
       } else {
         request.cookies.delete(MEMORY_SESSION_COOKIE);
         pendingCookies.push({
           name: MEMORY_SESSION_COOKIE,
           value: "",
-          options: { path: "/", httpOnly: true, sameSite: "lax", maxAge: 0 },
+          options: { path: "/", httpOnly: true, sameSite: "lax", secure: secureCookies(), maxAge: 0 },
         });
       }
     },

@@ -7,7 +7,7 @@ import { contactBodySchema } from "./schema";
 /**
  * POST /api/v1/contact: public contact form, also used for PG visit requests.
  *
- * The message is e-mailed to the contact inbox (NEXT_PUBLIC_CONTACT_INBOX, default the developer's address)
+ * The message is e-mailed to the contact inbox (CONTACT_INBOX, server-only, default the developer's address)
  * with the visitor's address as Reply-To, so a reply from the inbox goes straight back to them.
  * It is also stored through `submit_contact_message()` for the admin inbox when the database is
  * reachable. Success means at least one of the two really happened; `team_notified` says whether

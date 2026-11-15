@@ -34,7 +34,7 @@ pnpm dev
 
 ## Contact form e-mail
 
-Messages from `/contact` and PG visit requests are sent to `NEXT_PUBLIC_CONTACT_INBOX` (default
+Messages from `/contact` and PG visit requests are sent to `CONTACT_INBOX` (server-only, default
 `sayanbhattacharya2024@gmail.com`) with the visitor's address as Reply-To:
 
 1. Through Resend when `RESEND_API_KEY` and `EMAIL_FROM` are set. Until a domain is verified in
@@ -82,3 +82,21 @@ docker compose -f deploy/docker-compose.yml --env-file .env.production up -d --b
 **Load tests:** `node loadtest/spike.mjs <url> 20000 1000` for a quick local spike, and
 `k6 run -e BASE_URL=<url> loadtest/k6-spike.js` (or k6 Cloud) for large runs against a staging
 deployment.
+
+## Security
+
+- **Developer-only admin.** Admin and moderator powers work only for the e-mails in `ADMIN_EMAILS`
+  (server-only; default the developer's address), even if someone else holds a staff role.
+- **Private by default.** Every account, booking, message, owner and admin API needs a signed-in
+  session and the right role; every database table has row-level security, and anonymous users
+  cannot write to any table. The only open endpoints are what visitors need: search, PG details,
+  map data, the contact form and a bare health check (details need `HEALTH_CHECK_TOKEN` or an
+  admin session).
+- **Sign-in protection.** Attempts are limited per IP and per account (any IP), messages never say
+  whether an e-mail has an account, and session cookies are `HttpOnly`, `SameSite=Lax` and
+  `Secure` on https. The local demo store hashes passwords with scrypt and stores only hashes of
+  random session tokens.
+- **Browser hardening.** Strict Content Security Policy, HSTS, no framing, cross-origin isolation
+  headers, cross-site request checks on every write, and `noindex` on private areas and the API.
+- **No secrets in the browser.** The contact inbox, API keys and the admin list live only on the
+  server.

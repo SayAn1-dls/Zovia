@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database.types";
 
-import { usesSupabase } from "./backend";
+import { authCookieOptions, usesSupabase } from "./backend";
 import { publicEnv } from "./public-env";
 
 /**
@@ -103,7 +103,7 @@ export function getSupabaseBrowserClient(): SupabaseClient<Database> {
     throw new Error("getSupabaseBrowserClient() was called on the server. Use it in effects or event handlers.");
   }
   client ??= usesSupabase()
-    ? createBrowserClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey)
+    ? createBrowserClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey, { cookieOptions: authCookieOptions() })
     : createMemoryBrowserClient();
   return client;
 }

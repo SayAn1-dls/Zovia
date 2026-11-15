@@ -8,6 +8,7 @@ import {
 } from "@/components/session/session-context";
 import type { Me } from "@/features/account/schemas";
 import { apiFetch, isApiError } from "@/lib/api/client";
+import { usesSupabase } from "@/lib/supabase/backend";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 /**
@@ -36,13 +37,19 @@ async function loadMe(): Promise<void> {
     if (seq !== loadSeq) return;
     publish({
       status: "signed_in",
-      user: { id: me.id, display_name: me.display_name, avatar_url: me.avatar_url, roles: me.roles },
+      user: {
+        id: me.id,
+        display_name: me.display_name,
+        avatar_url: me.avatar_url,
+        roles: me.roles,
+      },
     });
   } catch (error) {
     if (seq !== loadSeq) return;
     // 401: the cookie is gone or invalid. Anything else: we cannot vouch for a user, so the
     // chrome shows the signed-out state; protected pages still decide for themselves.
-    if (!isApiError(error) || error.status !== 401) console.warn("Could not load the signed-in account.", error);
+    if (!isApiError(error) || error.status !== 401)
+      console.warn("Could not load the signed-in account.", error);
     publish(SESSION_SIGNED_OUT);
   }
 }
@@ -50,7 +57,19 @@ async function loadMe(): Promise<void> {
 function start() {
   if (started) return;
   started = true;
-  void loadMe();
+  if (!usesSupabase()) {
+    void loadMe();
+    return;
+  }
+  const supabase = getSupabaseBrowserClient();
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "TOKEN_REFRESHED") return;
+    if (session) void loadMe();
+    else {
+      loadSeq += 1;
+      publish(SESSION_SIGNED_OUT);
+    }
+  });
 }
 
 /** Re-reads /api/v1/me (after onboarding, a profile edit or becoming an owner). */

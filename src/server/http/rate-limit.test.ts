@@ -3,7 +3,18 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { clientIp, MemoryRateLimiter, RATE_LIMITS, rateLimitKey, resolveRule } from "./rate-limit";
+import {
+  checkIpFlood,
+  clientIp,
+  inFlightCount,
+  MAX_IN_FLIGHT,
+  MemoryRateLimiter,
+  RATE_LIMITS,
+  rateLimitKey,
+  releaseSlot,
+  resolveRule,
+  tryAcquireSlot,
+} from "./rate-limit";
 
 describe("MemoryRateLimiter (sliding window)", () => {
   it("allows up to max, then refuses with a retry hint", async () => {
@@ -62,7 +73,16 @@ describe("MemoryRateLimiter (sliding window)", () => {
 
 describe("presets", () => {
   it("has the named presets with sane values", () => {
-    expect(Object.keys(RATE_LIMITS).sort()).toEqual(["assistant", "auth", "contact", "mutation", "search", "upload"]);
+    expect(Object.keys(RATE_LIMITS).sort()).toEqual([
+      "assistant",
+      "auth",
+      "booking",
+      "contact",
+      "ip_flood",
+      "mutation",
+      "search",
+      "upload",
+    ]);
     for (const rule of Object.values(RATE_LIMITS)) {
       expect(rule.max).toBeGreaterThan(0);
       expect(rule.windowSeconds).toBeGreaterThan(0);
@@ -97,5 +117,29 @@ describe("rateLimitKey", () => {
     expect(key).toBe(rateLimitKey("r", { ip: "203.0.113.7" }));
     expect(key).not.toBe(rateLimitKey("r", { ip: "203.0.113.8" }));
     expect(rateLimitKey("r", {})).toBe("r:ip:unknown");
+  });
+});
+
+describe("IP flood gate", () => {
+  it("lets an IP through up to the cap, then refuses with a retry hint, per IP", () => {
+    const ip = "203.0.113.77";
+    for (let i = 0; i < RATE_LIMITS.ip_flood.max; i++) expect(checkIpFlood(ip).allowed).toBe(true);
+    const refused = checkIpFlood(ip);
+    expect(refused.allowed).toBe(false);
+    expect(refused.retryAfterSeconds).toBeGreaterThan(0);
+    expect(checkIpFlood("203.0.113.78").allowed).toBe(true);
+  });
+});
+
+describe("load shedding", () => {
+  it("refuses new work past the in-flight cap and recovers when slots free up", () => {
+    const taken: number[] = [];
+    while (tryAcquireSlot()) taken.push(1);
+    expect(inFlightCount()).toBe(MAX_IN_FLIGHT);
+    expect(tryAcquireSlot()).toBe(false);
+    releaseSlot();
+    expect(tryAcquireSlot()).toBe(true);
+    for (let i = 0; i < MAX_IN_FLIGHT; i++) releaseSlot();
+    expect(inFlightCount()).toBe(0);
   });
 });

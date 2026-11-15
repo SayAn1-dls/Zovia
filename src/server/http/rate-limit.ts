@@ -54,12 +54,84 @@ export const RATE_LIMITS = {
   assistant: { max: 20, windowSeconds: 3600 },
   /** Upload preparation (signed URLs, media rows). */
   upload: { max: 30, windowSeconds: 3600 },
+  /** Booking requests and payment orders (the SQL function also caps 10 a day per user). */
+  booking: { max: 5, windowSeconds: 60 },
+  /**
+   * Flood gate per client IP across the whole API, checked BEFORE authentication so a flood never
+   * reaches the database. Generous enough for shared IPs (campus / office NAT).
+   */
+  ip_flood: { max: 300, windowSeconds: 60 },
 } as const satisfies Record<string, RateLimitRule>;
 
 export type RateLimitPreset = keyof typeof RATE_LIMITS;
 
-export function resolveRule(rule: RateLimitPreset | RateLimitRule): RateLimitRule {
+export function resolveRule(
+  rule: RateLimitPreset | RateLimitRule,
+): RateLimitRule {
   return typeof rule === "string" ? RATE_LIMITS[rule] : rule;
+}
+
+// ───────────────────────────── per-instance flood gate ─────────────────────────────
+
+/**
+ * In-process limiter used for the pre-auth IP flood gate. It costs no network round trip, so a
+ * flood is rejected in microseconds; each instance enforces it on its own share of the traffic
+ * (the load balancer spreads clients across instances), and the shared per-route limiter runs
+ * after it.
+ */
+const floodGate = new (class {
+  private readonly hits = new Map<string, { start: number; count: number }>();
+  check(key: string, rule: RateLimitRule, now = Date.now()): RateLimitResult {
+    const windowMs = rule.windowSeconds * 1000;
+    let entry = this.hits.get(key);
+    if (!entry || now - entry.start >= windowMs) {
+      entry = { start: now, count: 0 };
+      if (this.hits.size >= MAX_FLOOD_KEYS) this.hits.clear();
+      this.hits.set(key, entry);
+    }
+    entry.count += 1;
+    const allowed = entry.count <= rule.max;
+    return {
+      allowed,
+      limit: rule.max,
+      remaining: Math.max(0, rule.max - entry.count),
+      retryAfterSeconds: allowed
+        ? 0
+        : Math.max(1, Math.ceil((entry.start + windowMs - now) / 1000)),
+    };
+  }
+})();
+const MAX_FLOOD_KEYS = 50_000;
+
+export function checkIpFlood(ip: string | null): RateLimitResult {
+  return floodGate.check(`flood:${ip ?? "unknown"}`, RATE_LIMITS.ip_flood);
+}
+
+// ───────────────────────────── load shedding ─────────────────────────────
+
+/**
+ * Requests this instance works on at once. Past the cap, new API requests get an immediate 503
+ * with Retry-After instead of queueing: under a spike the instance keeps answering quickly,
+ * memory stays bounded, and the load balancer / autoscaler routes the overflow elsewhere.
+ */
+export const MAX_IN_FLIGHT =
+  Number(process.env.API_MAX_IN_FLIGHT) > 0
+    ? Number(process.env.API_MAX_IN_FLIGHT)
+    : 256;
+let inFlight = 0;
+
+export function tryAcquireSlot(): boolean {
+  if (inFlight >= MAX_IN_FLIGHT) return false;
+  inFlight += 1;
+  return true;
+}
+
+export function releaseSlot(): void {
+  inFlight = Math.max(0, inFlight - 1);
+}
+
+export function inFlightCount(): number {
+  return inFlight;
 }
 
 // ───────────────────────────── memory ─────────────────────────────
@@ -77,7 +149,9 @@ export class MemoryRateLimiter implements RateLimiter {
     const now = this.now();
     const windowMs = rule.windowSeconds * 1000;
     const id = `${key}|${rule.max}|${rule.windowSeconds}`;
-    const recent = (this.hits.get(id) ?? []).filter((time) => time > now - windowMs);
+    const recent = (this.hits.get(id) ?? []).filter(
+      (time) => time > now - windowMs,
+    );
 
     if (recent.length >= rule.max) {
       this.hits.set(id, recent);
@@ -86,7 +160,10 @@ export class MemoryRateLimiter implements RateLimiter {
         allowed: false,
         limit: rule.max,
         remaining: 0,
-        retryAfterSeconds: Math.max(1, Math.ceil((oldest + windowMs - now) / 1000)),
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil((oldest + windowMs - now) / 1000),
+        ),
       };
     }
 
@@ -94,7 +171,12 @@ export class MemoryRateLimiter implements RateLimiter {
     this.hits.delete(id); // re-insert so Map order is "least recently used first"
     this.hits.set(id, recent);
     if (this.hits.size > MAX_TRACKED_KEYS) this.evict();
-    return { allowed: true, limit: rule.max, remaining: rule.max - recent.length, retryAfterSeconds: 0 };
+    return {
+      allowed: true,
+      limit: rule.max,
+      remaining: rule.max - recent.length,
+      retryAfterSeconds: 0,
+    };
   }
 
   /** Drops the least recently used tenth so memory stays bounded under a flood of keys. */
@@ -120,7 +202,10 @@ class PostgresRateLimiter implements RateLimiter {
     const admin = createSupabaseAdminClient();
     if (!admin) throw new Error("service-role client is not configured");
     // check_rate_limit keys are capped at 200 characters; ours are short, but hash to be safe.
-    const safeKey = key.length <= 180 ? key : `h:${createHash("sha256").update(key).digest("hex")}`;
+    const safeKey =
+      key.length <= 180
+        ? key
+        : `h:${createHash("sha256").update(key).digest("hex")}`;
     const { data, error } = await admin.rpc("check_rate_limit", {
       p_key: `${safeKey}:${rule.windowSeconds}`,
       p_max: rule.max,
@@ -141,7 +226,10 @@ class PostgresRateLimiter implements RateLimiter {
 
 class UpstashRateLimiter implements RateLimiter {
   readonly kind = "upstash" as const;
-  private readonly limiters = new Map<string, Promise<{ limit(key: string): Promise<UpstashResponse> }>>();
+  private readonly limiters = new Map<
+    string,
+    Promise<{ limit(key: string): Promise<UpstashResponse> }>
+  >();
 
   constructor(
     private readonly url: string,
@@ -177,12 +265,19 @@ class UpstashRateLimiter implements RateLimiter {
       allowed: result.success,
       limit: result.limit,
       remaining: Math.max(0, result.remaining),
-      retryAfterSeconds: result.success ? 0 : Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)),
+      retryAfterSeconds: result.success
+        ? 0
+        : Math.max(1, Math.ceil((result.reset - Date.now()) / 1000)),
     };
   }
 }
 
-type UpstashResponse = { success: boolean; limit: number; remaining: number; reset: number };
+type UpstashResponse = {
+  success: boolean;
+  limit: number;
+  remaining: number;
+  reset: number;
+};
 
 // ───────────────────────────── selection ─────────────────────────────
 
@@ -190,9 +285,16 @@ const memoryFallback = new MemoryRateLimiter();
 let selected: RateLimiter | undefined;
 
 function select(): RateLimiter {
-  const { UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, SUPABASE_SERVICE_ROLE_KEY } = env();
+  const {
+    UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN,
+    SUPABASE_SERVICE_ROLE_KEY,
+  } = env();
   if (UPSTASH_REDIS_REST_URL && UPSTASH_REDIS_REST_TOKEN) {
-    return new UpstashRateLimiter(UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN);
+    return new UpstashRateLimiter(
+      UPSTASH_REDIS_REST_URL,
+      UPSTASH_REDIS_REST_TOKEN,
+    );
   }
   if (SUPABASE_SERVICE_ROLE_KEY) return new PostgresRateLimiter();
   logger.warn("rate_limit.memory_backend", {
@@ -213,7 +315,10 @@ export function getRateLimiter(): RateLimiter {
       try {
         return await primary.limit(key, rule);
       } catch (error) {
-        logger.error("rate_limit.backend_failed", { backend: primary.kind, error });
+        logger.error("rate_limit.backend_failed", {
+          backend: primary.kind,
+          error,
+        });
         return memoryFallback.limit(key, rule);
       }
     },
@@ -249,7 +354,8 @@ export function clientIp(headers: Headers): string | null {
   ];
   for (const value of candidates) {
     const first = value?.split(",")[0]?.trim();
-    if (first && first.length <= 64 && /^[0-9a-fA-F:.]+$/.test(first)) return first;
+    if (first && first.length <= 64 && /^[0-9a-fA-F:.]+$/.test(first))
+      return first;
   }
   return null;
 }
@@ -259,7 +365,10 @@ export function clientIp(headers: Headers): string | null {
  * the IP (so raw addresses are not stored in Redis / Postgres), prefixed with the route label.
  * Callers with no usable IP share one bucket per route.
  */
-export function rateLimitKey(label: string, subject: { userId?: string | null; ip?: string | null }): string {
+export function rateLimitKey(
+  label: string,
+  subject: { userId?: string | null; ip?: string | null },
+): string {
   if (subject.userId) return `${label}:u:${subject.userId}`;
   if (subject.ip) {
     return `${label}:ip:${createHash("sha256").update(subject.ip).digest("hex").slice(0, 32)}`;

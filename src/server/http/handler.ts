@@ -3,9 +3,18 @@ import "server-only";
 import { z } from "zod";
 
 import { site } from "@/lib/site";
-import { assertActive, assertAdmin, assertRole, assertStaff } from "@/server/auth/guards";
+import {
+  assertActive,
+  assertAdmin,
+  assertRole,
+  assertStaff,
+} from "@/server/auth/guards";
 import { newRequestId } from "@/server/auth/context";
-import { getCurrentUser, getSession, type CurrentUser } from "@/server/auth/session";
+import {
+  getCurrentUser,
+  getSession,
+  type CurrentUser,
+} from "@/server/auth/session";
 import { env } from "@/server/env";
 import { logger, serializeError, type Logger } from "@/server/logger";
 import { createSupabasePublicClient } from "@/server/supabase/public";
@@ -14,10 +23,13 @@ import type { AppSupabaseClient } from "@/server/supabase/types";
 import { AppError, errors, toAppError, validationError } from "./errors";
 import { assertSameOrigin, isMutatingMethod } from "./origin";
 import {
+  checkIpFlood,
   clientIp,
   getRateLimiter,
   rateLimitKey,
+  releaseSlot,
   resolveRule,
+  tryAcquireSlot,
   type RateLimitPreset,
   type RateLimitRule,
 } from "./rate-limit";
@@ -35,11 +47,18 @@ import { fail } from "./response";
  *  - "admin":    signed in, active, admin.
  * The database enforces all of this again (RLS, SQL functions); this is the early, clear refusal.
  */
-export type AuthLevel = "public" | "optional" | "user" | "owner" | "staff" | "admin";
+export type AuthLevel =
+  "public" | "optional" | "user" | "owner" | "staff" | "admin";
 
 type Schema = z.ZodType;
-type Out<S extends Schema | undefined> = S extends Schema ? z.output<S> : undefined;
-type UserFor<A extends AuthLevel> = A extends "public" ? null : A extends "optional" ? CurrentUser | null : CurrentUser;
+type Out<S extends Schema | undefined> = S extends Schema
+  ? z.output<S>
+  : undefined;
+type UserFor<A extends AuthLevel> = A extends "public"
+  ? null
+  : A extends "optional"
+    ? CurrentUser | null
+    : CurrentUser;
 
 export type HandlerOptions<
   A extends AuthLevel,
@@ -90,15 +109,23 @@ export type HandlerContext<
 };
 
 /** Second argument Next.js passes to a route handler. */
-export type RouteSegment = { params: Promise<Record<string, string | string[] | undefined>> };
+export type RouteSegment = {
+  params: Promise<Record<string, string | string[] | undefined>>;
+};
 
-export type RouteHandler = (request: Request, segment: RouteSegment) => Promise<Response>;
+export type RouteHandler = (
+  request: Request,
+  segment: RouteSegment,
+) => Promise<Response>;
 
 const DEFAULT_MAX_BODY_BYTES = 100_000;
 
 function routeLabel(request: Request): string {
   const pattern = new URL(request.url).pathname
-    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ":id")
+    .replace(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+      ":id",
+    )
     .replace(/\/\d+(?=\/|$)/g, "/:n");
   return `${request.method} ${pattern}`;
 }
@@ -112,17 +139,23 @@ function queryToObject(url: URL): Record<string, string | string[]> {
   return out;
 }
 
-async function readJsonBody(request: Request, maxBytes: number): Promise<unknown> {
+async function readJsonBody(
+  request: Request,
+  maxBytes: number,
+): Promise<unknown> {
   const contentType = request.headers.get("content-type") ?? "";
   if (!/^application\/(?:[\w.-]+\+)?json\b/i.test(contentType.trim())) {
-    throw errors.badRequest("Send the request body as JSON (Content-Type: application/json).");
+    throw errors.badRequest(
+      "Send the request body as JSON (Content-Type: application/json).",
+    );
   }
   const declared = Number(request.headers.get("content-length"));
   if (Number.isFinite(declared) && declared > maxBytes) {
     throw errors.badRequest("The request body is too large.");
   }
   const text = await request.text();
-  if (Buffer.byteLength(text, "utf8") > maxBytes) throw errors.badRequest("The request body is too large.");
+  if (Buffer.byteLength(text, "utf8") > maxBytes)
+    throw errors.badRequest("The request body is too large.");
   if (text.trim() === "") throw errors.badRequest("The request body is empty.");
   try {
     return JSON.parse(text);
@@ -131,7 +164,11 @@ async function readJsonBody(request: Request, maxBytes: number): Promise<unknown
   }
 }
 
-function parseWith<S extends Schema>(schema: S, value: unknown, message?: string): z.output<S> {
+function parseWith<S extends Schema>(
+  schema: S,
+  value: unknown,
+  message?: string,
+): z.output<S> {
   const result = schema.safeParse(value);
   if (!result.success) throw validationError(result.error, message);
   return result.data;
@@ -217,13 +254,34 @@ export function createHandler<
     const label = options.label ?? routeLabel(request);
     let userId: string | undefined;
 
+    // Load shedding: refuse fast when this instance is saturated, before any work is done.
+    if (!tryAcquireSlot()) {
+      logger.warn("http.overloaded", { request_id: requestId, label });
+      return fail(
+        errors.unavailable(
+          "We're very busy right now. Please try again in a few seconds.",
+          { retryAfterSeconds: 2 },
+        ),
+        requestId,
+      );
+    }
+
     try {
       assertSameOrigin(request, resolveSiteUrl());
 
-      const { supabase, user } = await authenticate(options.auth, options.allowSuspended === true);
+      // Flood gate per IP before authentication, so floods never reach the database.
+      const ip = clientIp(request.headers);
+      if (options.rateLimit !== false) {
+        const flood = checkIpFlood(ip);
+        if (!flood.allowed) throw errors.rateLimited(flood.retryAfterSeconds);
+      }
+
+      const { supabase, user } = await authenticate(
+        options.auth,
+        options.allowSuspended === true,
+      );
       userId = user?.id;
 
-      const ip = clientIp(request.headers);
       const rule =
         options.rateLimit === false
           ? null
@@ -233,18 +291,35 @@ export function createHandler<
               ? resolveRule("mutation")
               : null;
       if (rule) {
-        const result = await getRateLimiter().limit(rateLimitKey(label, { userId, ip }), rule);
+        const result = await getRateLimiter().limit(
+          rateLimitKey(label, { userId, ip }),
+          rule,
+        );
         if (!result.allowed) throw errors.rateLimited(result.retryAfterSeconds);
       }
 
       const params = options.params
-        ? parseWith(options.params, (await segment?.params) ?? {}, "That address is not valid.")
+        ? parseWith(
+            options.params,
+            (await segment?.params) ?? {},
+            "That address is not valid.",
+          )
         : undefined;
       const query = options.query
-        ? parseWith(options.query, queryToObject(new URL(request.url)), "Some filters were not accepted.")
+        ? parseWith(
+            options.query,
+            queryToObject(new URL(request.url)),
+            "Some filters were not accepted.",
+          )
         : undefined;
       const body = options.body
-        ? parseWith(options.body, await readJsonBody(request, options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES))
+        ? parseWith(
+            options.body,
+            await readJsonBody(
+              request,
+              options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES,
+            ),
+          )
         : undefined;
 
       const response = await fn({
@@ -256,7 +331,11 @@ export function createHandler<
         body: body as Out<B>,
         params: params as Out<P>,
         ip,
-        log: logger.child({ request_id: requestId, route: label, user_id: userId }),
+        log: logger.child({
+          request_id: requestId,
+          route: label,
+          user_id: userId,
+        }),
       });
       response.headers.set("X-Request-Id", requestId);
       return response;
@@ -264,6 +343,8 @@ export function createHandler<
       const error = toAppError(thrown);
       logFailure(error, { requestId, label, method: request.method, userId });
       return fail(error, requestId);
+    } finally {
+      releaseSlot();
     }
   };
 }
@@ -285,6 +366,7 @@ export function logFailure(
       : {}),
   };
   if (error.status >= 500) logger.error("request.failed", fields);
-  else if (error.code === "rate_limited" || error.code === "forbidden") logger.warn("request.refused", fields);
+  else if (error.code === "rate_limited" || error.code === "forbidden")
+    logger.warn("request.refused", fields);
   else logger.info("request.rejected", fields);
 }

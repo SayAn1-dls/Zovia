@@ -47,3 +47,38 @@ Messages from `/contact` and PG visit requests are sent to `NEXT_PUBLIC_CONTACT_
 
 Import the repository in Vercel and set the environment variables from `.env.example`
 (`NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` at minimum).
+
+## Handling big traffic spikes
+
+Zovia is built so that a rush (a crowd opening the site and booking at the same moment) slows
+down gracefully instead of crashing:
+
+- **Shared state only.** In production every server instance talks to Supabase (Postgres) and,
+  optionally, Upstash Redis, so you can run as many instances as you need behind a load balancer.
+  The in-memory store is a local demo fallback, used only when Supabase is not configured.
+- **Rate limits in layers.** nginx limits requests per IP at the edge; the app then applies a
+  per-IP flood gate *before* authentication (so floods never reach the database) and per-user,
+  per-route limits (`src/server/http/rate-limit.ts`; shared across instances through Upstash Redis
+  or Postgres). Bookings have their own limit, plus a daily cap inside the database.
+- **No double bookings.** `request_booking()` locks the bed row and unique indexes forbid two live
+  bookings of one bed. Under a stampede the losers get a fast "just taken" answer (3 s lock
+  timeout) instead of queueing on the database.
+- **Load shedding.** Each instance works on at most `API_MAX_IN_FLIGHT` API requests at once;
+  past that it answers 503 with `Retry-After` immediately, so it never runs out of memory.
+- **Caching.** City and PG pages are prerendered; public search responses are cached by the CDN
+  for 30 seconds.
+
+**Vercel:** load balancing and autoscaling are built in. Set the Supabase variables and
+`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` (shared rate limits), and use the Supabase
+connection pooler.
+
+**Your own servers:** `deploy/` has an nginx load balancer (least-connections, passive health
+checks, per-IP limits, static caching) in front of N app containers:
+
+```bash
+docker compose -f deploy/docker-compose.yml --env-file .env.production up -d --build --scale app=4
+```
+
+**Load tests:** `node loadtest/spike.mjs <url> 20000 1000` for a quick local spike, and
+`k6 run -e BASE_URL=<url> loadtest/k6-spike.js` (or k6 Cloud) for large runs against a staging
+deployment.

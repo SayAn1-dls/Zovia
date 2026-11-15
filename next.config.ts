@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 import { buildSecurityHeaders } from "./src/server/security-headers";
 
-type RemotePattern = NonNullable<NonNullable<NextConfig["images"]>["remotePatterns"]>[number];
+type RemotePattern = NonNullable<
+  NonNullable<NextConfig["images"]>["remotePatterns"]
+>[number];
 
 /** next/image may load from Supabase Storage of the configured project, and from Unsplash. */
 function supabaseStoragePattern(): RemotePattern[] {
@@ -26,6 +28,10 @@ function supabaseStoragePattern(): RemotePattern[] {
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Self-contained server bundle for the Docker image behind the load balancer (deploy/).
+  ...(process.env.NEXT_OUTPUT === "standalone"
+    ? { output: "standalone" as const }
+    : {}),
   // Stable since Next 15.5: <Link href> and router pushes are type-checked.
   typedRoutes: true,
   // Generator defaults for Next 16.4: keep.

@@ -46,7 +46,7 @@ export const DEFAULT_MESSAGES: Record<ApiErrorCode, string> = {
   internal: "Something went wrong on our side. Please try again.",
 };
 
-type Options = { details?: unknown; cause?: unknown };
+type Options = { details?: unknown; cause?: unknown; retryAfterSeconds?: number };
 
 /** Throwable factories: `throw errors.notFound("Listing not found.")`. */
 export const errors = {

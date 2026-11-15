@@ -8,6 +8,6 @@ export const GET = createHandler({ auth: "user", label: "bookings.list" }, async
 );
 
 export const POST = createHandler(
-  { auth: "user", label: "bookings.request", body: requestBookingSchema, maxBodyBytes: 5_000 },
+  { auth: "user", rateLimit: "booking", label: "bookings.request", body: requestBookingSchema, maxBodyBytes: 5_000 },
   async ({ supabase, user, requestId, body }) => created(await requestBooking({ supabase, user, requestId }, body)),
 );

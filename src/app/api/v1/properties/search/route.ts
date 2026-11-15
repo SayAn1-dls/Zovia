@@ -1,8 +1,15 @@
 import { CATALOG_CITIES } from "@/features/catalog/cities";
 import { searchCatalog, toSearchResultItem } from "@/features/catalog/listings";
 import { straightLineMetres } from "@/features/locations/geo";
-import { parseSearchFilters, SEARCH_PAGE_SIZE, type SearchResponse } from "@/features/properties/schemas";
-import { resolveCity, searchPublicProperties } from "@/features/properties/service";
+import {
+  parseSearchFilters,
+  SEARCH_PAGE_SIZE,
+  type SearchResponse,
+} from "@/features/properties/schemas";
+import {
+  resolveCity,
+  searchPublicProperties,
+} from "@/features/properties/service";
 import { createHandler, ok } from "@/server/http";
 
 /**
@@ -36,7 +43,9 @@ export const GET = createHandler(
       lat: c.lat,
       lng: c.lng,
     }));
-    const city = db?.city ?? (filters.city ? resolveCity(catalogCities, filters.city) : null);
+    const city =
+      db?.city ??
+      (filters.city ? resolveCity(catalogCities, filters.city) : null);
     const origin =
       db?.origin ??
       (filters.lat !== undefined && filters.lng !== undefined
@@ -59,19 +68,33 @@ export const GET = createHandler(
     }).map((listing) => {
       const item = toSearchResultItem(listing);
       return origin
-        ? { ...item, distance_m: Math.round(straightLineMetres(origin, { lat: listing.lat, lng: listing.lng })) }
+        ? {
+            ...item,
+            distance_m: Math.round(
+              straightLineMetres(origin, {
+                lat: listing.lat,
+                lng: listing.lng,
+              }),
+            ),
+          }
         : item;
     });
-    if (filters.sort === "price_asc") catalog.sort((a, b) => (a.price_from ?? 0) - (b.price_from ?? 0));
-    if (filters.sort === "price_desc") catalog.sort((a, b) => (b.price_from ?? 0) - (a.price_from ?? 0));
-    if (filters.sort === "distance" && origin) catalog.sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0));
+    if (filters.sort === "price_asc")
+      catalog.sort((a, b) => (a.price_from ?? 0) - (b.price_from ?? 0));
+    if (filters.sort === "price_desc")
+      catalog.sort((a, b) => (b.price_from ?? 0) - (a.price_from ?? 0));
+    if (filters.sort === "distance" && origin)
+      catalog.sort((a, b) => (a.distance_m ?? 0) - (b.distance_m ?? 0));
 
     const dbTotal = db?.total ?? 0;
     const dbItems = db?.items ?? [];
     const offset = (filters.page - 1) * limit;
     const catalogStart = Math.max(0, offset - dbTotal);
     const room = limit - dbItems.length;
-    const items = [...dbItems, ...(room > 0 ? catalog.slice(catalogStart, catalogStart + room) : [])];
+    const items = [
+      ...dbItems,
+      ...(room > 0 ? catalog.slice(catalogStart, catalogStart + room) : []),
+    ];
     const total = dbTotal + catalog.length;
 
     return ok(
@@ -82,6 +105,11 @@ export const GET = createHandler(
           limit,
           total,
           has_more: filters.page * limit < total,
+        },
+        // Public and cookieless: identical queries are served from the CDN for 30 s (and stale
+        // for 2 more minutes while it refreshes), so a traffic spike mostly never reaches us.
+        headers: {
+          "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
         },
       },
     );

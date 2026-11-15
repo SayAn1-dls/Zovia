@@ -1,9 +1,14 @@
+import { createBrowserClient } from "@supabase/ssr";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/database.types";
 
+import { usesSupabase } from "./backend";
+import { publicEnv } from "./public-env";
+
 /**
- * In-memory browser Supabase client shim for realtime channels and storage uploads.
+ * Browser Supabase client (singleton): auth state, Realtime and Storage only. Uses the real
+ * Supabase project when configured, otherwise an in-memory shim for local demos.
  * All data reads and writes go through server code (`/api/v1` via `apiFetch`, or Server Actions).
  */
 let client: SupabaseClient<Database> | undefined;
@@ -97,6 +102,8 @@ export function getSupabaseBrowserClient(): SupabaseClient<Database> {
   if (typeof window === "undefined") {
     throw new Error("getSupabaseBrowserClient() was called on the server. Use it in effects or event handlers.");
   }
-  client ??= createMemoryBrowserClient();
+  client ??= usesSupabase()
+    ? createBrowserClient<Database>(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey)
+    : createMemoryBrowserClient();
   return client;
 }

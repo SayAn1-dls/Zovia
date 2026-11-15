@@ -71,7 +71,7 @@ src/
   proxy.ts                  Next 16 request proxy (session refresh + route guards)
 supabase/
   config.toml  migrations/  tests/ (pgTAP)  README.md
-scripts/                    heavy.sh, seed-dev.ts, grant-admin.sql, backup scripts
+scripts/                    seed-dev.ts, grant-admin.sql, backup scripts
 tests/
   integration/              Vitest against the local Supabase stack
   e2e/                      Playwright journeys A–E + smoke + a11y/mobile checks

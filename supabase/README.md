@@ -172,8 +172,8 @@ installed by default; enable the ones the schema needs in a migration with
 ## Database tests (pgTAP)
 
 ```sh
-scripts/heavy.sh pnpm db:reset   # empty database -> all migrations -> seed.sql
-scripts/heavy.sh pnpm db:test    # every supabase/tests/*.test.sql
+pnpm db:reset   # empty database -> all migrations -> seed.sql
+pnpm db:test    # every supabase/tests/*.test.sql
 pnpm exec supabase db lint --schema public --level warning
 ```
 

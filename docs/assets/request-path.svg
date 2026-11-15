@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="Every request passes five layers of protection before it can touch the database">
+  <title>Every request passes five layers of protection before it can touch the database</title>
+  <style>
+    .bg { fill: #f6f4ee; }
+    .gate { fill: #111111; }
+    .gatelabel { font: 700 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; }
+    .gatesub { font: 500 12px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; fill-opacity: .8; }
+    .dblabel { font: 800 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #111111; }
+    .cap { font: 500 13px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #111111; fill-opacity: .7; }
+    .title { font: 800 20px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #111111; }
+    .lane { stroke: #111111; stroke-opacity: .15; stroke-width: 2; stroke-dasharray: 6 8; }
+    .ok { fill: #8fbf1a; }
+    .bad { fill: #e5484d; }
+
+    /* good requests travel all the way to the database */
+    .go { animation: go 6s linear infinite; }
+    @keyframes go { from { transform: translateX(0); } to { transform: translateX(1010px); } }
+    /* bad requests are stopped at their gate and fade out */
+    .stop1 { animation: stop1 6s ease-in infinite; } @keyframes stop1 { 0% { transform: translateX(0); opacity: 1; } 22% { transform: translateX(175px); opacity: 1; } 30%, 100% { transform: translateX(175px); opacity: 0; } }
+    .stop2 { animation: stop2 6s ease-in infinite; } @keyframes stop2 { 0% { transform: translateX(0); opacity: 1; } 38% { transform: translateX(375px); opacity: 1; } 46%, 100% { transform: translateX(375px); opacity: 0; } }
+    .stop3 { animation: stop3 6s ease-in infinite; } @keyframes stop3 { 0% { transform: translateX(0); opacity: 1; } 56% { transform: translateX(575px); opacity: 1; } 64%, 100% { transform: translateX(575px); opacity: 0; } }
+    .stop4 { animation: stop4 6s ease-in infinite; } @keyframes stop4 { 0% { transform: translateX(0); opacity: 1; } 74% { transform: translateX(775px); opacity: 1; } 82%, 100% { transform: translateX(775px); opacity: 0; } }
+    .d1 { animation-delay: 0s; } .d2 { animation-delay: 1.5s; } .d3 { animation-delay: 3s; } .d4 { animation-delay: 4.5s; }
+    .db { animation: glow 1.5s ease-in-out infinite; } @keyframes glow { 50% { fill-opacity: .75; } }
+    @media (prefers-reduced-motion: reduce) { .go, .stop1, .stop2, .stop3, .stop4, .db { animation: none; } }
+  </style>
+  <rect class="bg" width="1200" height="300" rx="24"/>
+  <text class="title" x="40" y="44">What happens to a request</text>
+
+  <line class="lane" x1="60" y1="150" x2="1090" y2="150"/>
+
+  <!-- traffic -->
+  <circle class="ok go d1" cx="60" cy="150" r="9"/>
+  <circle class="bad stop1 d2" cx="60" cy="150" r="9"/>
+  <circle class="ok go d3" cx="60" cy="150" r="9"/>
+  <circle class="bad stop2 d4" cx="60" cy="150" r="9"/>
+  <circle class="bad stop3 d1" cx="60" cy="150" r="9" style="animation-delay:.75s"/>
+  <circle class="bad stop4 d3" cx="60" cy="150" r="9" style="animation-delay:3.75s"/>
+  <circle class="ok go d2" cx="60" cy="150" r="9" style="animation-delay:2.25s"/>
+
+  <!-- gates -->
+  <g transform="translate(230 105)"><rect class="gate" width="120" height="90" rx="14"/><text class="gatelabel" x="60" y="40" text-anchor="middle">nginx</text><text class="gatesub" x="60" y="62" text-anchor="middle">per-IP limits</text></g>
+  <g transform="translate(430 105)"><rect class="gate" width="120" height="90" rx="14"/><text class="gatelabel" x="60" y="40" text-anchor="middle">Flood gate</text><text class="gatesub" x="60" y="62" text-anchor="middle">+ load shedding</text></g>
+  <g transform="translate(630 105)"><rect class="gate" width="120" height="90" rx="14"/><text class="gatelabel" x="60" y="40" text-anchor="middle">Session</text><text class="gatesub" x="60" y="62" text-anchor="middle">+ same-origin</text></g>
+  <g transform="translate(830 105)"><rect class="gate" width="120" height="90" rx="14"/><text class="gatelabel" x="60" y="40" text-anchor="middle">Role check</text><text class="gatesub" x="60" y="62" text-anchor="middle">developer allowlist</text></g>
+  <g transform="translate(1030 110)"><ellipse class="ok db" cx="60" cy="14" rx="56" ry="14"/><path class="ok db" d="M4 14v52c0 8 25 14 56 14s56-6 56-14V14c0 8-25 14-56 14S4 22 4 14z"/><text class="dblabel" x="60" y="56" text-anchor="middle">Postgres</text><text class="cap" x="60" y="106" text-anchor="middle">row-level security</text></g>
+
+  <text class="cap" x="290" y="222" text-anchor="middle">floods → 429</text>
+  <text class="cap" x="490" y="222" text-anchor="middle">overload → 503 + retry</text>
+  <text class="cap" x="690" y="222" text-anchor="middle">signed out / other site → 401 / 403</text>
+  <text class="cap" x="890" y="222" text-anchor="middle">not the developer → 403</text>
+
+  <g transform="translate(40 262)">
+    <circle class="ok" cx="6" cy="0" r="6"/><text class="cap" x="18" y="5">a real visitor</text>
+    <circle class="bad" cx="136" cy="0" r="6"/><text class="cap" x="148" y="5">blocked: bots, floods, guessed passwords, other sites, non-developers</text>
+  </g>
+</svg>

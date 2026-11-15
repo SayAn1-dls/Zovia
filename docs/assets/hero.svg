@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="Zovia: find your space, find your people">
+  <title>Zovia: find your space, find your people</title>
+  <style>
+    .bg { fill: #111111; }
+    .grid { stroke: #ffffff; stroke-opacity: .05; }
+    .brand { font: 800 30px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; letter-spacing: -.5px; }
+    .h1 { font: 900 66px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; letter-spacing: -2.5px; }
+    .lime { fill: #c8ef4b; }
+    .ink { fill: #111111; }
+    .sub { font: 500 21px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; fill-opacity: .72; }
+    .chip { font: 600 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #f6f4ee; }
+    .pinlabel { font: 800 15px system-ui, -apple-system, "Segoe UI", sans-serif; fill: #111111; }
+
+    /* typing reveal */
+    .type1 { clip-path: inset(0 100% 0 0); animation: type 1.6s steps(19, end) .3s forwards; }
+    .type2 { clip-path: inset(0 100% 0 0); animation: type 1s steps(9, end) 2.1s forwards; }
+    .people { opacity: 0; animation: pop .45s cubic-bezier(.2,1.4,.4,1) 3.9s forwards; }
+    @keyframes pop { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes type { to { clip-path: inset(0 0 0 0); } }
+
+    .highlight { transform-box: fill-box; transform-origin: left center; transform: scaleX(0); animation: grow .5s ease-out 3.4s forwards; }
+    @keyframes grow { to { transform: scaleX(1); } }
+
+    .fadeup { opacity: 0; animation: fadeup .8s ease-out 4.2s forwards; }
+    @keyframes fadeup { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    /* price pins dropping onto the skyline */
+    .pin { opacity: 0; animation: drop .7s cubic-bezier(.2,1.4,.4,1) forwards, bob 3s ease-in-out infinite; }
+    .p1 { animation-delay: 1.0s, 2.0s; } .p2 { animation-delay: 1.4s, 2.4s; } .p3 { animation-delay: 1.8s, 2.8s; }
+    .p4 { animation-delay: 2.2s, 3.2s; } .p5 { animation-delay: 2.6s, 3.6s; }
+    @keyframes drop { from { opacity: 0; transform: translateY(-60px); } to { opacity: 1; transform: none; } }
+    @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+
+    .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2.2s ease-out infinite 3s; opacity: 0; }
+    @keyframes pulse { 0% { opacity: .7; transform: scale(.6); } 100% { opacity: 0; transform: scale(2.4); } }
+
+    /* city names drifting along the bottom */
+    .ticker { animation: slide 26s linear infinite; }
+    @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-1180px); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .type1, .type2 { clip-path: none; animation: none; }
+      .highlight { transform: none; animation: none; }
+      .fadeup, .pin { opacity: 1; animation: none; }
+      .people { opacity: 1; animation: none; }
+      .ticker, .pulse { animation: none; }
+    }
+  </style>
+
+  <rect class="bg" width="1200" height="420" rx="28"/>
+  <g class="grid">
+    <path d="M0 70H1200M0 140H1200M0 210H1200M0 280H1200M0 350H1200M100 0V420M200 0V420M300 0V420M400 0V420M500 0V420M600 0V420M700 0V420M800 0V420M900 0V420M1000 0V420M1100 0V420"/>
+  </g>
+
+  <!-- logo -->
+  <g transform="translate(64 52)">
+    <path class="lime" d="M0 30V14C0 6 6 0 14 0s14 6 14 14v16h-9V15a5 5 0 0 0-10 0v15z"/>
+    <text class="brand" x="40" y="27">zovia</text>
+  </g>
+
+  <!-- headline -->
+  <text class="h1 type1" x="64" y="160" textLength="520" lengthAdjust="spacingAndGlyphs">Find your space.</text>
+  <text class="h1 type2" x="64" y="252" textLength="280" lengthAdjust="spacingAndGlyphs">Find your</text>
+  <rect class="lime highlight" x="356" y="194" width="268" height="78" rx="14"/>
+  <text class="h1 ink people" x="372" y="252" textLength="236" lengthAdjust="spacingAndGlyphs">people.</text>
+
+  <text class="sub fadeup" x="66" y="304">PGs, hostels and co-living in 25 Indian cities · roommates who live like you</text>
+
+  <!-- skyline with price pins -->
+  <g transform="translate(760 70)">
+    <path d="M0 270V170h40v-40h30v40h20V110h46v60h24V140h34v130h26V90h50v180h30V150h40v120z" fill="#f6f4ee" fill-opacity=".08"/>
+    <g transform="translate(30 120)"><g class="pin p1"><rect class="lime" x="-38" y="-18" width="76" height="34" rx="17"/><text class="pinlabel" x="0" y="5" text-anchor="middle">₹7k</text></g></g>
+    <g transform="translate(150 60)"><g class="pin p2"><rect class="lime" x="-42" y="-18" width="84" height="34" rx="17"/><text class="pinlabel" x="0" y="5" text-anchor="middle">₹8.5k</text></g></g>
+    <g transform="translate(280 30)"><g class="pin p3"><rect fill="#f6f4ee" x="-42" y="-18" width="84" height="34" rx="17"/><text class="pinlabel" x="0" y="5" text-anchor="middle">₹12k</text></g></g>
+    <g transform="translate(220 150)"><g class="pin p4"><rect class="lime" x="-38" y="-18" width="76" height="34" rx="17"/><text class="pinlabel" x="0" y="5" text-anchor="middle">₹9k</text></g></g>
+    <g transform="translate(360 120)"><g class="pin p5"><rect fill="#f6f4ee" x="-42" y="-18" width="84" height="34" rx="17"/><text class="pinlabel" x="0" y="5" text-anchor="middle">₹15k</text></g></g>
+    <circle class="pulse" cx="150" cy="60" r="34" fill="none" stroke="#c8ef4b" stroke-width="3"/>
+  </g>
+
+  <!-- drifting city ticker -->
+  <g clip-path="url(#tickerClip)">
+    <g class="ticker chip" fill-opacity=".55">
+      <text x="64" y="384" textLength="1150" lengthAdjust="spacing">Mumbai · Delhi · Bengaluru · Hyderabad · Chennai · Kolkata · Pune · Ahmedabad · Gurugram · Noida · Indore · Jaipur · Lucknow · Chandigarh · Bhopal · Kochi · Coimbatore ·</text>
+      <text x="1244" y="384" textLength="1150" lengthAdjust="spacing">Mumbai · Delhi · Bengaluru · Hyderabad · Chennai · Kolkata · Pune · Ahmedabad · Gurugram · Noida · Indore · Jaipur · Lucknow · Chandigarh · Bhopal · Kochi · Coimbatore ·</text>
+    </g>
+  </g>
+  <defs><clipPath id="tickerClip"><rect x="64" y="360" width="1072" height="40"/></clipPath></defs>
+</svg>

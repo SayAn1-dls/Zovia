@@ -15,6 +15,9 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
+    // PW_CHANNEL=chrome runs the Chromium projects in the installed Google Chrome instead of a
+    // downloaded browser build.
+    ...(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}),
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },

@@ -93,7 +93,8 @@ guide: how the code is organised, the rules that keep it safe, what has been don
    bookings, CDN cache for search, Docker + nginx load balancer, spike and k6 tests.
 9. **Security**: fixed demo-mode auth (any password worked; cookie was the user id; "admin" e-mails became
    admins), developer-only staff powers, per-account sign-in limit, Secure cookies, private health details,
-   kit preview off in production, contact inbox server-only, extra security headers, noindex on private areas.
+   kit preview off in production, contact inbox server-only, extra security headers, noindex on private areas,
+   user cards (name + photo) only to people with a reason to see them, so the user base cannot be listed.
 10. **Repo cleanup and QA**: removed 18 unused UI components, 3 unused packages and a machine-specific script;
     moved the spec to `docs/platform-spec.md`; new README with animated assets; Playwright journeys;
     booking stampede QA (200 users / 1 bed → 1 winner); 200k-request spike through nginx with 0 errors.

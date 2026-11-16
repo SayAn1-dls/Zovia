@@ -107,7 +107,7 @@ RPC error contract: functions raise with custom SQLSTATE `ZV400` bad_request, `Z
 ### 6.1 Users
 - `users` (id = auth.users.id, email, phone, phone_verified_at, date_of_birth, status, intent, onboarding_completed_at, last_seen_at, deleted_at) — private: self + staff. Created by trigger on `auth.users` together with profile, preferences and the `seeker` role.
 - `user_profiles` (user_id PK, display_name, avatar_path, gender, occupation, college_name, course, academic_year, work_location, company, industry, work_schedule, home_city, bio) — readable by self, staff, and people who share a conversation with the user.
-- View `public_user_cards` (user_id, display_name, avatar_path) — safe public card for reviews and chat headers.
+- View `public_user_cards` (user_id, display_name, avatar_path) — need-to-know card: published reviewers to everyone; self, chat partners, roommate matches, enquiry/booking counterparts and reviewers of own listings to signed-in users; everyone to staff. Nobody can list the user base.
 - `user_preferences` (user_id PK, preferred_city, preferred_localities[], budget_min, budget_max, move_in_date, property_types[], occupancy_prefs[], email_notifications, marketing_opt_in).
 - `user_roles` (user_id, role, granted_by, granted_at; PK(user_id, role)) — no client writes.
 - `user_blocks` (blocker_id, blocked_id), `user_restrictions` (user_id, kind, reason, moderation_action_id, starts_at, ends_at, lifted_at), `user_violations` (user_id, kind, conversation_id, detected jsonb, created_at).

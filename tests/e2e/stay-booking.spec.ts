@@ -48,9 +48,19 @@ function isoDay(days: number): string {
 }
 
 /** A check-in far enough ahead (and random) that reruns and parallel tests never share nights. */
-function freshCheckin(): number {
-  return 20 + Math.floor(Math.random() * 300);
+function freshCheckin(from: number, to: number): number {
+  return from + Math.floor(Math.random() * (to - from));
 }
+
+/**
+ * Each test draws its check-in from its own window of days ahead, so one test's bookings can never
+ * sold out another's rooms (nights stay within 3 of the check-in). Max stay window is 365 days.
+ */
+const WINDOW = {
+  panel: [20, 150],
+  soldOut: [160, 300],
+  journey: [310, 360],
+} as const;
 
 function uniqueEmail(tag: string): string {
   return `qa+${tag}-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4)}@example.com`;
@@ -86,7 +96,7 @@ test.beforeAll(async ({ request }) => {
 
 test("listing panel: dates, room cards, steppers, price and URL state", async ({ page, isMobile }) => {
   await mobileWidth(page, isMobile);
-  const checkin = isoDay(freshCheckin());
+  const checkin = isoDay(freshCheckin(...WINDOW.panel));
   await page.goto(`/properties/${SLUG}?checkin=${checkin}&checkout=${isoDay(0) /* invalid: before check-in */}`);
   const panel = page.locator("#book");
   await expect(panel.getByRole("heading", { name: "Book your stay" })).toBeVisible();
@@ -106,10 +116,12 @@ test("listing panel: dates, room cards, steppers, price and URL state", async ({
   // Pick two nights, 2 double beds and 1 triple bed.
   const twoNightsOut = new Date(Date.parse(`${checkin}T00:00:00Z`) + 2 * 86_400_000).toISOString().slice(0, 10);
   await page.getByLabel("Check-out").filter({ visible: true }).fill(twoNightsOut);
-  const selectButtons = panel.getByRole("button", { name: "Select bed" });
-  await selectButtons.nth(1).click(); // double
+  // Pick by room name, never by position: a sold-out type has no Select bed button and shifts the rest.
+  const selectIn = (label: string) =>
+    panel.locator("li").filter({ hasText: label }).first().getByRole("button", { name: "Select bed" });
+  await selectIn("Double sharing").click();
   await panel.getByRole("button", { name: /One more \(double/i }).click();
-  await panel.getByRole("button", { name: "Select bed" }).nth(1).click(); // triple (single is still first)
+  await selectIn("Triple sharing").click();
   for (let more = 2; more < UNITS.double; more += 1) await panel.getByRole("button", { name: /One more \(double/i }).click();
   await expect(page).toHaveURL(new RegExp(`checkin=${checkin}&checkout=${twoNightsOut}&rooms=double(%40|@)${UNITS.double}(%2C|,)triple(%40|@)1`));
 
@@ -149,7 +161,7 @@ test("listing panel: dates, room cards, steppers, price and URL state", async ({
 
 test("a sold-out room type shows the 7-night strip and cannot be booked", async ({ page, isMobile, baseURL, playwright }) => {
   await mobileWidth(page, isMobile);
-  const days = freshCheckin();
+  const days = freshCheckin(...WINDOW.soldOut);
   const checkin = isoDay(days);
   const checkout = isoDay(days + 2);
 
@@ -188,6 +200,11 @@ test("a sold-out room type shows the 7-night strip and cannot be booked", async 
   });
   expect(second.status()).toBe(409);
   expect((await second.json()).error.message).toMatch(/sold out/i);
+
+  // Leave nothing behind: cancel the booking so reruns start from free beds.
+  const bookingId = (await booked.json()).data.booking.id as string;
+  const cleanup = await other.post(`/api/v1/stays/bookings/${bookingId}/cancel`, { data: {} });
+  expect(cleanup.status(), await cleanup.text()).toBe(200);
   await other.dispose();
 });
 
@@ -224,7 +241,7 @@ async function signUpThroughBookNow(page: Page, email: string) {
 test("book: Book now -> sign up -> checkout -> confirm -> booking page -> cancel", async ({ page, isMobile, baseURL, playwright }) => {
   test.setTimeout(120_000);
   await mobileWidth(page, isMobile);
-  const days = freshCheckin();
+  const days = freshCheckin(...WINDOW.journey);
   const checkin = isoDay(days);
   const checkout = isoDay(days + 3);
   await page.goto(`/properties/${SLUG}?checkin=${checkin}&checkout=${checkout}&rooms=triple@2`);

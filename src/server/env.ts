@@ -54,6 +54,12 @@ const envSchema = z.object({
   RAZORPAY_KEY_ID: optionalString,
   RAZORPAY_KEY_SECRET: optionalString,
   RAZORPAY_WEBHOOK_SECRET: optionalString,
+  // Stay booking receipts: a "Tax invoice" only when both the legal name and the GSTIN are set.
+  INVOICE_LEGAL_NAME: optionalString,
+  INVOICE_GSTIN: optionalString,
+  INVOICE_ADDRESS: optionalString,
+  // Bearer secret for /api/v1/cron/* (Vercel Cron sends it as "Authorization: Bearer <CRON_SECRET>").
+  CRON_SECRET: optionalString,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -110,6 +116,10 @@ function readProcessEnv(): Record<string, string | undefined> {
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET,
     RAZORPAY_WEBHOOK_SECRET: process.env.RAZORPAY_WEBHOOK_SECRET,
+    INVOICE_LEGAL_NAME: process.env.INVOICE_LEGAL_NAME,
+    INVOICE_GSTIN: process.env.INVOICE_GSTIN,
+    INVOICE_ADDRESS: process.env.INVOICE_ADDRESS,
+    CRON_SECRET: process.env.CRON_SECRET,
   };
 }
 

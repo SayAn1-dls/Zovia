@@ -30,6 +30,10 @@ const ADMIN_CLIENT_ALLOWLIST = [
   "src/features/locations/ingestion/**",
   // Payment confirmation after the provider signature was verified (bookings, spec 14.2).
   "src/features/bookings/payment-repository.ts",
+  // Stay booking payments, refunds and the hold-expiry job (service-role-only SQL functions).
+  "src/features/stays/payment.ts",
+  // Receipt lookup for the confirmation e-mail (service_get_stay_invoice, service_role only).
+  "src/features/stays/invoice-store.ts",
   // Local tooling.
   "scripts/**",
 ];

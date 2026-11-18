@@ -22,6 +22,14 @@ export type PaymentProvider = {
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
   /** Amount actually captured/authorised for a payment, from Razorpay itself. */
   fetchPayment(paymentId: string): Promise<{ orderId: string; amountPaise: number; status: string }>;
+  /** Captures an `authorized` payment, so it is not auto-refunded by Razorpay days later. */
+  capturePayment(paymentId: string, amountPaise: number): Promise<void>;
+  /** Refunds a captured payment in full or in part. `processed` once the money is on its way back. */
+  refundPayment(
+    paymentId: string,
+    amountPaise: number,
+    notes: Record<string, string>,
+  ): Promise<{ refundId: string; status: "pending" | "processed" }>;
 };
 
 function safeEqualHex(expected: string, received: string): boolean {
@@ -80,6 +88,19 @@ function razorpay(keyId: string, keySecret: string, webhookSecret: string): Paym
         `/payments/${encodeURIComponent(paymentId)}`,
       );
       return { orderId: payment.order_id, amountPaise: payment.amount, status: payment.status };
+    },
+    async capturePayment(paymentId, amountPaise) {
+      await call(`/payments/${encodeURIComponent(paymentId)}/capture`, {
+        method: "POST",
+        body: JSON.stringify({ amount: amountPaise, currency: "INR" }),
+      });
+    },
+    async refundPayment(paymentId, amountPaise, notes) {
+      const refund = await call<{ id: string; status: string }>(`/payments/${encodeURIComponent(paymentId)}/refund`, {
+        method: "POST",
+        body: JSON.stringify({ amount: amountPaise, notes }),
+      });
+      return { refundId: refund.id, status: refund.status === "processed" ? "processed" : "pending" };
     },
   };
 }

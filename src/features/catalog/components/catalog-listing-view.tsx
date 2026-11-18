@@ -43,11 +43,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Money } from "@/components/money";
 import { buttonVariants } from "@/components/ui/button";
 import { WhatsAppIcon, WhatsAppShareButton } from "@/components/whatsapp/whatsapp-buttons";
 import { MapView } from "@/features/locations/components/map-view";
+import { StayBookingPanel, StayBookingPanelSkeleton } from "@/features/stays/components/stay-booking-panel";
+import { STAY_RULES } from "@/features/stays/schemas";
 import { PhotoGallery } from "@/features/properties/components/photo-gallery";
 import { TENANT_GENDER_LABELS } from "@/features/properties/schemas";
 import { dynamicRoutes, routes } from "@/lib/navigation";
@@ -400,15 +403,15 @@ export function CatalogListingView({
           ) : null}
         </div>
 
-        <aside id="visit" className="scroll-mt-24 lg:sticky lg:top-32 lg:self-start" aria-label="Book a visit">
+        <aside id="visit" className="scroll-mt-24 space-y-5" aria-label="Book a stay">
+          <Suspense fallback={<StayBookingPanelSkeleton />}>
+            <StayBookingPanel slug={listing.slug} nightlyFrom={Math.ceil(listing.price_from / STAY_RULES.days_per_month)} />
+          </Suspense>
           <div className="space-y-5 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
             <div>
-              <p className="text-2xl font-bold">
-                <span className="mr-1 text-base font-normal text-muted-foreground">from</span>
-                <Money amount={listing.price_from} suffix="/month" />
-              </p>
-              <p className={cn("mt-1 text-sm font-medium", listing.available_beds > 0 ? "text-success-foreground" : "text-muted-foreground")}>
-                {listing.available_beds > 0 ? `${listing.available_beds} beds available` : "Full right now: join the waitlist"}
+              <h2 className="text-base font-semibold">Ask a question</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Want to see it first, or stay by the month? Ask us and we&apos;ll check with the property.
               </p>
             </div>
             {whatsapp ? (
@@ -428,25 +431,14 @@ export function CatalogListingView({
                 </a>
               </div>
             ) : null}
-            <div>
-              <h2 className="mb-3 text-base font-semibold">Request a visit</h2>
-              <VisitRequestForm listingTitle={listing.title} place={place} sharing={listing.sharing.map((option) => option.type)} />
-            </div>
+            <VisitRequestForm listingTitle={listing.title} place={place} sharing={listing.sharing.map((option) => option.type)} />
             <p className="flex items-start gap-2 rounded-2xl bg-muted p-3 text-xs text-muted-foreground">
               <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              Sample listing: rent, vacancy and rules are representative for {listing.locality}. Zovia confirms the exact details with the owner before your visit.
+              Sample listing: rent, vacancy and rules are representative for {listing.locality}. Zovia confirms the exact details with the property
+              before your stay or visit.
             </p>
           </div>
         </aside>
-      </div>
-
-      <div className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-5 py-3 backdrop-blur lg:hidden">
-        <p className="text-lg font-bold">
-          <Money amount={listing.price_from} suffix="/mo" />
-        </p>
-        <a href="#visit" className={buttonVariants({ size: "lg" })}>
-          Request a visit
-        </a>
       </div>
     </article>
   );

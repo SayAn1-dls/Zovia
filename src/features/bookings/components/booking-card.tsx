@@ -5,7 +5,7 @@ import { CalendarCheck, Loader2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { FormField, FormMessage, applyApiFieldErrors } from "@/components/form/form-field";
@@ -16,7 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/features/account/components/native-select";
 import { apiFetch, isApiError } from "@/lib/api/client";
-import { signInHref } from "@/lib/navigation";
+import { formatDate } from "@/lib/format";
+import { routes, signInHref } from "@/lib/navigation";
 
 import { indiaDate, requestBookingSchema, type RequestBookingFormValues, type RequestBookingInput } from "../schemas";
 
@@ -40,14 +41,21 @@ type BookingCardProps = {
   securityDeposit: number | null;
   /** entire_unit: whether the owner says it is available. */
   unitAvailable: boolean;
+  /** The listing owner's user id: they see a link to their requests instead of "Request to book". */
+  ownerId?: string | null;
 };
+
+/** Earliest move-in for a bed: today in India, or the day the bed frees up if that is later. */
+export function earliestMoveIn(availableFrom: string | null | undefined, today = indiaDate(0)): string {
+  return availableFrom && availableFrom > today ? availableFrom : today;
+}
 
 /**
  * Airbnb-style booking card (spec 14.2). Sends a REQUEST; nothing is charged until the owner
  * accepts. The amount shown is the same rule the database applies (deposit if set, otherwise the
  * first month), and the database computes it again; this card never sends a price.
  */
-export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, securityDeposit, unitAvailable }: BookingCardProps) {
+export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, securityDeposit, unitAvailable, ownerId }: BookingCardProps) {
   const session = useSession();
   const router = useRouter();
   const [failure, setFailure] = useState<string | null>(null);
@@ -57,7 +65,7 @@ export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, 
     defaultValues: {
       property_id: propertyId,
       bed_id: listingMode === "per_bed" ? beds[0]?.id : undefined,
-      move_in_date: indiaDate(7),
+      move_in_date: [indiaDate(7), listingMode === "per_bed" ? earliestMoveIn(beds[0]?.available_from) : ""].sort().at(-1)!,
       stay_months: 6,
       note: "",
     },
@@ -69,10 +77,23 @@ export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, 
   const deposit = listingMode === "per_bed" ? (bed?.deposit ?? null) : securityDeposit;
   const payNow = deposit && deposit > 0 ? deposit : rent;
   const bookable = listingMode === "per_bed" ? beds.length > 0 : unitAvailable && monthlyRent !== null;
+  const minMoveIn = earliestMoveIn(listingMode === "per_bed" ? bed?.available_from : null);
+  const laterStart = minMoveIn > indiaDate(0);
+  const isOwner = Boolean(ownerId) && session.status === "signed_in" && session.user.id === ownerId;
+
+  // Choosing a bed that frees up later moves the date forward, never earlier than that bed allows.
+  useEffect(() => {
+    const current = form.getValues("move_in_date");
+    if (!current || current < minMoveIn) form.setValue("move_in_date", minMoveIn, { shouldValidate: form.formState.isSubmitted });
+  }, [minMoveIn, form]);
   const busy = form.formState.isSubmitting || redirecting;
 
   async function onSubmit(values: RequestBookingInput) {
     setFailure(null);
+    if (values.move_in_date < minMoveIn) {
+      form.setError("move_in_date", { type: "min", message: `This bed is available from ${formatDate(minMoveIn)}.` });
+      return;
+    }
     try {
       const { id } = await apiFetch<{ id: string }>("/bookings", { method: "POST", body: values });
       setRedirecting(true);
@@ -94,7 +115,14 @@ export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, 
         {rent ? <Money amount={rent} suffix="/mo" className="text-lg font-bold" /> : null}
       </div>
 
-      {!bookable ? (
+      {isOwner ? (
+        <div className="mt-3 space-y-3">
+          <p className="text-sm text-muted-foreground">This is your listing. Requests from seekers show up in your owner portal.</p>
+          <Link href={routes.ownerBookings} className={buttonVariants({ variant: "outline", size: "lg", className: "w-full" })}>
+            See booking requests
+          </Link>
+        </div>
+      ) : !bookable ? (
         <p className="mt-3 text-sm text-muted-foreground">No beds or units are open for booking right now. Send an enquiry to ask the owner.</p>
       ) : session.status !== "signed_in" ? (
         <div className="mt-4 space-y-3">
@@ -120,8 +148,13 @@ export function BookingCard({ propertyId, slug, listingMode, beds, monthlyRent, 
             </FormField>
           ) : null}
           <div className="grid grid-cols-2 gap-3">
-            <FormField control={form.control} name="move_in_date" label="Move in">
-              {(field) => <Input type="date" min={indiaDate(0)} max={indiaDate(180)} {...field} />}
+            <FormField
+              control={form.control}
+              name="move_in_date"
+              label="Move in"
+              description={laterStart ? `Available from ${formatDate(minMoveIn)}` : undefined}
+            >
+              {(field) => <Input type="date" min={minMoveIn} max={[indiaDate(180), minMoveIn].sort().at(-1)} {...field} />}
             </FormField>
             <FormField control={form.control} name="stay_months" label="Months">
               {(field) => (

@@ -110,6 +110,10 @@ export const dynamicRoutes = {
   conversation: (id: string) => route(`/messages/${encodeURIComponent(id)}`),
   ownerProperty: (id: string) =>
     route(`/owner/properties/${encodeURIComponent(id)}`),
+  /** Stay checkout; add ?checkin=&checkout=&rooms= (see features/stays/hooks/stay-url-state.ts). */
+  book: (slug: string) => route(`/book/${encodeURIComponent(slug)}`),
+  /** A booking of either kind (stay or long-stay request). */
+  booking: (id: string) => route(`/bookings/${encodeURIComponent(id)}`),
 } as const;
 
 type QueryValue = string | number | boolean | null | undefined;

@@ -176,7 +176,7 @@ export function VisitRequestForm({
       ) : null}
       <Button type="submit" size="lg" className="w-full" disabled={state === "sending"}>
         {state === "sending" ? <Loader2 className="animate-spin" aria-hidden /> : <Send aria-hidden />}
-        {state === "sending" ? "Sending…" : "Request a visit"}
+        {state === "sending" ? "Sending…" : "Send question"}
       </Button>
       <p className="text-xs text-muted-foreground">Free, no brokerage. Your request goes straight to the Zovia team.</p>
     </form>

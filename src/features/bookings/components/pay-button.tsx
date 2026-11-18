@@ -65,7 +65,7 @@ export function PayButton({ bookingId, prefill }: { bookingId: string; prefill?:
         name: "Zovia",
         description: order.description,
         prefill,
-        theme: { color: "#6D4AFF" },
+        theme: { color: "#111111" },
         modal: { ondismiss: () => setBusy(false) },
         handler: async (response: RazorpayResponse) => {
           try {

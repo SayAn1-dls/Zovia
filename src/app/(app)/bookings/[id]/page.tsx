@@ -10,8 +10,9 @@ import { Money } from "@/components/money";
 import { CancelBookingButton } from "@/features/bookings/components/booking-actions";
 import { BookingStatusBadge } from "@/features/bookings/components/booking-status";
 import { PayButton } from "@/features/bookings/components/pay-button";
-import { AMOUNT_KIND_LABELS } from "@/features/bookings/schemas";
+import { AMOUNT_KIND_LABELS, type Booking } from "@/features/bookings/schemas";
 import { getBooking } from "@/features/bookings/service";
+import { StayOrLegacyBooking } from "@/features/stays/components/stay-booking-view";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { routes, signInHref } from "@/lib/navigation";
 import { getServiceContext } from "@/server/auth";
@@ -37,12 +38,17 @@ async function BookingBody({ params }: { params: PageProps<"/bookings/[id]">["pa
   const { supabase, user, requestId } = await getServiceContext();
   if (!user) redirect(signInHref(`/bookings/${id}`));
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const booking = await getBooking({ supabase, user, requestId }, id).catch((error: unknown) => {
-    if (isAppError(error) && error.code === "not_found") notFound();
+  // Booking ids are uuids for both kinds. The stay endpoint is asked first (in the browser); the
+  // old long-stay booking is rendered here as the fallback when this id is one of those.
+  const legacy = await getBooking({ supabase, user, requestId }, id).catch((error: unknown) => {
+    if (isAppError(error) && error.code === "not_found") return null;
     throw error;
   });
-  const isSeeker = booking.seeker_id === user.id;
+  return <StayOrLegacyBooking id={id} legacy={legacy ? <LegacyBooking booking={legacy} isSeeker={legacy.seeker_id === user.id} /> : null} />;
+}
 
+function LegacyBooking({ booking, isSeeker }: { booking: Booking; isSeeker: boolean }) {
+  const paidAwaitingConfirmation = booking.paid && booking.status === "accepted";
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -91,13 +97,37 @@ async function BookingBody({ params }: { params: PageProps<"/bookings/[id]">["pa
           {isSeeker ? <PayButton bookingId={booking.id} /> : null}
         </div>
       ) : null}
+      {paidAwaitingConfirmation ? (
+        <FormMessage tone="info" title="Payment received">
+          We are confirming it with the payment provider. This usually takes a few minutes; refresh to see the update. You will not be
+          charged twice.
+        </FormMessage>
+      ) : null}
       {booking.status === "confirmed" ? (
         <FormMessage tone="success" title="Booking confirmed">
           See you on {formatDate(booking.move_in_date)}. Keep your payment receipt from Razorpay.
         </FormMessage>
       ) : null}
-      {booking.status === "declined" && booking.decline_reason ? (
-        <FormMessage tone="warning" title="The owner declined">{booking.decline_reason}</FormMessage>
+      {booking.status === "declined" ? (
+        <FormMessage tone="warning" title="The owner declined">
+          {booking.decline_reason ?? "The bed is no longer free."} Nothing was charged.
+        </FormMessage>
+      ) : null}
+      {booking.status === "expired" ? (
+        <FormMessage tone="info" title="This request expired">
+          {booking.pay_by
+            ? `The owner accepted, but the payment was not made by ${formatDateTime(booking.pay_by)}, so the bed was released.`
+            : `The owner did not answer by ${formatDateTime(booking.respond_by)}, so the request closed.`}{" "}
+          {booking.paid ? "Your payment will be refunded." : "Nothing was charged."} You can send a new request from the listing.
+        </FormMessage>
+      ) : null}
+      {booking.status === "cancelled" ? (
+        <FormMessage tone="info" title="This booking was cancelled">
+          {booking.cancel_reason ? `${booking.cancel_reason} ` : null}
+          {booking.paid
+            ? "Your payment will be refunded. Contact us if you don't see it within 7 working days."
+            : "Nothing was charged."}
+        </FormMessage>
       ) : null}
 
       {isSeeker && (booking.status === "requested" || (booking.status === "accepted" && !booking.paid)) ? <CancelBookingButton bookingId={booking.id} /> : null}

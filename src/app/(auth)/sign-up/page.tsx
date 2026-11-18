@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { FormSkeleton } from "@/components/feedback/loading-state";
-import { AuthCard, authLinkClass } from "@/features/auth/components/auth-card";
+import { AuthCard } from "@/features/auth/components/auth-card";
+import { AuthSwitchLink } from "@/features/auth/components/auth-switch-link";
 import { SignUpForm } from "@/features/auth/components/sign-up-form";
 import { routes } from "@/lib/navigation";
 
@@ -17,9 +17,7 @@ export default function SignUpPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href={routes.signIn} className={authLinkClass}>
-            Sign in
-          </Link>
+          <AuthSwitchLink href={routes.signIn}>Sign in</AuthSwitchLink>
         </>
       }
     >

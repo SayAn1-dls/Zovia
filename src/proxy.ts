@@ -59,6 +59,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 export const config = {
   matcher: [
     "/saved/:path*",
+    "/book/:path*",
     "/bookings/:path*",
     "/roommates/:path*",
     "/messages/:path*",

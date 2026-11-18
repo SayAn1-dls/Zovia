@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { FormSkeleton } from "@/components/feedback/loading-state";
-import { AuthCard, authLinkClass } from "@/features/auth/components/auth-card";
+import { AuthCard } from "@/features/auth/components/auth-card";
+import { AuthSwitchLink } from "@/features/auth/components/auth-switch-link";
 import { SignInForm } from "@/features/auth/components/sign-in-form";
 import { routes } from "@/lib/navigation";
 
@@ -17,9 +17,7 @@ export default function SignInPage() {
       footer={
         <>
           New to Zovia?{" "}
-          <Link href={routes.signUp} className={authLinkClass}>
-            Create an account
-          </Link>
+          <AuthSwitchLink href={routes.signUp}>Create an account</AuthSwitchLink>
         </>
       }
     >

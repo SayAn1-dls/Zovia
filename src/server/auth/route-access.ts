@@ -12,6 +12,7 @@ import { hasRole, isStaff, type AccessProfile } from "./rbac";
  */
 export const PRIVATE_PREFIXES = [
   "/saved",
+  "/book",
   "/bookings",
   "/roommates",
   "/messages",
@@ -30,6 +31,12 @@ export const ROUTES = {
   ownerOnboarding: "/owner/onboarding",
   listYourProperty: "/list-your-property",
 } as const;
+
+/**
+ * Booking never waits for the full onboarding profile: a new account may book a stay straight
+ * away (guest details are asked at checkout). Every other private area still requires onboarding.
+ */
+export const ONBOARDING_EXEMPT_PREFIXES = ["/book", "/bookings"] as const;
 
 export type RouteUser = AccessProfile & { onboarded: boolean };
 
@@ -87,7 +94,7 @@ export function decideRoute(input: {
     return isStaff(user) ? { kind: "next" } : { kind: "not_found" };
   }
 
-  if (!user.onboarded) {
+  if (!user.onboarded && !ONBOARDING_EXEMPT_PREFIXES.some((prefix) => under(pathname, prefix))) {
     return under(pathname, ROUTES.onboarding)
       ? { kind: "next" }
       : { kind: "redirect", to: withNext(ROUTES.onboarding, pathname, search) };

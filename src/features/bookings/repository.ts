@@ -1,6 +1,6 @@
 import "server-only";
 
-import { fromSupabaseError } from "@/server/http/errors";
+import { errors, fromSupabaseError } from "@/server/http/errors";
 import type { AppSupabaseClient } from "@/server/supabase/types";
 
 import type { Booking, BookingStatus, RequestBookingInput } from "./schemas";
@@ -107,12 +107,26 @@ export async function requestBooking(supabase: AppSupabaseClient, input: Request
 }
 
 export async function respondBooking(supabase: AppSupabaseClient, id: string, accept: boolean, reason?: string): Promise<void> {
-  const { error } = await supabase.rpc("owner_respond_booking", {
+  const { data, error } = await supabase.rpc("owner_respond_booking", {
     p_booking_id: id,
     p_accept: accept,
     ...(reason ? { p_reason: reason } : {}),
   });
   if (error) throw fromSupabaseError(error);
+  // The database keeps the expiry (the bed is freed) and reports it instead of failing.
+  if (data === "expired") throw errors.conflict("This request expired before it was answered.");
+}
+
+/** True when the provider order belongs to a booking the user made (RLS: the parties and staff). */
+export async function orderBelongsToSeeker(supabase: AppSupabaseClient, orderId: string, seekerId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("payments")
+    .select("id, bookings!inner(seeker_id)")
+    .eq("provider_order_id", orderId)
+    .eq("bookings.seeker_id", seekerId)
+    .maybeSingle();
+  if (error) throw fromSupabaseError(error);
+  return data !== null;
 }
 
 export async function cancelBooking(supabase: AppSupabaseClient, id: string, reason?: string): Promise<void> {

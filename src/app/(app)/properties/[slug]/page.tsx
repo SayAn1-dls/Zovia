@@ -245,6 +245,7 @@ function PropertyView({ property }: { property: PropertyDetail }) {
               monthlyRent={property.monthly_rent}
               securityDeposit={property.security_deposit}
               unitAvailable={["available", "limited", "coming_soon"].includes(property.availability?.status ?? "")}
+              ownerId={property.owner?.user_id}
             />
             <div>
               <h2 className="mb-3 text-base font-semibold">Send an enquiry</h2>

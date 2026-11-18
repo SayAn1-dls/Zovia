@@ -11,7 +11,7 @@ const ASSETS = `${VERSION}-assets`;
 const OFFLINE_URL = "/offline";
 const PRECACHE = ["/", "/cities", OFFLINE_URL];
 const MAX_PAGES = 40;
-const MAX_ASSETS = 80;
+const MAX_ASSETS = 300;
 
 function isPublicPage(pathname) {
   return (

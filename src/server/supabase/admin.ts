@@ -16,8 +16,9 @@ import type { AppSupabaseClient } from "./types";
  *   2. E-mail recipient lookup: resolving the address of a user who is not the caller in order
  *      to send them a transactional e-mail.
  *   3. The Postgres rate limiter for traffic that has no user session (`check_rate_limit`).
- *   4. Recording and confirming online payments (`record_payment_order`, `confirm_booking_payment`),
- *      only after the server verified the payment provider's signature (spec 14.2).
+ *   4. Recording and confirming online payments (`record_payment_order`, `confirm_booking_payment`,
+ *      and for stays `record_stay_order`, `mark_stay_paid`, `mark_stay_refund`), only after the server
+ *      verified the payment provider's signature (spec 14.2), plus the booking expiry jobs.
  *
  * Never use it to read or write on behalf of a request's user, to "work around" an RLS error,
  * or in any code path whose inputs come straight from the client. Core flows must work with

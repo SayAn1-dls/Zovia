@@ -533,14 +533,14 @@ isOneToOne: true
                   ]
                 },"payments": {
                   Row: {
-                    "amount_paise": number,"booking_id": string,"created_at": string,"currency": string,"id": string,"paid_at": string | null,"provider": string,"provider_order_id": string,"provider_payment_id": string | null,"status": Database["public"]['Enums']["payment_status"],"updated_at": string
+                    "amount_paise": number,"booking_id": string,"created_at": string,"currency": string,"id": string,"paid_at": string | null,"provider": string,"provider_order_id": string,"provider_payment_id": string | null,"provider_refund_id": string | null,"refund_status": string,"status": Database["public"]['Enums']["payment_status"],"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "amount_paise": number,"booking_id": string,"created_at"?: string,"currency"?: string,"id"?: string,"paid_at"?: string | null,"provider"?: string,"provider_order_id": string,"provider_payment_id"?: string | null,"status"?: Database["public"]['Enums']["payment_status"],"updated_at"?: string
+                    "amount_paise": number,"booking_id": string,"created_at"?: string,"currency"?: string,"id"?: string,"paid_at"?: string | null,"provider"?: string,"provider_order_id": string,"provider_payment_id"?: string | null,"provider_refund_id"?: string | null,"refund_status"?: string,"status"?: Database["public"]['Enums']["payment_status"],"updated_at"?: string
                   }
                   Update: {
-                    "amount_paise"?: number,"booking_id"?: string,"created_at"?: string,"currency"?: string,"id"?: string,"paid_at"?: string | null,"provider"?: string,"provider_order_id"?: string,"provider_payment_id"?: string | null,"status"?: Database["public"]['Enums']["payment_status"],"updated_at"?: string
+                    "amount_paise"?: number,"booking_id"?: string,"created_at"?: string,"currency"?: string,"id"?: string,"paid_at"?: string | null,"provider"?: string,"provider_order_id"?: string,"provider_payment_id"?: string | null,"provider_refund_id"?: string | null,"refund_status"?: string,"status"?: Database["public"]['Enums']["payment_status"],"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -1121,14 +1121,14 @@ isOneToOne: false
                   ]
                 },"roommate_profiles": {
                   Row: {
-                    "about": string | null,"age": number | null,"budget_max": number | null,"budget_min": number | null,"city": string | null,"created_at": string,"gender": Database["public"]['Enums']["gender"] | null,"has_place": boolean,"headline": string | null,"last_active_at": string,"location": unknown,"move_in_date": string | null,"occupation": Database["public"]['Enums']["occupation_type"] | null,"occupation_detail": string | null,"preferred_localities": (string)[],"status": Database["public"]['Enums']["roommate_profile_status"],"updated_at": string,"user_id": string
+                    "about": string | null,"age": number | null,"available": boolean,"budget_max": number | null,"budget_min": number | null,"city": string | null,"created_at": string,"directory_consent_at": string | null,"directory_visible": boolean,"gender": Database["public"]['Enums']["gender"] | null,"has_place": boolean,"headline": string | null,"last_active_at": string,"location": unknown,"move_in_date": string | null,"occupation": Database["public"]['Enums']["occupation_type"] | null,"occupation_detail": string | null,"preferred_localities": (string)[],"show_age_gender": boolean,"status": Database["public"]['Enums']["roommate_profile_status"],"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "about"?: string | null,"age"?: number | null,"budget_max"?: number | null,"budget_min"?: number | null,"city"?: string | null,"created_at"?: string,"gender"?: Database["public"]['Enums']["gender"] | null,"has_place"?: boolean,"headline"?: string | null,"last_active_at"?: string,"location"?: unknown,"move_in_date"?: string | null,"occupation"?: Database["public"]['Enums']["occupation_type"] | null,"occupation_detail"?: string | null,"preferred_localities"?: (string)[],"status"?: Database["public"]['Enums']["roommate_profile_status"],"updated_at"?: string,"user_id": string
+                    "about"?: string | null,"age"?: number | null,"available"?: boolean,"budget_max"?: number | null,"budget_min"?: number | null,"city"?: string | null,"created_at"?: string,"directory_consent_at"?: string | null,"directory_visible"?: boolean,"gender"?: Database["public"]['Enums']["gender"] | null,"has_place"?: boolean,"headline"?: string | null,"last_active_at"?: string,"location"?: unknown,"move_in_date"?: string | null,"occupation"?: Database["public"]['Enums']["occupation_type"] | null,"occupation_detail"?: string | null,"preferred_localities"?: (string)[],"show_age_gender"?: boolean,"status"?: Database["public"]['Enums']["roommate_profile_status"],"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "about"?: string | null,"age"?: number | null,"budget_max"?: number | null,"budget_min"?: number | null,"city"?: string | null,"created_at"?: string,"gender"?: Database["public"]['Enums']["gender"] | null,"has_place"?: boolean,"headline"?: string | null,"last_active_at"?: string,"location"?: unknown,"move_in_date"?: string | null,"occupation"?: Database["public"]['Enums']["occupation_type"] | null,"occupation_detail"?: string | null,"preferred_localities"?: (string)[],"status"?: Database["public"]['Enums']["roommate_profile_status"],"updated_at"?: string,"user_id"?: string
+                    "about"?: string | null,"age"?: number | null,"available"?: boolean,"budget_max"?: number | null,"budget_min"?: number | null,"city"?: string | null,"created_at"?: string,"directory_consent_at"?: string | null,"directory_visible"?: boolean,"gender"?: Database["public"]['Enums']["gender"] | null,"has_place"?: boolean,"headline"?: string | null,"last_active_at"?: string,"location"?: unknown,"move_in_date"?: string | null,"occupation"?: Database["public"]['Enums']["occupation_type"] | null,"occupation_detail"?: string | null,"preferred_localities"?: (string)[],"show_age_gender"?: boolean,"status"?: Database["public"]['Enums']["roommate_profile_status"],"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -1204,6 +1204,94 @@ isOneToOne: false
       referencedRelation: "users"
       referencedColumns: ["id"]
     }
+                  ]
+                },"stay_booking_items": {
+                  Row: {
+                    "booking_id": string,"room_type": string,"unit_price_inr": number,"units": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "booking_id": string,"room_type": string,"unit_price_inr": number,"units": number
+                  }
+                  Update: {
+                    "booking_id"?: string,"room_type"?: string,"unit_price_inr"?: number,"units"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stay_booking_items_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: false
+      referencedRelation: "stay_bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stay_bookings": {
+                  Row: {
+                    "amount_stay_inr": number,"amount_tax_inr": number,"amount_total_inr": number,"cancel_reason": string | null,"cancelled_at": string | null,"check_in": string,"check_out": string,"created_at": string,"guest_email": string,"guest_name": string,"guest_phone": string,"guests": number,"hold_expires_at": string | null,"id": string,"listing_ref": string,"nights": number,"paid": boolean,"paid_at": string | null,"payment_mode": string,"provider_order_id": string | null,"provider_payment_id": string | null,"provider_refund_id": string | null,"refund_inr": number,"refund_status": string,"special_requests": string | null,"status": string,"tax_percent": number,"updated_at": string,"user_id": string,"stay_booking_json": Json | null
+                  }
+                  ComputedFields: "stay_booking_json"
+                  Insert: {
+                    "amount_stay_inr": number,"amount_tax_inr": number,"amount_total_inr": number,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"check_in": string,"check_out": string,"created_at"?: string,"guest_email": string,"guest_name": string,"guest_phone": string,"guests": number,"hold_expires_at"?: string | null,"id"?: string,"listing_ref": string,"nights": number,"paid"?: boolean,"paid_at"?: string | null,"payment_mode": string,"provider_order_id"?: string | null,"provider_payment_id"?: string | null,"provider_refund_id"?: string | null,"refund_inr"?: number,"refund_status"?: string,"special_requests"?: string | null,"status": string,"tax_percent": number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_stay_inr"?: number,"amount_tax_inr"?: number,"amount_total_inr"?: number,"cancel_reason"?: string | null,"cancelled_at"?: string | null,"check_in"?: string,"check_out"?: string,"created_at"?: string,"guest_email"?: string,"guest_name"?: string,"guest_phone"?: string,"guests"?: number,"hold_expires_at"?: string | null,"id"?: string,"listing_ref"?: string,"nights"?: number,"paid"?: boolean,"paid_at"?: string | null,"payment_mode"?: string,"provider_order_id"?: string | null,"provider_payment_id"?: string | null,"provider_refund_id"?: string | null,"refund_inr"?: number,"refund_status"?: string,"special_requests"?: string | null,"status"?: string,"tax_percent"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stay_bookings_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stay_inventory": {
+                  Row: {
+                    "ac": boolean,"active": boolean,"attached_bathroom": boolean,"listing_ref": string,"rent_per_month": number,"room_type": string,"units": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ac"?: boolean,"active"?: boolean,"attached_bathroom"?: boolean,"listing_ref": string,"rent_per_month": number,"room_type": string,"units": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "ac"?: boolean,"active"?: boolean,"attached_bathroom"?: boolean,"listing_ref"?: string,"rent_per_month"?: number,"room_type"?: string,"units"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"stay_invoices": {
+                  Row: {
+                    "booking_id": string,"invoice_no": string,"issued_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "booking_id": string,"invoice_no": string,"issued_at"?: string
+                  }
+                  Update: {
+                    "booking_id"?: string,"invoice_no"?: string,"issued_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "stay_invoices_booking_id_fkey"
+      columns: ["booking_id"]
+isOneToOne: true
+      referencedRelation: "stay_bookings"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"stay_settings": {
+                  Row: {
+                    "id": boolean,"online_payment_only": boolean,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: boolean,"online_payment_only"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "id"?: boolean,"online_payment_only"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"user_blocks": {
                   Row: {
@@ -1449,6 +1537,9 @@ isOneToOne: true
 "block_user":
 { Args: { "p_user_id": string }; Returns: undefined
                            },
+"book_stay":
+{ Args: { "p_checkin": string,"p_checkout": string,"p_guest_email": string,"p_guest_name": string,"p_guest_phone": string,"p_listing": string,"p_payment_mode"?: string,"p_rooms": Json,"p_special_requests"?: string }; Returns: Json
+                           },
 "booking_payable_amount":
 { Args: { "p_booking_id": string }; Returns: number
                            },
@@ -1458,6 +1549,9 @@ isOneToOne: true
 "cancel_booking":
 { Args: { "p_booking_id": string,"p_reason"?: string }; Returns: undefined
                            },
+"cancel_stay":
+{ Args: { "p_booking_id": string,"p_reason"?: string }; Returns: Json
+                           },
 "check_rate_limit":
 { Args: { "p_key": string,"p_max": number,"p_window_seconds": number }; Returns: boolean
                            },
@@ -1465,7 +1559,7 @@ isOneToOne: true
 { Args: { "p_raw": string }; Returns: string
                            },
 "confirm_booking_payment":
-{ Args: { "p_amount_paise": number,"p_order_id": string,"p_payment_id": string }; Returns: string
+{ Args: { "p_amount_paise": number,"p_order_id": string,"p_payment_id": string }; Returns: Json
                            },
 "confirm_listing":
 { Args: { "p_property_id": string }; Returns: undefined
@@ -1482,8 +1576,17 @@ isOneToOne: true
 "expire_stale_bookings":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"expire_stay_holds":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "fail_payment":
 { Args: { "p_order_id": string }; Returns: undefined
+                           },
+"get_stay_booking":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"get_stay_invoice":
+{ Args: { "p_booking_id": string }; Returns: Json
                            },
 "has_active_restriction":
 { Args: { "p_kind": Database["public"]['Enums']["restriction_kind"] }; Returns: boolean
@@ -1518,13 +1621,28 @@ isOneToOne: true
 "mark_notifications_read":
 { Args: { "p_ids"?: (string)[] }; Returns: number
                            },
+"mark_payment_refund":
+{ Args: { "p_order_id": string,"p_refund_id"?: string,"p_status": string }; Returns: undefined
+                           },
+"mark_stay_paid":
+{ Args: { "p_amount_paise": number,"p_order_id": string,"p_payment_id": string }; Returns: Json
+                           },
+"mark_stay_refund":
+{ Args: { "p_booking_id": string,"p_refund_id"?: string,"p_status": string }; Returns: undefined
+                           },
 "my_conversations":
 { Args: { "p_limit"?: number,"p_offset"?: number }; Returns: {
               "created_at": string,"id": string,"inquiry_id": string,"kind": Database["public"]['Enums']["conversation_kind"],"last_message_at": string,"last_message_preview": string,"last_read_at": string,"match_id": string,"muted": boolean,"my_role": string,"other_avatar_path": string,"other_display_name": string,"other_user_id": string,"property_id": string,"property_title": string,"status": Database["public"]['Enums']["conversation_status"],"unread_count": number
             }[]
                            },
+"my_stay_bookings":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "notify":
 { Args: { "p_body"?: string,"p_data"?: Json,"p_link_path"?: string,"p_title": string,"p_type": Database["public"]['Enums']["notification_type"],"p_user_id": string }; Returns: string
+                           },
+"open_payment_order":
+{ Args: { "p_booking_id": string }; Returns: string
                            },
 "owned_property_for_update":
 { Args: { "p_property_id": string }; Returns: {
@@ -1586,7 +1704,7 @@ isOneToOne: true
         isSetofReturn: false
       } },
 "owner_respond_booking":
-{ Args: { "p_accept": boolean,"p_booking_id": string,"p_reason"?: string }; Returns: undefined
+{ Args: { "p_accept": boolean,"p_booking_id": string,"p_reason"?: string }; Returns: string
                            },
 "owner_set_inquiry_status":
 { Args: { "p_inquiry_id": string,"p_status": Database["public"]['Enums']["inquiry_status"] }; Returns: undefined
@@ -1599,6 +1717,9 @@ isOneToOne: true
                            },
 "record_payment_order":
 { Args: { "p_amount_paise": number,"p_booking_id": string,"p_order_id": string }; Returns: undefined
+                           },
+"record_stay_order":
+{ Args: { "p_amount_paise": number,"p_booking_id": string,"p_order_id": string }; Returns: string
                            },
 "refresh_property_search_fields":
 { Args: { "p_property_id": string }; Returns: undefined
@@ -1623,6 +1744,15 @@ isOneToOne: true
 "roommate_card":
 { Args: { "p_user_id": string }; Returns: Json
                            },
+"roommate_directory":
+{ Args: { "p_available"?: boolean,"p_city"?: string,"p_limit"?: number,"p_offset"?: number }; Returns: Json
+                           },
+"roommate_directory_is_listed":
+{ Args: { "p_user_id": string }; Returns: boolean
+                           },
+"roommate_directory_photo_visible":
+{ Args: { "p_name": string }; Returns: boolean
+                           },
 "roommate_profile_cards":
 { Args: { "p_user_ids": (string)[] }; Returns: Json[]
                            },
@@ -1640,6 +1770,9 @@ isOneToOne: true
 "send_message":
 { Args: { "p_attachment"?: Json,"p_body": string,"p_conversation_id": string }; Returns: Json
                            },
+"service_get_stay_invoice":
+{ Args: { "p_booking_id": string }; Returns: Json
+                           },
 "setting_int":
 { Args: { "p_fallback": number,"p_key": string }; Returns: number
                            },
@@ -1649,8 +1782,55 @@ isOneToOne: true
 "slugify":
 { Args: { "p_text": string }; Returns: string
                            },
+"staff_get_stay_booking":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"staff_list_stay_bookings":
+{ Args: { "p_limit"?: number,"p_listing"?: string,"p_status"?: string }; Returns: Json
+                           },
+"staff_release_stay":
+{ Args: { "p_booking_id": string,"p_reason": string }; Returns: Json
+                           },
 "start_inquiry_conversation":
 { Args: { "p_inquiry_id": string }; Returns: string
+                           },
+"stay_availability":
+{ Args: { "p_checkin": string,"p_checkout": string,"p_listing": string }; Returns: Json
+                           },
+"stay_booking_json":
+{ Args: { "p_b": Omit<Database["public"]['Tables']["stay_bookings"]['Row'], Database["public"]['Tables']["stay_bookings"]['ComputedFields']> }; Returns: Json
+                           },
+"stay_check_in_at":
+{ Args: { "p_check_in": string }; Returns: string
+                           },
+"stay_free_cancel_deadline":
+{ Args: { "p_check_in": string }; Returns: string
+                           },
+"stay_nights_free":
+{ Args: { "p_exclude"?: string,"p_from": string,"p_listing": string,"p_room_type": string,"p_to": string }; Returns: {
+              "night": string,"units_left": number
+            }[]
+                           },
+"stay_payment_state":
+{ Args: { "p_booking_id": string }; Returns: Json
+                           },
+"stay_room_label":
+{ Args: { "p_room_type": string }; Returns: string
+                           },
+"stay_tax":
+{ Args: { "p_percent": number,"p_stay_total": number }; Returns: number
+                           },
+"stay_tax_percent":
+{ Args: { "p_max_unit_price": number }; Returns: number
+                           },
+"stay_today":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"stay_unit_price":
+{ Args: { "p_rent": number }; Returns: number
+                           },
+"stay_units_left":
+{ Args: { "p_exclude"?: string,"p_from": string,"p_listing": string,"p_room_type": string,"p_to": string }; Returns: number
                            },
 "submit_appeal":
 { Args: { "p_moderation_action_id": string,"p_statement": string }; Returns: string

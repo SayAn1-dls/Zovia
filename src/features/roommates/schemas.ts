@@ -82,6 +82,28 @@ export const placeSchema = z.object({
   furnishing: z.union([z.enum(FURNISHINGS), z.literal("")]).transform((value) => (value === "" ? null : value)),
 });
 
+/**
+ * Roommate directory choices (20261120000500). Visibility needs the consent line ticked: without
+ * consent the profile is hidden whatever the switch says (the database enforces the same).
+ */
+export const directorySettingsSchema = z
+  .object({
+    /** "Everyone on Zovia can see this profile" */
+    consent: z.boolean(),
+    visible: z.boolean(),
+    available: z.boolean(),
+    show_age_gender: z.boolean(),
+  })
+  .transform((value) => ({ ...value, visible: value.consent && value.visible }));
+export type DirectorySettings = z.output<typeof directorySettingsSchema>;
+
+export const DEFAULT_DIRECTORY_SETTINGS: DirectorySettings = {
+  consent: false,
+  visible: false,
+  available: true,
+  show_age_gender: false,
+};
+
 export const roommateProfileSchema = z
   .object({
     headline: z.string().trim().min(3, "Write a short headline (at least 3 characters).").max(80),
@@ -113,6 +135,8 @@ export const roommateProfileSchema = z
     answers: z.record(z.string().regex(/^[a-z][a-z0-9_]{1,39}$/), z.number().int().min(1).max(10)),
     deal_breakers: z.array(z.enum(DEAL_BREAKER_CODES)).max(DEAL_BREAKER_CODES.length),
     status: z.enum(["active", "paused", "draft"]),
+    /** Optional so older clients keep working; left out = directory settings unchanged. */
+    directory: directorySettingsSchema.optional(),
   })
   .superRefine((value, ctx) => {
     if (value.budget_min !== null && value.budget_max !== null && value.budget_min > value.budget_max) {

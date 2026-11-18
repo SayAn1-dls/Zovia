@@ -9,9 +9,20 @@ import { logger, serializeError } from "@/server/logger";
 
 import { rankDeck, summarise, toEngineCard, toPublicCard, weightsFromRows } from "./cards";
 import { computeCompatibility, type CompatibilityWeights } from "./compatibility";
+import {
+  DIRECTORY_PAGE_SIZE,
+  directoryOffset,
+  directoryPageSchema,
+  directoryRowSchema,
+  toDirectoryCard,
+  type DirectoryPage,
+  type DirectoryQuery,
+  type DirectoryRow,
+} from "./directory";
 import * as repo from "./repository";
 import {
   cardRowSchema,
+  DEFAULT_DIRECTORY_SETTINGS,
   ROOMMATE_PHOTO_LIMIT,
   type CardRow,
   type City,
@@ -147,9 +158,12 @@ export async function getOwnProfile(ctx: UserServiceContext): Promise<OwnRoommat
         answers: {},
         deal_breakers: [],
         status: "active",
+        directory: { ...DEFAULT_DIRECTORY_SETTINGS },
       },
     };
   }
+
+  const directory = repo.directoryColumnsOf(profile);
 
   return {
     exists: true,
@@ -187,6 +201,12 @@ export async function getOwnProfile(ctx: UserServiceContext): Promise<OwnRoommat
       answers: Object.fromEntries(bundle.answers.map((answer) => [answer.question_code, answer.value])),
       deal_breakers: bundle.deal_breakers as OwnRoommateProfile["values"]["deal_breakers"],
       status: profile.status === "draft" ? "active" : profile.status,
+      directory: {
+        consent: directory.directory_consent_at !== null,
+        visible: directory.directory_visible,
+        available: directory.available,
+        show_age_gender: directory.show_age_gender,
+      },
     },
   };
 }
@@ -227,6 +247,15 @@ export async function saveOwnProfile(
     move_in_date: input.move_in_date,
     has_place: input.has_place,
   });
+  if (input.directory) {
+    await repo.saveDirectorySettings(ctx.supabase, ctx.user.id, {
+      directory_visible: input.directory.visible,
+      // Any non-null value means "consented"; the database stamps and keeps the real time.
+      directory_consent_at: input.directory.consent ? new Date().toISOString() : null,
+      available: input.directory.available,
+      show_age_gender: input.directory.show_age_gender,
+    });
+  }
   await repo.savePreferences(ctx.supabase, ctx.user.id, {
     preferred_genders: input.preferred_genders,
     age_min: input.age_min,
@@ -400,4 +429,38 @@ export async function blockMatch(ctx: UserServiceContext, matchId: string): Prom
   const match = await repo.fetchMatch(ctx.supabase, matchId);
   if (!match || (match.user_a !== ctx.user.id && match.user_b !== ctx.user.id)) throw errors.notFound("Match not found.");
   await blockUser(ctx, match.user_a === ctx.user.id ? match.user_b : match.user_a);
+}
+
+// ───────────────────────────── directory ─────────────────────────────
+
+/**
+ * One page of the roommate directory. roommate_directory() decides who is listed and returns only
+ * the allow-listed fields; this signs the first photo (the storage policy opens exactly that one)
+ * and turns lifestyle answers into tags.
+ */
+export async function browseDirectory(ctx: UserServiceContext, query: DirectoryQuery): Promise<DirectoryPage> {
+  const [raw, status] = await Promise.all([
+    repo.callDirectory(ctx.supabase, {
+      city: query.city,
+      available: query.available,
+      limit: DIRECTORY_PAGE_SIZE,
+      offset: directoryOffset(query.page),
+    }),
+    repo.fetchProfileStatus(ctx.supabase, ctx.user.id),
+  ]);
+  const page = directoryPageSchema.parse(raw ?? {});
+  const rows: DirectoryRow[] = [];
+  for (const item of page.items) {
+    const parsed = directoryRowSchema.safeParse(item);
+    if (parsed.success) rows.push(parsed.data);
+    else logger.warn("roommates.directory_parse_failed", { request_id: ctx.requestId });
+  }
+  const paths = rows.flatMap((row) => (row.photo_path ? [row.photo_path] : []));
+  const urls = await repo.signUrls(ctx.supabase, repo.ROOMMATE_PHOTOS_BUCKET, paths, SIGNED_URL_SECONDS);
+  return {
+    items: rows.map((row) => toDirectoryCard(row, row.photo_path ? (urls.get(row.photo_path) ?? null) : null)),
+    page: query.page,
+    has_more: page.has_more,
+    can_like: status === "active",
+  };
 }

@@ -333,3 +333,59 @@ export async function cacheResults(
     .upsert(rows, { onConflict: "viewer_id,candidate_id" });
   if (error) throw fromSupabaseError(error);
 }
+
+// ───────────────────────────── directory ─────────────────────────────
+// The directory columns and roommate_directory() come from
+// supabase/migrations/20261120000500_roommate_directory.sql.
+
+/** roommate_profiles columns added by 20261120000500. */
+export type DirectoryColumns = {
+  directory_visible: boolean;
+  directory_consent_at: string | null;
+  available: boolean;
+  show_age_gender: boolean;
+};
+
+/** Reads the directory columns off a row fetched with select("*"); missing columns get the defaults. */
+export function directoryColumnsOf(row: unknown): DirectoryColumns {
+  const record = (row && typeof row === "object" ? row : {}) as Partial<Record<keyof DirectoryColumns, unknown>>;
+  return {
+    directory_visible: record.directory_visible === true,
+    directory_consent_at: typeof record.directory_consent_at === "string" ? record.directory_consent_at : null,
+    available: record.available !== false,
+    show_age_gender: record.show_age_gender === true,
+  };
+}
+
+/**
+ * Writes the owner's directory choices (RLS: own row, usable account). A non-null consent value is
+ * only a signal: the database stamps the first consent with its own clock and keeps it after that.
+ */
+export async function saveDirectorySettings(
+  supabase: AppSupabaseClient,
+  userId: string,
+  values: DirectoryColumns,
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("roommate_profiles")
+    .update(values)
+    .eq("user_id", userId)
+    .select("user_id");
+  if (error) throw fromSupabaseError(error);
+  return Array.isArray(data) && data.length > 0;
+}
+
+/** One directory page as returned by roommate_directory(): {items, has_more, limit, offset}. */
+export async function callDirectory(
+  supabase: AppSupabaseClient,
+  args: { city: string | null; available: boolean | null; limit: number; offset: number },
+): Promise<unknown> {
+  const { data, error } = await supabase.rpc("roommate_directory", {
+    ...(args.city !== null ? { p_city: args.city } : {}),
+    ...(args.available !== null ? { p_available: args.available } : {}),
+    p_limit: args.limit,
+    p_offset: args.offset,
+  });
+  if (error) throw fromSupabaseError(error);
+  return data;
+}

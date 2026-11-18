@@ -19,6 +19,7 @@ import { routes } from "@/lib/navigation";
 import { parseLocalities } from "../cards";
 import { DEAL_BREAKER_CODES } from "../compatibility";
 import {
+  DEFAULT_DIRECTORY_SETTINGS,
   DEAL_BREAKER_LABELS,
   FURNISHING_LABELS,
   FURNISHINGS,
@@ -191,6 +192,108 @@ function StatusChoice({ control }: { control: FormControl }) {
         </ChoicePill>
       </div>
     </fieldset>
+  );
+}
+
+function SettingSwitch({
+  label,
+  description,
+  checked,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <label htmlFor={id} className="text-[0.9375rem] font-semibold">
+          {label}
+        </label>
+        <p id={`${id}-hint`} className="mt-0.5 text-sm text-muted-foreground">
+          {description}
+        </p>
+      </div>
+      <Switch
+        id={id}
+        className="mt-1"
+        aria-describedby={`${id}-hint`}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={(next: boolean) => onChange(next)}
+      />
+    </div>
+  );
+}
+
+/**
+ * Roommate directory choices. Nothing is listed until the consent line is ticked AND the profile is
+ * shown; the database enforces the same rule and leaves out every field not named here.
+ */
+function DirectorySettings({ control }: { control: FormControl }) {
+  const consentId = useId();
+  const { field } = useController({ control, name: "directory" });
+  const value = field.value ?? DEFAULT_DIRECTORY_SETTINGS;
+  const set = (patch: Partial<typeof value>) => field.onChange({ ...value, ...patch });
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start gap-3 rounded-2xl bg-muted p-4">
+        <input
+          id={consentId}
+          type="checkbox"
+          className="mt-0.5 size-5 shrink-0 cursor-pointer accent-ink"
+          aria-describedby={`${consentId}-hint`}
+          checked={value.consent}
+          onChange={(event) =>
+            set(event.target.checked ? { consent: true } : { consent: false, visible: false })
+          }
+        />
+        <div className="min-w-0">
+          <label htmlFor={consentId} className="cursor-pointer text-[0.9375rem] font-semibold">
+            Everyone on Zovia can see this profile
+          </label>
+          <p id={`${consentId}-hint`} className="mt-1 text-sm text-muted-foreground">
+            Signed-in members can then find you in Browse roommates: your name, city and areas, budget, move-in date,
+            lifestyle tags, first photo and whether you are available. Never your phone, e-mail or exact location.
+            Untick to withdraw.
+          </p>
+        </div>
+      </div>
+      <SettingSwitch
+        label="Show me in the directory"
+        description={
+          value.consent
+            ? value.visible
+              ? "Shown. Turn off to hide without withdrawing consent. Only a live profile is listed."
+              : "Hidden. Turn on to appear in Browse roommates."
+            : "Hidden. Tick the line above first."
+        }
+        checked={value.consent && value.visible}
+        disabled={!value.consent}
+        onChange={(visible) => set({ visible })}
+      />
+      <SettingSwitch
+        label="I'm available"
+        description={
+          value.available
+            ? "Your card shows Available. Turn off once you have found a roommate."
+            : "Your card shows Not available."
+        }
+        checked={value.available}
+        onChange={(available) => set({ available })}
+      />
+      <SettingSwitch
+        label="Show my age and gender"
+        description="Off by default. When off, your directory card leaves both out."
+        checked={value.show_age_gender}
+        onChange={(show_age_gender) => set({ show_age_gender })}
+      />
+    </div>
   );
 }
 
@@ -419,6 +522,10 @@ export function RoommateProfileForm({
 
       <Section title="Visibility">
         <StatusChoice control={form.control} />
+      </Section>
+
+      <Section title="Roommate directory" description="Choose whether people can find you by browsing, not just in their deck.">
+        <DirectorySettings control={form.control} />
       </Section>
 
       {failure ? (

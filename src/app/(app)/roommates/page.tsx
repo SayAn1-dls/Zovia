@@ -1,4 +1,4 @@
-import { Heart, PauseCircle, UserRoundPen, Users } from "lucide-react";
+import { Heart, LayoutGrid, PauseCircle, UserRoundPen, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { buttonVariants } from "@/components/ui/button";
+import { DIRECTORY_PATH } from "@/features/roommates/directory";
 import { PauseProfileButton } from "@/features/roommates/components/pause-profile-button";
 import { ResumeProfileButton } from "@/features/roommates/components/resume-profile-button";
 import { SwipeDeck } from "@/features/roommates/components/swipe-deck";
@@ -40,9 +41,14 @@ async function RoommatesBody() {
           title="Meet people who live like you"
           description="Create a roommate profile with your budget, area and habits. We show you the most compatible people first; when you both like each other, a chat opens."
           action={
-            <Link href={routes.roommateProfile} className={buttonVariants({ size: "lg" })}>
-              <UserRoundPen data-icon="inline-start" aria-hidden /> Create your profile
-            </Link>
+            <>
+              <Link href={routes.roommateProfile} className={buttonVariants({ size: "lg" })}>
+                <UserRoundPen data-icon="inline-start" aria-hidden /> Create your profile
+              </Link>
+              <Link href={DIRECTORY_PATH} className={buttonVariants({ variant: "outline", size: "lg" })}>
+                <LayoutGrid data-icon="inline-start" aria-hidden /> Browse roommates
+              </Link>
+            </>
           }
         />
       </div>
@@ -71,6 +77,9 @@ async function RoommatesBody() {
               <Link href={routes.roommateMatches} className={buttonVariants({ variant: "ghost", size: "lg" })}>
                 <Heart data-icon="inline-start" aria-hidden /> Matches
               </Link>
+              <Link href={DIRECTORY_PATH} className={buttonVariants({ variant: "ghost", size: "lg" })}>
+                <LayoutGrid data-icon="inline-start" aria-hidden /> Browse
+              </Link>
             </>
           }
         />
@@ -87,6 +96,9 @@ async function RoommatesBody() {
           <>
             <Link href={routes.roommateMatches} className={buttonVariants({ size: "lg" })}>
               <Heart data-icon="inline-start" aria-hidden /> Matches
+            </Link>
+            <Link href={DIRECTORY_PATH} className={buttonVariants({ variant: "outline", size: "lg" })}>
+              <LayoutGrid data-icon="inline-start" aria-hidden /> Browse
             </Link>
             <Link href={routes.roommateProfile} className={buttonVariants({ variant: "outline", size: "lg" })}>
               <UserRoundPen data-icon="inline-start" aria-hidden /> Profile

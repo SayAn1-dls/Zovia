@@ -88,7 +88,7 @@ export type GooglePlace = {
   rating: number | null;
   rating_count: number | null;
   maps_url: string | null;
-  photo: { name: string; attributions: { name: string; uri: string | null }[] } | null;
+  photo: { name: string; sig?: string; attributions: { name: string; uri: string | null }[] } | null;
 };
 
 const coordinate = (min: number, max: number, message: string) =>
@@ -115,4 +115,6 @@ export const GOOGLE_PHOTO_NAME = /^places\/[A-Za-z0-9_-]{1,300}\/photos\/[A-Za-z
 
 export const googlePhotoQuerySchema = z.object({
   name: z.string().regex(GOOGLE_PHOTO_NAME, "That photo reference is not valid."),
+  /** HMAC issued with the page that listed the photo; checked in the service (see photo-token.ts). */
+  sig: z.string().max(64).optional(),
 });

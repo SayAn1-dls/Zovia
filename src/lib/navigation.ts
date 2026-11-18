@@ -101,9 +101,6 @@ export const routes = {
   adminContactMessages: route("/admin/contact-messages"),
   adminAuditLogs: route("/admin/audit-logs"),
   adminSettings: route("/admin/settings"),
-
-  // Developer docs
-  apiDocs: route("/docs/api"),
 } as const;
 
 /** Dynamic routes. */

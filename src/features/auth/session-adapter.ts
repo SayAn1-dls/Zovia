@@ -9,6 +9,7 @@ import {
 import type { Me } from "@/features/account/schemas";
 import { apiFetch, isApiError } from "@/lib/api/client";
 import { usesSupabase } from "@/lib/supabase/backend";
+import { clearServiceWorkerCaches } from "@/lib/pwa/clear-caches";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 /**
@@ -93,6 +94,8 @@ export const supabaseSessionAdapter: SessionAdapter = {
     } catch {
       // Ignore if the browser client is not configured.
     }
+    // Cached pages must not outlive the session on a shared device.
+    await clearServiceWorkerCaches();
     loadSeq += 1;
     publish(SESSION_SIGNED_OUT);
   },

@@ -11,6 +11,7 @@ import { fetchPhoto, textSearch } from "./google/places";
 import { normaliseGeocodeQuery } from "./osm/nominatim";
 import { buildHousingQuery, parseHousingResponse, type OsmHousing } from "./osm/housing";
 import { fetchOverpass, OSM_ATTRIBUTION, selectNearby } from "./osm/overpass";
+import { signPhotoName, verifyPhotoSignature } from "./photo-token";
 import { createOpenStreetMapProvider, type LocationProvider } from "./provider";
 import {
   NEARBY_RADIUS_M,
@@ -101,7 +102,14 @@ export async function getGooglePlacesForCity(cityName: string): Promise<GooglePl
   const apiKey = env().GOOGLE_MAPS_API_KEY;
   if (!apiKey) return { status: "disabled" };
   try {
-    return { status: "ok", places: await textSearch(cityName, { apiKey }) };
+    const places = await textSearch(cityName, { apiKey });
+    // Each photo carries a signature so the proxy only serves names this server handed out.
+    return {
+      status: "ok",
+      places: places.map((place) =>
+        place.photo ? { ...place, photo: { ...place.photo, sig: signPhotoName(place.photo.name, apiKey) } } : place,
+      ),
+    };
   } catch (cause) {
     logger.warn("locations.google_places_failed", { error: serializeError(cause) });
     return { status: "error" };
@@ -109,9 +117,14 @@ export async function getGooglePlacesForCity(cityName: string): Promise<GooglePl
 }
 
 /** Bytes of a Google Places photo, proxied so the key stays on the server. */
-export async function getGooglePlacePhoto(name: string): Promise<{ body: ArrayBuffer; contentType: string }> {
+export async function getGooglePlacePhoto(
+  name: string,
+  signature?: string,
+): Promise<{ body: ArrayBuffer; contentType: string }> {
   const apiKey = env().GOOGLE_MAPS_API_KEY;
   if (!apiKey) throw errors.notFound("Google Maps photos are not enabled.");
+  // Only photo names this server rendered (and signed) are fetched: the Google call is paid.
+  if (!verifyPhotoSignature(name, signature, apiKey)) throw errors.notFound("That photo is not available.");
   try {
     return await fetchPhoto(name, { apiKey });
   } catch (cause) {

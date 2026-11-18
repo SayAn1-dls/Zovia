@@ -282,10 +282,27 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# E-mail templates: token-hash links to /auth/confirm, so a link works on any device
+# (the default PKCE `?code=` links only work in the browser that asked for the e-mail).
+[auth.email.template.confirmation]
+subject = "Confirm your Zovia e-mail"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Reset your Zovia password"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.magic_link]
+subject = "Your Zovia sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+[auth.email.template.email_change]
+subject = "Confirm your new Zovia e-mail"
+content_path = "./supabase/templates/email_change.html"
+
+[auth.email.template.invite]
+subject = "You are invited to Zovia"
+content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

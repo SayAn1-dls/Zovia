@@ -14,7 +14,7 @@ import type { AppSupabaseClient } from "@/server/supabase/types";
  * keyboard. Messages never say whether an e-mail address has an account.
  */
 
-function toAuthAppError(error: unknown): AppError {
+export function toAuthAppError(error: unknown): AppError {
   if (!isAuthError(error)) return errors.internal(undefined, { cause: error });
   switch (error.code) {
     case "invalid_credentials":
@@ -39,6 +39,8 @@ function toAuthAppError(error: unknown): AppError {
         "Check your e-mail address.",
       );
     case "over_email_send_rate_limit":
+      // The hosted default sender allows only a few e-mails an hour: waiting a minute does not help.
+      return errors.rateLimited(3600, "We can't send verification e-mails right now. Please try again in a little while.");
     case "over_request_rate_limit":
       return errors.rateLimited(undefined, "Too many attempts. Please wait a minute and try again.");
     case "signup_disabled":

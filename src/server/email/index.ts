@@ -54,7 +54,7 @@ export class ResendEmailProvider implements EmailProvider {
           ...(message.html ? { html: message.html } : {}),
           ...(message.replyTo ? { reply_to: message.replyTo } : {}),
         }),
-        signal: AbortSignal.timeout(10_000),
+        signal: AbortSignal.timeout(6_000),
       });
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { name?: unknown } | null;
@@ -139,7 +139,7 @@ export class FormSubmitEmailProvider {
           _captcha: "false",
           message: message.text,
         }),
-        signal: AbortSignal.timeout(12_000),
+        signal: AbortSignal.timeout(8_000),
       });
       const payload = (await response.json().catch(() => null)) as { success?: unknown; message?: unknown } | null;
       if (response.ok && String(payload?.success) === "true") return { status: "sent", provider: this.name, id: null };

@@ -23,4 +23,17 @@ describe("developer-only staff access", () => {
     expect(restrictStaffRoles(["admin"], null)).toEqual([]);
     expect(isDeveloperEmail("sayanbhattacharya2024@gmail.com")).toBe(true);
   });
+
+  it("strips quotes and whitespace around each entry", () => {
+    vi.stubEnv("ADMIN_EMAILS", ' "a@b.com" , \'C@d.com\' ,\u201cE@f.com\u201d ');
+    expect(isDeveloperEmail("a@b.com")).toBe(true);
+    expect(isDeveloperEmail("c@d.com")).toBe(true);
+    expect(isDeveloperEmail("e@f.com")).toBe(true);
+    expect(isDeveloperEmail("sayanbhattacharya2024@gmail.com")).toBe(false);
+  });
+
+  it("falls back to the default when the value is only quotes", () => {
+    vi.stubEnv("ADMIN_EMAILS", '""');
+    expect(isDeveloperEmail("sayanbhattacharya2024@gmail.com")).toBe(true);
+  });
 });

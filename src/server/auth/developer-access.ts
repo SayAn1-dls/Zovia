@@ -10,12 +10,17 @@ import "server-only";
  */
 const DEFAULT_DEVELOPER_EMAILS = "sayanbhattacharya2024@gmail.com";
 
+/** A value pasted as "a@b.com" (or 'a@b.com') still works: whitespace and quote characters are stripped. */
+function cleanEntry(value: string): string {
+  return value.replace(/^[\s"'`\u201c\u201d\u2018\u2019]+|[\s"'`\u201c\u201d\u2018\u2019]+$/g, "").toLowerCase();
+}
+
 export function developerEmails(): ReadonlySet<string> {
-  const raw = process.env.ADMIN_EMAILS?.trim() || DEFAULT_DEVELOPER_EMAILS;
+  const raw = cleanEntry(process.env.ADMIN_EMAILS ?? "") ? process.env.ADMIN_EMAILS! : DEFAULT_DEVELOPER_EMAILS;
   return new Set(
     raw
       .split(",")
-      .map((value) => value.trim().toLowerCase())
+      .map(cleanEntry)
       .filter((value) => value.includes("@")),
   );
 }

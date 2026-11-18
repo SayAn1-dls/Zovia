@@ -105,6 +105,10 @@ describe("AnthropicProvider", () => {
     expect(result).toMatchObject({ outcome: "text", text: "Deposits are usually 1-2 months.", model: DEFAULT_ANTHROPIC_MODEL });
   });
 
+  it("defaults to the Sonnet model", () => {
+    expect(DEFAULT_ANTHROPIC_MODEL).toBe("claude-sonnet-5-5");
+  });
+
   it("drops a leading assistant turn and uses AI_MODEL", async () => {
     const { requests, client } = fakeClient([message([{ type: "text", text: "ok" }], "end_turn")]);
     await new AnthropicProvider({ apiKey: "k", client, model: "claude-haiku-5-5" }).respond({

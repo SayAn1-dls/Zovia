@@ -4,6 +4,10 @@ import { createHandler, created, errors } from "@/server/http";
 import { serializeError } from "@/server/logger";
 
 import { contactBodySchema } from "./schema";
+import { contactRefusal } from "./store-error";
+
+/** Resend (6 s) plus FormSubmit (8 s) plus the database call stay well inside this. */
+export const maxDuration = 30;
 
 /**
  * POST /api/v1/contact: public contact form, also used for PG visit requests.
@@ -11,7 +15,7 @@ import { contactBodySchema } from "./schema";
  * The message is e-mailed to the contact inbox (CONTACT_INBOX, server-only, default the developer's address)
  * with the visitor's address as Reply-To, so a reply from the inbox goes straight back to them.
  * It is also stored through `submit_contact_message()` for the admin inbox when the database is
- * reachable. Success means at least one of the two really happened; `team_notified` says whether
+ * reachable (its validation and rate limits are final: on ZV422 / ZV429 nothing is mailed). Success means at least one of the two really happened; `team_notified` says whether
  * the e-mail went out. Per-IP throttling: preset "contact".
  *
  * Honeypot: a filled `website` field is refused with 422 and nothing is stored or sent. It is
@@ -55,6 +59,12 @@ export const POST = createHandler(
       if (error) throw error;
       id = data;
     } catch (cause) {
+      // The database's own refusals (invalid input, rate limit) win: no mail goes out for them.
+      const refusal = contactRefusal(cause);
+      if (refusal) {
+        log.warn("contact.refused_by_database", { code: refusal.code });
+        throw refusal;
+      }
       log.warn("contact.store_failed", { error: serializeError(cause) });
     }
 

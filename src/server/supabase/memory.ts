@@ -10,6 +10,7 @@ import { getCatalogListing } from "@/features/catalog/listings";
 import { LIFESTYLE_QUESTIONS, type QuestionCode } from "@/features/roommates/compatibility/questions";
 
 import { isDeveloperEmail } from "../auth/developer-access";
+import { assertMemoryBackendAllowed, memoryMayAutoGrantAdmin } from "./memory-guard";
 import type { AppSupabaseClient } from "./types";
 
 export const MEMORY_SESSION_COOKIE = "zovia_session";
@@ -716,7 +717,7 @@ function ensureUserProvisioned(
     roles.push({ user_id: userId, role: "owner", granted_at: now });
   }
   // Admin only for the developer allowlist (ADMIN_EMAILS), never from the e-mail's wording.
-  if (isDeveloperEmail(normalizedEmail)) {
+  if (memoryMayAutoGrantAdmin() && isDeveloperEmail(normalizedEmail)) {
     const hasAdmin = roles.some((r) => r.user_id === userId && r.role === "admin");
     if (!hasAdmin) {
       roles.push({ user_id: userId, role: "admin", granted_at: now });
@@ -1497,115 +1498,23 @@ function executeRpc(
       };
     }
 
-    case "request_booking": {
-      const userId = currentUserId ?? "11111111-1111-4111-8111-111111111101";
-      const propertyId = String(args.p_property_id ?? "");
-      const prop = resolvePropertyFromStoreOrCatalog(store, propertyId);
-      const monthlyRent = Number(prop?.min_rent ?? prop?.monthly_rent ?? 11500);
-      const deposit = Number(prop?.security_deposit ?? monthlyRent * 2);
-      const id = randomUUID();
-      table(store, "bookings").push({
-        id,
-        property_id: propertyId,
-        room_id: args.p_room_id ?? null,
-        bed_id: args.p_bed_id ?? null,
-        tenant_id: userId,
-        owner_id: prop?.owner_id ?? "11111111-1111-4111-8111-111111111101",
-        status: "requested",
-        move_in_date: String(args.p_move_in_date ?? now.slice(0, 10)),
-        move_out_date: args.p_move_out_date ?? null,
-        months: Number(args.p_months ?? 6),
-        occupants: Number(args.p_occupants ?? 1),
-        monthly_rent: monthlyRent,
-        security_deposit: deposit,
-        platform_fee: 0,
-        total_upfront: monthlyRent + deposit,
-        tenant_note: args.p_note ?? null,
-        owner_note: null,
-        cancellation_reason: null,
-        confirmed_at: null,
-        cancelled_at: null,
-        created_at: now,
-        updated_at: now,
-      });
-      persistStore(store);
-      return { data: id, error: null };
-    }
-
-    case "owner_respond_booking": {
-      const bookingId = String(args.p_booking_id ?? "");
-      const decision = String(args.p_decision ?? "approve");
-      const booking = table(store, "bookings").find((b) => b.id === bookingId);
-      if (booking) {
-        booking.status = decision === "approve" ? "approved" : "rejected";
-        booking.owner_note = args.p_note ?? null;
-        booking.updated_at = now;
-        persistStore(store);
-      }
-      return { data: booking?.status ?? "approved", error: null };
-    }
-
-    case "cancel_booking": {
-      const bookingId = String(args.p_booking_id ?? "");
-      const booking = table(store, "bookings").find((b) => b.id === bookingId);
-      if (booking) {
-        booking.status = "cancelled";
-        booking.cancellation_reason = args.p_reason ?? null;
-        booking.cancelled_at = now;
-        booking.updated_at = now;
-        persistStore(store);
-      }
-      return { data: "cancelled", error: null };
-    }
-
-    case "booking_payable_amount": {
-      const bookingId = String(args.p_booking_id ?? "");
-      const booking = table(store, "bookings").find((b) => b.id === bookingId);
-      if (!booking) return { data: [], error: null };
-      const amountRupees = Number(booking.total_upfront ?? 25000);
+    // Booking and payment rules live in SQL (bed locks, tenant/seeker ids, approve/reject decisions).
+    // The demo store cannot reproduce them faithfully, so it refuses instead of corrupting state.
+    case "request_booking":
+    case "owner_respond_booking":
+    case "cancel_booking":
+    case "booking_payable_amount":
+    case "record_payment_order":
+    case "confirm_booking_payment":
       return {
-        data: [
-          {
-            booking_id: booking.id,
-            tenant_id: booking.tenant_id,
-            property_id: booking.property_id,
-            status: booking.status,
-            amount_paise: amountRupees * 100,
-            currency: "INR",
-          },
-        ],
-        error: null,
+        data: null,
+        error: {
+          code: "PGRST002",
+          message: "Bookings and payments need the database: the demo memory store cannot run them.",
+          details: "",
+          hint: "",
+        },
       };
-    }
-
-    case "record_payment_order": {
-      const id = randomUUID();
-      table(store, "payments").push({
-        id,
-        booking_id: args.p_booking_id,
-        provider: args.p_provider ?? "razorpay",
-        provider_order_id: args.p_provider_order_id,
-        amount_paise: args.p_amount_paise,
-        currency: args.p_currency ?? "INR",
-        status: "created",
-        created_at: now,
-        updated_at: now,
-      });
-      persistStore(store);
-      return { data: id, error: null };
-    }
-
-    case "confirm_booking_payment": {
-      const bookingId = String(args.p_booking_id ?? "");
-      const booking = table(store, "bookings").find((b) => b.id === bookingId);
-      if (booking) {
-        booking.status = "confirmed";
-        booking.confirmed_at = now;
-        booking.updated_at = now;
-      }
-      persistStore(store);
-      return { data: true, error: null };
-    }
 
     case "roommate_candidates": {
       const limit = Number(args.p_limit ?? 40);
@@ -2070,6 +1979,7 @@ export interface MemoryCookieAdapter {
 }
 
 export function createMemorySupabaseClient(cookieAdapter?: MemoryCookieAdapter): AppSupabaseClient {
+  assertMemoryBackendAllowed();
   const store = getStore();
 
   const resolveCurrentUserId = (): string | null => {

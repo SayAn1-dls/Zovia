@@ -30,6 +30,7 @@ export const metadata: Metadata = {
   },
   description: site.description,
   applicationName: site.name,
+  appleWebApp: { capable: true, title: site.name, statusBarStyle: "default" },
   openGraph: {
     type: "website",
     siteName: site.name,

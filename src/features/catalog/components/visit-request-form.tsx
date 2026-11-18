@@ -14,6 +14,14 @@ import { SHARING_LABELS, type SharingType } from "../listings";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE = /^\+?[0-9][0-9\s-]{8,16}$/;
 
+const FALLBACK_FAILURE = "That didn't go through. Check your connection and try again.";
+
+/** The server's own words for throttling, refused input and outages; a network error gets the generic hint. */
+export function failureMessage(result: { status: number; message?: string }): string {
+  if ((result.status === 429 || result.status === 422 || result.status === 503) && result.message) return result.message;
+  return FALLBACK_FAILURE;
+}
+
 /**
  * "Book a visit / ask a question" for a PG. Goes to the Zovia inbox (sendMessage) with the
  * visitor as Reply-To; Zovia confirms price, vacancy and a visit slot with the owner and replies.
@@ -31,6 +39,7 @@ export function VisitRequestForm({
   const [values, setValues] = useState({ name: "", email: "", phone: "", sharing: sharing[0] ?? "", moveIn: "", message: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof typeof values, string>>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
+  const [failure, setFailure] = useState<string | null>(null);
 
   const set = (key: keyof typeof values) => (event: { target: { value: string } }) =>
     setValues((current) => ({ ...current, [key]: event.target.value }));
@@ -45,6 +54,7 @@ export function VisitRequestForm({
     if (Object.keys(next).length > 0) return;
 
     setState("sending");
+    setFailure(null);
     const result = await sendMessage({
       name: values.name.trim(),
       email: values.email.trim(),
@@ -68,6 +78,7 @@ export function VisitRequestForm({
         return;
       }
     }
+    if (!result.ok) setFailure(failureMessage(result));
     setState(result.ok ? "sent" : "failed");
   }
 
@@ -160,7 +171,7 @@ export function VisitRequestForm({
       </div>
       {state === "failed" ? (
         <p role="alert" className="rounded-xl bg-danger-surface p-3 text-sm text-danger-foreground">
-          That didn&apos;t go through. Check your connection and try again.
+          {failure ?? FALLBACK_FAILURE}
         </p>
       ) : null}
       <Button type="submit" size="lg" className="w-full" disabled={state === "sending"}>

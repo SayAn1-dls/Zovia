@@ -36,7 +36,7 @@ export function GooglePlacesSection({ cityName, places }: { cityName: string; pl
                   // Same-origin proxy URL with a query string: next/image would need a localPatterns entry.
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={buildApiUrl("/locations/google-photo", { name: place.photo.name })}
+                    src={buildApiUrl("/locations/google-photo", { name: place.photo.name, sig: place.photo.sig })}
                     alt=""
                     loading="lazy"
                     className="absolute inset-0 size-full object-cover"

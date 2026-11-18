@@ -222,6 +222,10 @@
     body:has([data-mobile-tabbar]) [data-consent-banner] {
       bottom: calc(4.25rem + env(safe-area-inset-bottom));
     }
+    /* A listing's booking bar (4.25rem, above the tab bar): the banner sits above both. */
+    body:has([data-stay-bar]) [data-consent-banner] {
+      bottom: calc(8.5rem + env(safe-area-inset-bottom));
+    }
   }
   h1,
   h2,

@@ -15,12 +15,15 @@ export function PolicyTimeline({
   checkin,
   checkout,
   freeCancelUntil,
+  flat = false,
   className,
 }: {
   checkin: string;
   checkout: string;
   /** From the booking when known; otherwise computed from check-in. null when the free window has passed. */
   freeCancelUntil?: string | null;
+  /** No card of its own: for use inside another card (checkout form, booking page). */
+  flat?: boolean;
   className?: string;
 }) {
   const deadline = freeCancelUntil === undefined ? freeCancelDeadline(checkin) : freeCancelUntil;
@@ -54,13 +57,13 @@ export function PolicyTimeline({
   ];
 
   return (
-    <section aria-labelledby="policy-heading" className={cn("rounded-2xl bg-card p-5 ring-1 ring-border", className)}>
+    <section aria-labelledby="policy-heading" className={cn("@container", !flat && "rounded-3xl bg-card p-6 ring-1 ring-border sm:p-7", className)}>
       <h2 id="policy-heading" className="text-base font-semibold">
         Cancellation policy
       </h2>
-      <ol className="mt-4 space-y-0">
+      <ol className="mt-5 space-y-0">
         {steps.map(({ icon: Icon, tone, title, body }, index) => (
-          <li key={title} className="relative flex gap-3 pb-4 last:pb-0">
+          <li key={title} className="relative flex gap-3.5 pb-5 last:pb-0">
             {index < steps.length - 1 ? <span aria-hidden className="absolute top-8 bottom-0 left-4 w-px bg-border" /> : null}
             <span
               className={cn(
@@ -79,7 +82,7 @@ export function PolicyTimeline({
           </li>
         ))}
       </ol>
-      <ul className="mt-4 grid grid-cols-1 gap-2 border-t border-border pt-4 text-sm sm:grid-cols-2">
+      <ul className="mt-5 grid grid-cols-1 gap-2.5 border-t border-border pt-5 text-sm text-muted-foreground @xl:grid-cols-2">
         <li className="flex items-center gap-2">
           <IdCard className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           18+ only. Bring a photo ID to check in.

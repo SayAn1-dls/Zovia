@@ -186,8 +186,8 @@ function PayHold({ booking }: { booking: StayBooking }) {
 function Fact({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="font-semibold">{children}</dd>
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="mt-1 font-semibold">{children}</dd>
     </div>
   );
 }
@@ -223,13 +223,13 @@ export function StayBookingView({ booking }: { booking: StayBooking }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <Link href={dynamicRoutes.property(booking.listing)} className="text-lg font-bold underline-offset-4 hover:underline">
             {booking.listing_title}
           </Link>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {booking.locality}, {booking.city} · Ref {booking.id.slice(0, 8).toUpperCase()}
           </p>
         </div>
@@ -240,71 +240,72 @@ export function StayBookingView({ booking }: { booking: StayBooking }) {
       {booking.status === "pending_payment" && booking.payment_mode === "online" ? <PayHold booking={booking} /> : null}
       {cancelNote ? <FormMessage tone="success">{cancelNote}</FormMessage> : null}
 
-      <dl className="grid grid-cols-2 gap-4 rounded-2xl border border-border bg-card p-5 text-sm">
-        <Fact label="Check-in">
-          {formatStayDate(booking.checkin, true)}, {formatClock(STAY_RULES.check_in_time)}
-        </Fact>
-        <Fact label="Check-out">
-          {formatStayDate(booking.checkout, true)}, {formatClock(STAY_RULES.check_out_time)}
-        </Fact>
-        <Fact label="Stay">{nightsLabel(booking.nights)}</Fact>
-        <Fact label="Guests">{booking.guests}</Fact>
-      </dl>
+      {/* One card, three parts split by hairlines: when, what it costs, who. */}
+      <div className="divide-y divide-border rounded-3xl bg-card px-6 ring-1 ring-border sm:px-8">
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-5 py-6 text-sm min-[400px]:grid-cols-2 sm:py-8">
+          <Fact label="Check-in">
+            {formatStayDate(booking.checkin, true)}, {formatClock(STAY_RULES.check_in_time)}
+          </Fact>
+          <Fact label="Check-out">
+            {formatStayDate(booking.checkout, true)}, {formatClock(STAY_RULES.check_out_time)}
+          </Fact>
+          <Fact label="Stay">{nightsLabel(booking.nights)}</Fact>
+          <Fact label="Guests">{booking.guests}</Fact>
+        </dl>
 
-      <section aria-labelledby="price-heading" className="rounded-2xl border border-border bg-card p-5 text-sm">
-        <h2 id="price-heading" className="text-base font-semibold">
-          Price
-        </h2>
-        <ul className="mt-3 space-y-2.5 border-b border-border pb-3">
-          {booking.lines.map((line) => (
-            <li key={line.room_type} className="flex items-start justify-between gap-3">
-              <span>
-                <span className="block font-medium">{lineTitle(line)}</span>
-                <span className="text-xs text-muted-foreground">{lineMath(line)}</span>
-              </span>
-              <Money amount={line.line_total_inr} />
-            </li>
-          ))}
-        </ul>
-        <dl className="space-y-1.5 pt-3">
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Stay total</dt>
-            <dd>
-              <Money amount={booking.stay_total_inr} />
-            </dd>
+        <section aria-labelledby="price-heading" className="py-6 text-sm sm:py-8">
+          <h2 id="price-heading" className="text-base font-semibold">
+            Price
+          </h2>
+          <ul className="mt-4 space-y-3">
+            {booking.lines.map((line) => (
+              <li key={line.room_type} className="flex items-start justify-between gap-4">
+                <span className="min-w-0">
+                  <span className="block font-medium">{lineTitle(line)}</span>
+                  <span className="text-xs text-muted-foreground">{lineMath(line)}</span>
+                </span>
+                <Money amount={line.line_total_inr} />
+              </li>
+            ))}
+          </ul>
+          <dl className="mt-3 space-y-2 text-muted-foreground">
+            <div className="flex justify-between gap-4">
+              <dt>Stay total</dt>
+              <dd>
+                <Money amount={booking.stay_total_inr} />
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4">
+              <dt>Tax ({booking.tax_percent}%)</dt>
+              <dd>
+                <Money amount={booking.tax_inr} />
+              </dd>
+            </div>
+          </dl>
+          <div className="mt-5 flex items-baseline justify-between gap-4 border-t border-border pt-5">
+            <span className="font-semibold">Total</span>
+            <Money amount={booking.grand_total_inr} className="text-2xl leading-none font-semibold tracking-tight" />
           </div>
-          <div className="flex justify-between">
-            <dt className="text-muted-foreground">Tax ({booking.tax_percent}%)</dt>
-            <dd>
-              <Money amount={booking.tax_inr} />
-            </dd>
-          </div>
-          <div className="flex justify-between border-t border-border pt-2 text-base font-bold">
-            <dt>Total</dt>
-            <dd>
-              <Money amount={booking.grand_total_inr} />
-            </dd>
-          </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="mt-2 text-right text-xs text-muted-foreground">
             {booking.payment_mode === "at_property" ? "Paid at the property on check-in." : booking.paid ? "Paid online." : "Not paid yet."}
           </p>
-        </dl>
-      </section>
+        </section>
 
-      <section aria-labelledby="guest-heading" className="rounded-2xl border border-border bg-card p-5 text-sm">
-        <h2 id="guest-heading" className="text-base font-semibold">
-          Guest
-        </h2>
-        <p className="mt-2 font-medium">{booking.guest_name}</p>
-        <p className="text-muted-foreground">
-          {booking.guest_phone} · {booking.guest_email}
-        </p>
-        {booking.special_requests ? <p className="mt-2 rounded-xl bg-muted/60 p-3">&ldquo;{booking.special_requests}&rdquo;</p> : null}
-      </section>
+        <section aria-labelledby="guest-heading" className="py-6 text-sm sm:py-8">
+          <h2 id="guest-heading" className="text-base font-semibold">
+            Guest
+          </h2>
+          <p className="mt-3 font-medium">{booking.guest_name}</p>
+          <p className="mt-0.5 break-words text-muted-foreground">
+            {booking.guest_phone} · {booking.guest_email}
+          </p>
+          {booking.special_requests ? <p className="mt-3 border-l-2 border-border pl-3 text-muted-foreground">&ldquo;{booking.special_requests}&rdquo;</p> : null}
+        </section>
+      </div>
 
       {live ? <PolicyTimeline checkin={booking.checkin} checkout={booking.checkout} freeCancelUntil={booking.free_cancel_until} /> : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {site.whatsappNumber ? (
           <a
             href={`https://wa.me/${site.whatsappNumber}?text=${encodeURIComponent(summary)}`}
@@ -377,7 +378,7 @@ export function StayBookingView({ booking }: { booking: StayBooking }) {
         />
       ) : null}
 
-      <p className="flex items-start gap-2 rounded-2xl bg-muted p-3 text-xs text-muted-foreground">
+      <p className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         Sample listing: Zovia confirms details with the property and gets back to you before check-in.
       </p>

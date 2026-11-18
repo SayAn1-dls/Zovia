@@ -49,6 +49,7 @@ import { Money } from "@/components/money";
 import { buttonVariants } from "@/components/ui/button";
 import { WhatsAppIcon, WhatsAppShareButton } from "@/components/whatsapp/whatsapp-buttons";
 import { MapView } from "@/features/locations/components/map-view";
+import { QuestionDisclosure } from "@/features/stays/components/question-disclosure";
 import { StayBookingPanel, StayBookingPanelSkeleton } from "@/features/stays/components/stay-booking-panel";
 import { STAY_RULES } from "@/features/stays/schemas";
 import { PhotoGallery } from "@/features/properties/components/photo-gallery";
@@ -146,7 +147,7 @@ export function CatalogListingView({
   ] as const;
 
   return (
-    <article className="pb-24 lg:pb-0">
+    <article className="pb-28 lg:pb-0">
       <nav aria-label="Breadcrumb" className="mb-4 flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
         <Link href={routes.cities} className="hover:text-foreground hover:underline">
           Cities
@@ -240,7 +241,7 @@ export function CatalogListingView({
         ))}
       </nav>
 
-      <div className="mt-2 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem]">
+      <div className="mt-2 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] xl:grid-cols-[minmax(0,1fr)_24rem] xl:gap-12">
         <div className="min-w-0">
           <Section id="about" title="About this place">
             <p className="leading-relaxed text-foreground/90">{listing.about}</p>
@@ -403,19 +404,18 @@ export function CatalogListingView({
           ) : null}
         </div>
 
-        <aside id="visit" className="scroll-mt-24 space-y-5" aria-label="Book a stay">
+        {/*
+          The booking column. The panel's summary is sticky only inside the panel's own wrapper
+          (which fills this column on desktop), and the question disclosure comes after that
+          wrapper, so the summary can never slide over it.
+        */}
+        <aside id="visit" className="flex min-w-0 scroll-mt-32 flex-col gap-6" aria-label="Book a stay">
           <Suspense fallback={<StayBookingPanelSkeleton />}>
             <StayBookingPanel slug={listing.slug} nightlyFrom={Math.ceil(listing.price_from / STAY_RULES.days_per_month)} />
           </Suspense>
-          <div className="space-y-5 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
-            <div>
-              <h2 className="text-base font-semibold">Ask a question</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Want to see it first, or stay by the month? Ask us and we&apos;ll check with the property.
-              </p>
-            </div>
+          <QuestionDisclosure hint="Visit first, or stay by the month? We'll check with the property.">
             {whatsapp ? (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <a href={`tel:+${whatsapp}`} className={buttonVariants({ variant: "outline", size: "lg" })}>
                   <Phone aria-hidden />
                   Call
@@ -432,12 +432,12 @@ export function CatalogListingView({
               </div>
             ) : null}
             <VisitRequestForm listingTitle={listing.title} place={place} sharing={listing.sharing.map((option) => option.type)} />
-            <p className="flex items-start gap-2 rounded-2xl bg-muted p-3 text-xs text-muted-foreground">
-              <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              Sample listing: rent, vacancy and rules are representative for {listing.locality}. Zovia confirms the exact details with the property
-              before your stay or visit.
-            </p>
-          </div>
+          </QuestionDisclosure>
+          <p className="flex items-start gap-2 px-2 text-xs text-muted-foreground">
+            <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+            Sample listing: rent, vacancy and rules are representative for {listing.locality}. Zovia confirms the exact details with the property
+            before your stay or visit.
+          </p>
         </aside>
       </div>
     </article>

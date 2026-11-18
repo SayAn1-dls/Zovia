@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { QtyStepper } from "./qty-stepper";
+import { QuestionDisclosure, openQuestion } from "./question-disclosure";
 import { SoldOutStrip } from "./room-type-card";
 import { StaySummary } from "./stay-summary";
 import { availabilityFixture, quoteFixture } from "./stays-test-utils";
@@ -46,10 +47,28 @@ describe("StaySummary", () => {
     expect(screen.getByText("₹300 × 3 nights")).toBeInTheDocument();
     expect(screen.getByText("Tax (5%)")).toBeInTheDocument();
     expect(screen.getByText("₹90")).toBeInTheDocument();
-    expect(screen.getAllByText("₹1,800")).toHaveLength(2); // the line and the stay total
+    expect(screen.getAllByText("₹1,800")).toHaveLength(1); // one line: no separate stay total
+    expect(screen.queryByText("Stay total")).not.toBeInTheDocument();
     expect(screen.getByText("Payable now")).toBeInTheDocument();
-    expect(screen.getAllByText("₹1,890")).toHaveLength(2);
+    expect(screen.getAllByText("₹1,890")).toHaveLength(1); // payable now is the total (full prepayment)
     expect(screen.getByText(/· 3 nights/)).toBeInTheDocument();
+  });
+
+  it("adds a stay total only when there is more than one line", () => {
+    const quote = quoteFixture({
+      lines: [
+        { room_type: "single", label: "Single room", units: 2, unit_price_inr: 300, nights: 3, line_total_inr: 1800 },
+        { room_type: "double", label: "Double sharing", units: 1, unit_price_inr: 200, nights: 3, line_total_inr: 600 },
+      ],
+      stay_total_inr: 2400,
+      tax_inr: 120,
+      grand_total_inr: 2520,
+      payable_now_inr: 2520,
+    });
+    render(<StaySummary data={quote} dates={quote} />);
+    expect(screen.getByText("Stay total")).toBeInTheDocument();
+    expect(screen.getByText("₹2,400")).toBeInTheDocument();
+    expect(screen.getByText("₹2,520")).toBeInTheDocument();
   });
 
   it("asks for a bed when there is no quote", () => {
@@ -72,5 +91,31 @@ describe("SoldOutStrip", () => {
     expect(nights[3]).toHaveTextContent("₹200");
     fireEvent.click(nights[3]!);
     expect(onPick).toHaveBeenCalledWith("2026-11-23");
+  });
+});
+
+describe("QuestionDisclosure", () => {
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("starts folded, with the form still in the page for assistive tech once opened", () => {
+    render(
+      <QuestionDisclosure hint="We'll check with the property.">
+        <label>
+          Your name <input />
+        </label>
+      </QuestionDisclosure>,
+    );
+    const details = screen.getByTestId("question-disclosure") as HTMLDetailsElement;
+    expect(details.open).toBe(false);
+    expect(within(details).getByText("Have a question?")).toBeInTheDocument();
+    openQuestion();
+    expect(details.open).toBe(true);
+    expect(screen.getByLabelText("Your name")).toBeInTheDocument();
+  });
+
+  it("opens when the page is reached with #ask", () => {
+    window.history.replaceState(null, "", "/properties/x#ask");
+    render(<QuestionDisclosure hint="Hint">form</QuestionDisclosure>);
+    expect((screen.getByTestId("question-disclosure") as HTMLDetailsElement).open).toBe(true);
   });
 });

@@ -142,10 +142,15 @@ export function StayCheckout({
   const online = mode === "online";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
     <DatesNotice text={datesNotice} onDismiss={dismissDatesNotice} />
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_23rem]">
-      <aside className="space-y-4 lg:sticky lg:top-24 lg:order-2 lg:self-start" aria-label="Your stay">
+    {/*
+      Tablets get the form and the summary side by side. The summary column holds nothing else,
+      so its sticky card can only travel beside the form, never over other content; and it is
+      sticky only on screens tall enough to show it whole.
+    */}
+    <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,1fr)_19rem] lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-12">
+      <aside className="min-w-0 space-y-3 md:order-2 md:top-24 md:self-start md:[@media(min-height:44rem)]:sticky" aria-label="Your stay">
         {quote.isPending ? (
           <StaySummarySkeleton />
         ) : quote.isError && !quote.data ? (
@@ -176,34 +181,37 @@ export function StayCheckout({
             }
           />
         )}
-        <Link href={back} className={buttonVariants({ variant: "ghost", size: "lg", className: "w-full" })}>
+        <Link href={back} className={buttonVariants({ variant: "ghost", size: "lg", className: "w-full text-muted-foreground" })}>
           <ArrowLeft data-icon="inline-start" aria-hidden />
           Change dates or rooms
         </Link>
       </aside>
 
-      <div className="min-w-0 space-y-6 lg:order-1">
-        <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-5 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
-          <h2 className="text-xl font-bold">Guest details</h2>
+      <div className="min-w-0 md:order-1">
+        <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border sm:p-8">
+          <div>
+            <h2 className="text-xl font-bold">Guest details</h2>
+            <p className="mt-1.5 text-sm text-muted-foreground">Who&apos;s checking in. We share these only with the property.</p>
+          </div>
           {failure ? <FormMessage tone="danger">{failure}</FormMessage> : null}
           <FormField control={form.control} name="guest.name" label="Full name" description="As on your photo ID.">
-            {(field) => <Input autoComplete="name" className="h-11" {...field} />}
+            {(field) => <Input autoComplete="name" className="h-12" {...field} />}
           </FormField>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2">
             <FormField control={form.control} name="guest.phone" label="Mobile number">
               {(field) => (
-                <Input type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="9876543210" maxLength={20} className="h-11" {...field} />
+                <Input type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="9876543210" maxLength={20} className="h-12" {...field} />
               )}
             </FormField>
             <FormField control={form.control} name="guest.email" label="E-mail">
-              {(field) => <Input type="email" inputMode="email" autoComplete="email" className="h-11" {...field} />}
+              {(field) => <Input type="email" inputMode="email" autoComplete="email" className="h-12" {...field} />}
             </FormField>
           </div>
           <FormField control={form.control} name="special_requests" label="Special requests" optional description="Arrival time, a lower bunk, anything the property should know.">
             {(field) => <Textarea rows={3} maxLength={500} {...field} value={field.value ?? ""} />}
           </FormField>
 
-          <PolicyTimeline checkin={selection.checkin} checkout={selection.checkout} className="bg-muted/40" />
+          <PolicyTimeline checkin={selection.checkin} checkout={selection.checkout} flat className="border-t border-border pt-6" />
 
           <Controller
             control={form.control}
@@ -268,7 +276,7 @@ export function StayCheckout({
               {online ? "Confirm and pay" : "Confirm booking"}
             </Button>
           )}
-          <p className="text-xs text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground">
             {online
               ? `You pay the full amount now through Razorpay. Your beds are held for ${STAY_RULES.hold_minutes} minutes while you pay.`
               : "Zovia confirms the details with the property and keeps you posted."}

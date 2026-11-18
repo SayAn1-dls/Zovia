@@ -112,7 +112,7 @@ three room types (`sharing[]`: single, double, triple) with `rent` (per month) a
 - Listing page (catalogue), right column: date range (two date inputs, nights shown), room-type cards with
   per-night price, "Select bed" that becomes a stepper, sold-out cards with the 7-night strip, then the
   sticky summary and **Book now**. Mobile: sticky bottom bar and a summary sheet. State in the URL.
-  "Request a visit" stays below as "Ask a question".
+  "Request a visit" becomes a folded "Have a question? Ask us" disclosure under the booking panel (the summary sticks only inside its own panel, so it can never cover the form).
 - Sold-out room cards also list "Similar places nearby that have beds" (up to 3 links, once under the
   first sold-out card, keeping the chosen dates).
 - A shared link with stale or invalid dates is not silently changed: a dismissible "Your dates were

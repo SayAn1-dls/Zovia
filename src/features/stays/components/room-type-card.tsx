@@ -1,6 +1,5 @@
 "use client";
 
-import { Bath, BedDouble, Snowflake } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -12,13 +11,10 @@ import { STAY_RULES, type StayAlternative, type StayNight, type StayRoomAvailabi
 import { bedsLabel, formatDayMonth, formatWeekday } from "../hooks/stay-text";
 import { QtyStepper } from "./qty-stepper";
 
-function Chip({ children }: { children: React.ReactNode }) {
-  return <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold">{children}</span>;
-}
-
 /**
- * One room type: per-night price (from the monthly rent), AC and bathroom chips, beds left, and
- * "Select bed" that turns into a stepper. Sold out for the dates: the 7-night strip instead.
+ * One room type as a row of the booking list: name, AC and bathroom in plain words, the nightly
+ * price (from the monthly rent), beds left, and "Select bed" that turns into a stepper. Sold out
+ * for the dates: the 7-night strip instead.
  */
 export function RoomTypeCard({
   room,
@@ -42,41 +38,29 @@ export function RoomTypeCard({
 }) {
   const headingId = `room-${room.room_type}`;
   const short = qty > room.units_left;
+  const selected = qty > 0 && !room.sold_out;
   const maxReason =
     max >= room.units_left ? `Only ${bedsLabel(room.units_left)} left.` : `At most ${STAY_RULES.max_units} beds in one booking.`;
 
   return (
-    <li
-      aria-labelledby={headingId}
-      className={cn("rounded-2xl bg-card p-4 ring-1 ring-border", qty > 0 && !room.sold_out && "ring-2 ring-foreground")}
-    >
-      <div className="flex items-start justify-between gap-3">
+    <li aria-labelledby={headingId} data-selected={selected || undefined} className="py-6 first:pt-1 last:pb-1">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 id={headingId} className="flex items-center gap-1.5 font-semibold">
-            <BedDouble className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <h3 id={headingId} className="flex items-center gap-2 font-sans text-base font-semibold tracking-normal">
+            {selected ? <span aria-hidden className="size-2 shrink-0 rounded-full bg-lime ring-1 ring-ink/20" /> : null}
             {room.label}
           </h3>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            <Chip>
-              <Snowflake className="size-3" aria-hidden />
-              {room.ac ? "AC" : "Non-AC"}
-            </Chip>
-            <Chip>
-              <Bath className="size-3" aria-hidden />
-              {room.attached_bathroom ? "Attached bath" : "Shared bath"}
-            </Chip>
-          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {room.ac ? "AC" : "Non-AC"} · {room.attached_bathroom ? "Attached bath" : "Shared bath"}
+          </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-lg font-bold">
+          <p className="text-2xl leading-none font-semibold tracking-tight">
             <Money amount={room.unit_price_inr} />
           </p>
-          <p className="text-xs text-muted-foreground">per bed / night</p>
+          <p className="mt-1.5 text-xs text-muted-foreground">per bed / night</p>
         </div>
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        From the monthly rent of <Money amount={room.rent_per_month_inr} /> ÷ {STAY_RULES.days_per_month}.
-      </p>
 
       {room.sold_out ? (
         <>
@@ -84,9 +68,12 @@ export function RoomTypeCard({
           {alternatives && alternativeHref ? <NearbyAlternatives items={alternatives} hrefFor={alternativeHref} /> : null}
         </>
       ) : (
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p className={cn("text-sm font-medium", room.units_left <= 2 ? "text-warning-foreground" : "text-success-foreground")}>
-            {room.units_left === 1 ? "1 bed left" : `${room.units_left} beds left`}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <p className="min-w-0 text-xs text-muted-foreground">
+            <span className={cn("block text-sm font-medium", room.units_left <= 2 ? "text-warning-foreground" : "text-success-foreground")}>
+              {room.units_left === 1 ? "1 bed left" : `${room.units_left} beds left`}
+            </span>
+            <Money amount={room.rent_per_month_inr} /> a month ÷ {STAY_RULES.days_per_month}
           </p>
           {qty > 0 ? (
             <QtyStepper label={`${room.label} beds`} value={qty} max={max} onChange={onQtyChange} maxReason={maxReason} />
@@ -98,13 +85,13 @@ export function RoomTypeCard({
         </div>
       )}
       {short && !room.sold_out ? (
-        <p role="alert" className="mt-2 text-xs font-medium text-danger-foreground">
+        <p role="alert" className="mt-3 text-xs font-medium text-danger-foreground">
           Only {bedsLabel(room.units_left)} left for these dates. Lower the number to continue.
         </p>
       ) : null}
       {room.sold_out && qty > 0 ? (
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <p role="alert" className="text-xs font-medium text-danger-foreground">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p role="alert" className="min-w-0 text-xs font-medium text-danger-foreground">
             You picked {bedsLabel(qty)} here. Remove them or change dates.
           </p>
           <Button type="button" variant="outline" size="lg" onClick={() => onQtyChange(0)}>
@@ -120,12 +107,12 @@ export function RoomTypeCard({
 export function NearbyAlternatives({ items, hrefFor }: { items: StayAlternative[]; hrefFor: (slug: string) => Route }) {
   if (items.length === 0) return null;
   return (
-    <div className="mt-3 border-t border-border pt-3">
+    <div className="mt-5">
       <p className="text-sm font-semibold">Similar places nearby that have beds</p>
-      <ul className="mt-1.5 space-y-1">
+      <ul className="mt-2 divide-y divide-border">
         {items.map((item) => (
           <li key={item.slug}>
-            <Link href={hrefFor(item.slug)} className="flex items-center justify-between gap-3 rounded-lg py-1 text-sm underline-offset-4 hover:underline">
+            <Link href={hrefFor(item.slug)} className="flex min-h-11 items-center justify-between gap-3 py-2 text-sm underline-offset-4 hover:underline">
               <span className="min-w-0 truncate">
                 {item.title}
                 <span className="text-muted-foreground"> · {item.locality}</span>
@@ -150,10 +137,10 @@ export function SoldOutStrip({
   onPickNight: (date: string) => void;
 }) {
   return (
-    <div className="mt-3">
+    <div className="mt-4">
       <p className="text-sm font-semibold text-danger-foreground">Sold out for these dates</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">Pick a night with beds to start your stay there.</p>
-      <ul aria-label={`${room.label}: beds per night`} className="-mx-1 mt-2 flex gap-1 overflow-x-auto px-1 pb-1">
+      <p className="mt-1 text-xs text-muted-foreground">Pick a night with beds to start your stay there.</p>
+      <ul aria-label={`${room.label}: beds per night`} className="-mx-1 mt-3 flex gap-1.5 overflow-x-auto px-1 pb-1">
         {room.strip.map((night: StayNight) => {
           const free = night.units_left > 0;
           return (

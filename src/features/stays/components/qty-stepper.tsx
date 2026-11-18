@@ -43,25 +43,25 @@ export function QtyStepper({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <div role="group" aria-label={label} onKeyDown={onKeyDown} className="inline-flex items-center gap-1 rounded-full bg-muted p-0.5">
+      <div role="group" aria-label={label} onKeyDown={onKeyDown} className="inline-flex items-center rounded-full ring-1 ring-border">
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          className="bg-card hover:bg-card"
+          className="hover:bg-muted"
           aria-label={value <= 1 ? `Remove ${label.toLowerCase()}` : `One fewer (${label.toLowerCase()})`}
           onClick={() => onChange(value - 1)}
         >
           <Minus aria-hidden />
         </Button>
-        <output aria-live="polite" aria-label={`${value} selected`} className="w-8 text-center text-base font-bold tabular-nums">
+        <output aria-live="polite" aria-label={`${value} selected`} className="w-9 text-center text-base font-semibold tabular-nums">
           {value}
         </output>
         <Button
           type="button"
           variant="ghost"
           size="icon-lg"
-          className="bg-card hover:bg-card"
+          className="hover:bg-muted"
           aria-label={`One more (${label.toLowerCase()})`}
           disabled={atMax}
           onClick={() => onChange(value + 1)}
@@ -69,7 +69,7 @@ export function QtyStepper({
           <Plus aria-hidden />
         </Button>
       </div>
-      {atMax && maxReason ? <p className="text-xs text-muted-foreground">{maxReason}</p> : null}
+      {atMax && maxReason ? <p className="text-right text-xs text-muted-foreground">{maxReason}</p> : null}
     </div>
   );
 }

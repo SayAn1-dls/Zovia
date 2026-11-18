@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, BedDouble, RotateCw } from "lucide-react";
+import { ArrowRight, BedDouble, RotateCw, XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -8,9 +8,10 @@ import { FormMessage } from "@/components/form/form-field";
 import { Money } from "@/components/money";
 import { useSession } from "@/components/session/session-context";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isApiError } from "@/lib/api/client";
+import { cn } from "@/lib/utils";
 
 import { priceStay } from "../pricing";
 import type { RoomSelection, StayAvailability, StayQuote, StayRequest } from "../schemas";
@@ -21,6 +22,7 @@ import { useStayAvailability, useStayQuote } from "../hooks/use-stays";
 import { bedsLabel } from "../hooks/stay-text";
 import { DatesNotice } from "./dates-notice";
 import { DateRangeFields } from "./date-range-fields";
+import { QUESTION_ID, openQuestion } from "./question-disclosure";
 import { RoomTypeCard } from "./room-type-card";
 import { StaySummary, type SummaryData } from "./stay-summary";
 
@@ -55,19 +57,24 @@ export function shortfallText(quote: Pick<StayQuote, "shortfalls">): string {
 
 function RoomsSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="space-y-3">
+    <div role="status" aria-busy="true" className="space-y-4">
       <span className="sr-only">Loading rooms</span>
-      {[0, 1].map((key) => (
-        <Skeleton key={key} className="h-40 w-full rounded-2xl" />
+      {[0, 1, 2].map((key) => (
+        <Skeleton key={key} className="h-24 w-full rounded-2xl" />
       ))}
     </div>
   );
 }
 
 /**
- * The listing page's booking column, Zostel style: dates, room-type cards with a bed stepper,
- * sold-out strips, and a sticky price summary with Book now. On phones a bottom bar shows the
- * payable amount and opens the summary in a sheet. All state is in the URL.
+ * The listing page's booking column, Zostel style: dates, room types with a bed stepper,
+ * sold-out strips, and a price summary with Book now. All state is in the URL.
+ *
+ * Layout: the panel and its summary share ONE wrapper, and the summary is sticky only inside
+ * it, so it can never slide over anything outside the booking panel (the question form below
+ * used to scroll under it). Phones: no inline summary; a bottom bar shows the payable amount and
+ * opens the summary in a sheet. Tablets: rooms and summary side by side. Desktop: the wrapper
+ * fills the booking column and the summary follows the page down to the column's end.
  */
 export function StayBookingPanel({ slug, nightlyFrom }: { slug: string; nightlyFrom: number }) {
   const router = useRouter();
@@ -125,9 +132,9 @@ export function StayBookingPanel({ slug, nightlyFrom }: { slug: string; nightlyF
   );
   const bookHint =
     request === null ? null : session.status === "signed_out" ? (
-      <p className="mt-2 text-center text-xs text-muted-foreground">You&apos;ll sign in first. Nothing is charged until the last step.</p>
+      <p className="mt-3 text-center text-xs text-muted-foreground">You&apos;ll sign in first. Nothing is charged until the last step.</p>
     ) : (
-      <p className="mt-2 text-center text-xs text-muted-foreground">Free cancellation until {STAY_RULES.free_cancel_days} days before check-in.</p>
+      <p className="mt-3 text-center text-xs text-muted-foreground">Free cancellation until {STAY_RULES.free_cancel_days} days before check-in.</p>
     );
 
   const summaryCard = (inSheet: boolean) => (
@@ -141,77 +148,110 @@ export function StayBookingPanel({ slug, nightlyFrom }: { slug: string; nightlyF
     >
       {bookButton}
       {bookHint}
+      {inSheet ? null : (
+        <p className="mt-4 border-t border-border pt-4 text-center text-sm">
+          <a href={`#${QUESTION_ID}`} onClick={openQuestion} className="inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline">
+            Have a question? Ask us
+          </a>
+        </p>
+      )}
     </StaySummary>
   );
 
   return (
-    <>
-      <section id="book" aria-labelledby="book-heading" className="scroll-mt-32 space-y-5 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
-        <div>
-          <h2 id="book-heading" className="text-xl font-bold">
-            Book your stay
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Pick dates, then beds. Up to {STAY_RULES.max_units} beds in one booking.</p>
+    <div
+      data-testid="stay-booking"
+      className="flex flex-col gap-6 md:grid md:grid-cols-[minmax(0,1fr)_18rem] md:items-start lg:flex lg:flex-1 lg:flex-col lg:items-stretch"
+    >
+      <section id="book" aria-labelledby="book-heading" className="scroll-mt-32 rounded-3xl bg-card p-6 ring-1 ring-border sm:p-7">
+        <h2 id="book-heading" className="text-xl font-bold">
+          Book your stay
+        </h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">Pick your dates, then your beds. Up to {STAY_RULES.max_units} in one booking.</p>
+        {datesNotice ? (
+          <div className="mt-5">
+            <DatesNotice text={datesNotice} onDismiss={dismissDatesNotice} />
+          </div>
+        ) : null}
+        <div className="mt-6">
+          <DateRangeFields dates={selection} onChange={(dates) => update(dates)} />
         </div>
-        <DatesNotice text={datesNotice} onDismiss={dismissDatesNotice} />
-        <DateRangeFields dates={selection} onChange={(dates) => update(dates)} />
 
-        <div>
-          <h3 className="mb-3 text-base font-semibold">Rooms</h3>
-          {availability.isPending ? (
-            <RoomsSkeleton />
-          ) : availability.isError && !availability.data ? (
-            <FormMessage tone="danger" title="Rooms did not load">
-              <p>{isApiError(availability.error) ? availability.error.message : "Check your connection and try again."}</p>
-              <Button type="button" variant="outline" size="lg" className="mt-2" onClick={() => void availability.refetch()}>
-                <RotateCw data-icon="inline-start" aria-hidden />
-                Try again
-              </Button>
-            </FormMessage>
-          ) : availability.data && availability.data.rooms.length === 0 ? (
-            <div className="rounded-2xl bg-muted p-4 text-sm text-muted-foreground">
-              <BedDouble className="mb-2 size-5" aria-hidden />
-              No rooms are open for booking here yet. Ask a question below and we&apos;ll check with the property.
-            </div>
-          ) : (
-            <ul className={availability.isPlaceholderData ? "space-y-3 opacity-60 transition-opacity" : "space-y-3"} aria-busy={availability.isFetching}>
-              {availability.data!.rooms.map((room) => {
-                const firstSoldOut = availability.data!.rooms.find((candidate) => candidate.sold_out)?.room_type;
-                const qty = rooms.find((selected) => selected.room_type === room.room_type)?.qty ?? 0;
-                const max = maxQtyFor(room.room_type, rooms, room.units_left);
-                return (
-                  <RoomTypeCard
-                    key={room.room_type}
-                    room={room}
-                    qty={qty}
-                    max={max}
-                    onQtyChange={(next) => setQty(room.room_type, next, Math.max(max, Math.min(next, qty)))}
-                    onPickNight={(date) => update({ checkin: date, checkout: addDays(date, selection.nights) })}
-                    alternatives={room.room_type === firstSoldOut ? availability.data!.alternatives : undefined}
-                    alternativeHref={(other) => listingHref(other, { ...selection, rooms: [] })}
-                  />
-                );
-              })}
-            </ul>
-          )}
-          {units >= STAY_RULES.max_units ? (
-            <p className="mt-2 text-xs text-muted-foreground">That&apos;s the most for one booking ({STAY_RULES.max_units} beds).</p>
-          ) : null}
+        <div className="mt-8">
+          <h3 className="font-sans text-xs font-semibold tracking-wider text-muted-foreground uppercase">Rooms</h3>
+          <div className="mt-2 border-t border-border pt-4">
+            {availability.isPending ? (
+              <RoomsSkeleton />
+            ) : availability.isError && !availability.data ? (
+              <FormMessage tone="danger" title="Rooms did not load">
+                <p>{isApiError(availability.error) ? availability.error.message : "Check your connection and try again."}</p>
+                <Button type="button" variant="outline" size="lg" className="mt-2" onClick={() => void availability.refetch()}>
+                  <RotateCw data-icon="inline-start" aria-hidden />
+                  Try again
+                </Button>
+              </FormMessage>
+            ) : availability.data && availability.data.rooms.length === 0 ? (
+              <p className="flex items-start gap-3 text-sm text-muted-foreground">
+                <BedDouble className="mt-0.5 size-5 shrink-0" aria-hidden />
+                <span>
+                  No rooms are open for booking here yet.{" "}
+                  <a href={`#${QUESTION_ID}`} onClick={openQuestion} className="font-medium text-foreground underline underline-offset-4">
+                    Ask a question
+                  </a>{" "}
+                  and we&apos;ll check with the property.
+                </span>
+              </p>
+            ) : (
+              <ul
+                className={cn("divide-y divide-border", availability.isPlaceholderData && "opacity-60 transition-opacity")}
+                aria-busy={availability.isFetching}
+              >
+                {availability.data!.rooms.map((room) => {
+                  const firstSoldOut = availability.data!.rooms.find((candidate) => candidate.sold_out)?.room_type;
+                  const qty = rooms.find((selected) => selected.room_type === room.room_type)?.qty ?? 0;
+                  const max = maxQtyFor(room.room_type, rooms, room.units_left);
+                  return (
+                    <RoomTypeCard
+                      key={room.room_type}
+                      room={room}
+                      qty={qty}
+                      max={max}
+                      onQtyChange={(next) => setQty(room.room_type, next, Math.max(max, Math.min(next, qty)))}
+                      onPickNight={(date) => update({ checkin: date, checkout: addDays(date, selection.nights) })}
+                      alternatives={room.room_type === firstSoldOut ? availability.data!.alternatives : undefined}
+                      alternativeHref={(other) => listingHref(other, { ...selection, rooms: [] })}
+                    />
+                  );
+                })}
+              </ul>
+            )}
+            {units >= STAY_RULES.max_units ? (
+              <p className="mt-4 text-xs text-muted-foreground">That&apos;s the most for one booking ({STAY_RULES.max_units} beds).</p>
+            ) : null}
+          </div>
         </div>
       </section>
 
-      <div className="hidden lg:sticky lg:top-28 lg:z-[5] lg:block lg:bg-background lg:pt-4">{summaryCard(false)}</div>
+      {/*
+        Sticky only inside the wrapper above, and only on screens tall enough to show the whole
+        card, so the card can never cover the panel's neighbours or hide its own Book now.
+      */}
+      <div data-testid="stay-summary" className="hidden md:block md:top-32 md:[@media(min-height:44rem)]:sticky">
+        {summaryCard(false)}
+      </div>
 
+      {/* Phones and tablets: the payable amount and one action. The page reserves room for it at the bottom. */}
       <div
-        className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-border bg-background/95 px-4 py-2.5 backdrop-blur lg:hidden"
+        data-stay-bar
+        className="fixed inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-30 border-t border-border bg-background px-4 lg:hidden"
         data-testid="stay-mobile-bar"
       >
-        <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
+        <div className="mx-auto flex h-[4.25rem] max-w-xl items-center justify-between gap-4">
           {request === null ? (
             <>
               <p className="min-w-0 text-sm">
                 <span className="block text-xs text-muted-foreground">Beds from</span>
-                <Money amount={nightlyFrom} suffix=" /night" className="text-lg font-bold" />
+                <Money amount={nightlyFrom} suffix=" /night" className="text-xl font-semibold tracking-tight" />
               </p>
               <a href="#book" className={buttonVariants({ size: "lg" })}>
                 Select rooms
@@ -224,7 +264,7 @@ export function StayBookingPanel({ slug, nightlyFrom }: { slug: string; nightlyF
                 <span className="block text-xs text-muted-foreground">Payable now</span>
                 {summary ? (
                   <span className={pending ? "opacity-60" : undefined}>
-                    <Money amount={summary.payable_now_inr} className="text-lg font-bold" />
+                    <Money amount={summary.payable_now_inr} className="text-xl font-semibold tracking-tight" />
                   </span>
                 ) : quote.isError || availability.isError ? (
                   <span className="block font-semibold text-danger-foreground">Price unavailable</span>
@@ -241,30 +281,37 @@ export function StayBookingPanel({ slug, nightlyFrom }: { slug: string; nightlyF
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl pb-[env(safe-area-inset-bottom)]">
-          <SheetHeader className="pb-0">
-            <SheetTitle>Your stay</SheetTitle>
-            <SheetDescription>Check the price, then book.</SheetDescription>
+        <SheetContent
+          side="bottom"
+          showCloseButton={false}
+          className="max-h-[85dvh] gap-0 overflow-y-auto rounded-t-3xl pb-[env(safe-area-inset-bottom)]"
+        >
+          <SheetHeader className="flex-row items-start justify-between gap-4 px-6 pt-6 pb-2">
+            <div className="min-w-0">
+              <SheetTitle className="text-lg font-bold">Your stay</SheetTitle>
+              <SheetDescription>Check the price, then book.</SheetDescription>
+            </div>
+            <SheetClose render={<Button type="button" variant="ghost" size="icon-lg" className="-mt-2 -mr-2 shrink-0" />}>
+              <XIcon aria-hidden />
+              <span className="sr-only">Close</span>
+            </SheetClose>
           </SheetHeader>
-          <div className="px-5 pb-5">{summaryCard(true)}</div>
+          <div className="px-6 pb-6">{summaryCard(true)}</div>
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   );
 }
 
 /** Server-render placeholder with the panel's footprint (the panel reads the URL, so it renders in the browser). */
 export function StayBookingPanelSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="space-y-4 rounded-3xl bg-card p-5 ring-1 ring-border sm:p-6">
+    <div role="status" aria-busy="true" className="space-y-6 rounded-3xl bg-card p-6 ring-1 ring-border sm:p-7">
       <span className="sr-only">Loading booking</span>
       <Skeleton className="h-7 w-40" />
-      <div className="grid grid-cols-2 gap-2">
-        <Skeleton className="h-11 rounded-xl" />
-        <Skeleton className="h-11 rounded-xl" />
-      </div>
-      <Skeleton className="h-40 w-full rounded-2xl" />
-      <Skeleton className="h-40 w-full rounded-2xl" />
+      <Skeleton className="h-[4.5rem] rounded-2xl" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
+      <Skeleton className="h-24 w-full rounded-2xl" />
     </div>
   );
 }

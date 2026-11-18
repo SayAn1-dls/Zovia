@@ -1,4 +1,5 @@
-import { deliverToTeam } from "@/server/email";
+import { contactInbox, deliverToTeam } from "@/server/email";
+import { isOwnInbox } from "@/server/email/inbox";
 import { createHandler, created, errors } from "@/server/http";
 import { serializeError } from "@/server/logger";
 
@@ -25,6 +26,19 @@ export const POST = createHandler(
       throw errors.validation(
         { formErrors: ["Your message could not be accepted. Please reload the page and try again."], fieldErrors: {} },
         "Your message could not be accepted. Please reload the page and try again.",
+      );
+    }
+
+    // The inbox that receives every message may not be typed as the sender: the "reply" would loop
+    // back to it. Same-mailbox spellings (Gmail dots, +tags) count. Nothing is stored or sent.
+    if (isOwnInbox(body.email, contactInbox())) {
+      log.warn("contact.own_inbox_as_sender");
+      throw errors.validation(
+        {
+          formErrors: [],
+          fieldErrors: { email: ["Use your own e-mail address. This one can't be used to contact us."] },
+        },
+        "Use your own e-mail address. This one can't be used to contact us.",
       );
     }
 

@@ -83,6 +83,7 @@ export const publicStaticPaths = [
   { path: "/list-your-property", priority: 0.8, changeFrequency: "monthly" },
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
   { path: "/safety", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/get-the-app", priority: 0.4, changeFrequency: "yearly" },
   { path: "/contact", priority: 0.4, changeFrequency: "yearly" },
   { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
   { path: "/terms", priority: 0.3, changeFrequency: "yearly" },

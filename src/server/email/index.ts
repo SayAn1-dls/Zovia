@@ -4,6 +4,8 @@ import { site } from "@/lib/site";
 import { env } from "@/server/env";
 import { logger } from "@/server/logger";
 
+import { OWNER_INBOX } from "./inbox";
+
 /**
  * Transactional e-mail behind one interface (spec section 8). The result always says what
  * really happened: "sent" only when the provider accepted the message.
@@ -99,7 +101,7 @@ export function getEmailProvider(): EmailProvider {
  * developer's address never appears in the browser bundle.
  */
 export function contactInbox(): string {
-  return process.env.CONTACT_INBOX?.trim() || "sayanbhattacharya2024@gmail.com";
+  return process.env.CONTACT_INBOX?.trim() || OWNER_INBOX;
 }
 
 const FORMSUBMIT_ENDPOINT = "https://formsubmit.co/ajax/";

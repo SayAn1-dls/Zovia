@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/features/properties/components/native-select";
-import { sendMessage } from "@/lib/send-message";
+import { fieldError, sendMessage } from "@/lib/send-message";
 
 import { SHARING_LABELS, type SharingType } from "../listings";
 
@@ -59,6 +59,15 @@ export function VisitRequestForm({
         values.message.trim() || "I'd like to visit and know about availability.",
       ].join("\n"),
     });
+    if (!result.ok) {
+      // A field the server refused (for example the address this site delivers to) is shown on that field.
+      const emailError = fieldError(result.details, "email");
+      if (emailError) {
+        setErrors((current) => ({ ...current, email: emailError }));
+        setState("idle");
+        return;
+      }
+    }
     setState(result.ok ? "sent" : "failed");
   }
 

@@ -11,6 +11,15 @@ export type SendOutcome =
   | { ok: true }
   | { ok: false; status: number; code?: string; message?: string; details?: unknown; requestId?: string };
 
+/** First message for `field` in a validation error's `details.fieldErrors`, or null when there is none. */
+export function fieldError(details: unknown, field: string): string | null {
+  if (typeof details !== "object" || details === null) return null;
+  const fieldErrors = (details as { fieldErrors?: unknown }).fieldErrors;
+  if (typeof fieldErrors !== "object" || fieldErrors === null) return null;
+  const messages = (fieldErrors as Record<string, unknown>)[field];
+  return Array.isArray(messages) && typeof messages[0] === "string" ? messages[0] : null;
+}
+
 type Envelope =
   | { ok: true; data?: unknown }
   | { ok: false; error?: { code?: string; message?: string; details?: unknown; request_id?: string } };

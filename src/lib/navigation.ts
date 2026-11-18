@@ -19,6 +19,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Smartphone,
   SlidersHorizontal,
   Sparkles,
   Star,
@@ -52,6 +53,7 @@ export const routes = {
   terms: route("/terms"),
   safety: route("/safety"),
   listYourProperty: route("/list-your-property"),
+  getTheApp: route("/get-the-app"),
 
   // Auth
   signIn: route("/sign-in"),
@@ -297,6 +299,7 @@ export const footerNav = [
       { label: "About", href: routes.about, icon: FileText },
       { label: "Safety", href: routes.safety, icon: ShieldCheck },
       { label: "Contact", href: routes.contact, icon: Mail },
+      { label: "Get the app", href: routes.getTheApp, icon: Smartphone },
     ],
   },
   {

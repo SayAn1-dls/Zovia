@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { sendMessage } from "@/lib/send-message";
+import { site } from "@/lib/site";
 
 import {
   contactFormDefaults,
@@ -56,6 +57,8 @@ export function ContactForm() {
     mode: "onTouched",
   });
   const [sent, setSent] = useState(false);
+  /** False when the message was saved but the e-mail to the inbox did not go out. */
+  const [emailed, setEmailed] = useState(true);
   const [failure, setFailure] = useState<Failure | null>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const { isSubmitting } = form.formState;
@@ -73,6 +76,7 @@ export function ContactForm() {
     }
     const result = await sendMessage(toContactPayload(values));
     if (result.ok) {
+      setEmailed(result.emailed);
       setSent(true);
       form.reset(contactFormDefaults);
       return;
@@ -92,8 +96,20 @@ export function ContactForm() {
         <CircleCheck className="size-7 text-success-foreground" aria-hidden />
         <h2 className="mt-3 text-display-sm font-extrabold text-success-foreground">Message sent</h2>
         <p className="mt-2 max-w-sm text-[0.9375rem] text-success-foreground">
-          Thanks for writing in. Your message is in the developer&apos;s inbox, and the reply will come to the
-          e-mail address you entered.
+          {emailed ? (
+            <>
+              Thanks for writing in. Your message is in the developer&apos;s inbox, and the reply will come to the
+              e-mail address you entered.
+            </>
+          ) : (
+            <>
+              Thanks for writing in. Your message is saved and the team will read it. In a hurry? Write to{" "}
+              <a href={`mailto:${site.supportEmail}`} className="font-semibold underline underline-offset-4">
+                {site.supportEmail}
+              </a>
+              .
+            </>
+          )}
         </p>
         <Button variant="outline" size="lg" className="mt-6" onClick={() => setSent(false)}>
           Send another message

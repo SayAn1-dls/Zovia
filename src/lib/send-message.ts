@@ -8,7 +8,8 @@
 export type OutgoingMessage = { name: string; email: string; phone?: string; subject: string; message: string; website?: string };
 
 export type SendOutcome =
-  | { ok: true }
+  /** `emailed` is true when the message really reached the inbox by e-mail; false when it was only saved. */
+  | { ok: true; emailed: boolean }
   | { ok: false; status: number; code?: string; message?: string; details?: unknown; requestId?: string };
 
 /** First message for `field` in a validation error's `details.fieldErrors`, or null when there is none. */
@@ -38,7 +39,10 @@ export async function sendMessage(payload: OutgoingMessage): Promise<SendOutcome
     response = null;
   }
 
-  if (response?.ok && envelope?.ok) return { ok: true };
+  if (response?.ok && envelope?.ok) {
+    const data = envelope.data as { team_notified?: unknown } | undefined;
+    return { ok: true, emailed: data?.team_notified === true };
+  }
 
   const status = response?.status ?? 0;
   const error = envelope && !envelope.ok ? envelope.error : undefined;

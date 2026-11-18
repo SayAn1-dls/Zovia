@@ -22,11 +22,22 @@ function optional(raw: string | undefined): string | null {
   return value ? value : null;
 }
 
-/** Digits only, as wa.me expects (country code included, no "+"). */
-function normaliseWhatsAppNumber(raw: string | undefined): string | null {
-  const digits = (raw ?? "").replace(/\D/g, "");
+/**
+ * Digits only, as wa.me expects: country code included, no "+", no leading zeros. wa.me rejects a
+ * number without its country code ("phone number is invalid"), and an Indian mobile is very often
+ * typed without 91, so a bare 10-digit number starting 6-9, or one written with a leading 0 or 00,
+ * is completed with India's code. Anything else is kept as typed.
+ */
+export function normaliseWhatsAppNumber(raw: string | undefined): string | null {
+  let digits = (raw ?? "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (/^0[6-9]\d{9}$/.test(digits)) digits = digits.slice(1);
+  if (/^[6-9]\d{9}$/.test(digits)) digits = `91${digits}`;
   return digits.length >= 8 ? digits : null;
 }
+
+/** The address people may write to directly. Public on purpose: the owner wants visitors to reach them. */
+const DEFAULT_SUPPORT_EMAIL = "sayan.bh.work@gmail.com";
 
 export const site = {
   name: "Zovia",
@@ -37,8 +48,8 @@ export const site = {
   url: normaliseSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   locale: "en_IN",
   themeColor: "#f6f4ee",
-  /** null when NEXT_PUBLIC_SUPPORT_EMAIL is unset: hide the e-mail, never invent one. */
-  supportEmail: optional(process.env.NEXT_PUBLIC_SUPPORT_EMAIL),
+  /** Shown in the footer and on the contact page. NEXT_PUBLIC_SUPPORT_EMAIL overrides the owner's address. */
+  supportEmail: optional(process.env.NEXT_PUBLIC_SUPPORT_EMAIL) ?? DEFAULT_SUPPORT_EMAIL,
   /** null when NEXT_PUBLIC_WHATSAPP_NUMBER is unset: the support button is hidden. */
   whatsappNumber: normaliseWhatsAppNumber(
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER,

@@ -37,9 +37,11 @@ export default function ContactPage() {
           <p>In an emergency, call 112 first.</p>
           {site.supportEmail ? (
             <p>
+              Prefer e-mail? Write to{" "}
               <a href={`mailto:${site.supportEmail}`} className={`${linkClass} break-all`}>
                 {site.supportEmail}
               </a>
+              .
             </p>
           ) : null}
           <WhatsAppSupportButton />

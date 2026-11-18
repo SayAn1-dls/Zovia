@@ -92,6 +92,10 @@ export const POST = createHandler(
     if (!teamNotified && !id) {
       throw errors.unavailable("We couldn't send your message right now. Please try again in a minute.");
     }
-    return created({ id, team_notified: teamNotified });
+    // `mail_status` tells the operator why a message was only saved ("needs_activation": FormSubmit is
+    // waiting for its one-time activation e-mail to be clicked). It names no address and no secret.
+    const mailStatus =
+      delivery.status === "sent" ? "sent" : delivery.status === "skipped" ? "not_configured" : delivery.error;
+    return created({ id, team_notified: teamNotified, mail_status: mailStatus });
   },
 );

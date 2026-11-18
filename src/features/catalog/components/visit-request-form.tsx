@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { NativeSelect } from "@/features/properties/components/native-select";
 import { fieldError, sendMessage } from "@/lib/send-message";
+import { site } from "@/lib/site";
 
 import { SHARING_LABELS, type SharingType } from "../listings";
 
@@ -40,6 +41,8 @@ export function VisitRequestForm({
   const [errors, setErrors] = useState<Partial<Record<keyof typeof values, string>>>({});
   const [state, setState] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [failure, setFailure] = useState<string | null>(null);
+  /** False when the request was saved but the e-mail to the inbox did not go out. */
+  const [emailed, setEmailed] = useState(true);
 
   const set = (key: keyof typeof values) => (event: { target: { value: string } }) =>
     setValues((current) => ({ ...current, [key]: event.target.value }));
@@ -79,6 +82,7 @@ export function VisitRequestForm({
       }
     }
     if (!result.ok) setFailure(failureMessage(result));
+    else setEmailed(result.emailed);
     setState(result.ok ? "sent" : "failed");
   }
 
@@ -90,6 +94,15 @@ export function VisitRequestForm({
         <p className="mt-1 text-sm">
           We&apos;ll confirm availability and a visit time with the owner, then reply to {values.email} or call you.
         </p>
+        {emailed ? null : (
+          <p className="mt-2 text-sm">
+            Your question is saved. In a hurry? Write to{" "}
+            <a href={`mailto:${site.supportEmail}`} className="font-semibold underline underline-offset-4">
+              {site.supportEmail}
+            </a>
+            .
+          </p>
+        )}
       </div>
     );
   }
